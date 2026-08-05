@@ -1,0 +1,56 @@
+{
+  "name": "loveza-near-me",
+  "author": "Loveza Finder",
+  "version": "1.0.0",
+  "description": "ตามหา Loveza - ค้นหาและแจ้งพิกัดร้านที่พบเครื่องดื่ม Loveza",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3300",
+    "start": "next start -p 3300",
+    "build": "next build",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
+    "type-check": "tsc --noEmit",
+    "fm:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx}\"",
+    "fm:fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
+    "fix:all": "npm run lint:fix && npm run fm:fix",
+    "clean": "rm -rf node_modules .next out dist build"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
+    "@mui/material-nextjs": "^7.3.6",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.87.1",
+    "dayjs": "^1.11.19",
+    "next": "^16.0.10",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-hook-form": "^7.68.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-perfectionist": "^4.15.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.49.0"
+  }
+}
