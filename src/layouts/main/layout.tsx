@@ -3,23 +3,31 @@
 import type { Breakpoint } from '@mui/material/styles';
 import type { FooterProps } from './footer';
 import type { NavMainProps } from './nav/types';
+import type { LovezaHeaderUser } from '../components/loveza-header-account';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
 import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 
 import { usePathname } from 'src/routes/hooks';
 
+import { signOutAction } from 'src/app/auth/actions';
+
 import { Logo } from 'src/components/logo';
+
+import { useAuthContext } from 'src/auth/hooks';
 
 import { Footer } from './footer';
 import { NavMobile } from './nav/mobile';
 import { NavDesktop } from './nav/desktop';
+import { getMainNavData } from '../nav-config-main';
+import { LovezaBottomNav } from './loveza-bottom-nav';
 import { MenuButton } from '../components/menu-button';
-import { navData as mainNavData } from '../nav-config-main';
 import { MainSection, LayoutSection, HeaderSection } from '../core';
+import { LovezaHeaderAccount } from '../components/loveza-header-account';
 
 // ----------------------------------------------------------------------
 
@@ -27,6 +35,7 @@ type LayoutBaseProps = Pick<LayoutSectionProps, 'sx' | 'children' | 'cssVars'>;
 
 export type MainLayoutProps = LayoutBaseProps & {
   layoutQuery?: Breakpoint;
+  initialUser?: LovezaHeaderUser | null;
   slotProps?: {
     header?: HeaderSectionProps;
     nav?: {
@@ -42,15 +51,31 @@ export function MainLayout({
   cssVars,
   children,
   slotProps,
+  initialUser,
   layoutQuery = 'md',
 }: MainLayoutProps) {
   const pathname = usePathname();
+  const { user: authUser } = useAuthContext();
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
 
   const isHomePage = pathname === '/';
 
-  const navData = slotProps?.nav?.data ?? mainNavData;
+  const contextUser: LovezaHeaderUser | null = authUser
+    ? {
+        displayName:
+          authUser.user_metadata?.full_name ??
+          authUser.user_metadata?.name ??
+          authUser.email ??
+          'Loveza User',
+        email: authUser.email ?? '',
+        photoURL: authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '',
+        role: authUser.app_metadata?.role ?? 'user',
+      }
+    : null;
+  const headerUser = initialUser ?? contextUser;
+  const navData =
+    slotProps?.nav?.data ?? getMainNavData(Boolean(headerUser), headerUser?.role);
 
   const renderHeader = () => {
     const headerSlots: HeaderSectionProps['slots'] = {
@@ -70,7 +95,29 @@ export function MainLayout({
               [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
             })}
           />
-          <NavMobile data={navData} open={open} onClose={onClose} />
+          <NavMobile
+            data={navData}
+            open={open}
+            onClose={onClose}
+            slots={{
+              bottomArea: headerUser ? (
+                <Box sx={{ p: 2.5 }}>
+                  <LovezaHeaderAccount user={headerUser} mobile />
+                  <Box component="form" action={signOutAction} sx={{ mt: 1 }}>
+                    <Button type="submit" color="inherit" fullWidth>
+                      ออกจากระบบ
+                    </Button>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ p: 2.5 }}>
+                  <Button href="/auth/login" variant="contained" fullWidth>
+                    เข้าสู่ระบบด้วย Google
+                  </Button>
+                </Box>
+              ),
+            }}
+          />
 
           {/** @slot Logo */}
           <Logo />
@@ -84,14 +131,16 @@ export function MainLayout({
             sx={(theme) => ({
               display: 'none',
               [theme.breakpoints.up(layoutQuery)]: {
-                mr: 2.5,
+                mr: 1.5,
                 display: 'flex',
+                '& ul': { gap: { md: 1.5, lg: 2.5 } },
                 ...(isHomePage && { '& button span': { color: '#405135' } }),
               },
             })}
           />
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+            {headerUser ? <LovezaHeaderAccount user={headerUser} /> : null}
             {/** @slot Settings button */}
             {/* <SettingsButton /> */}
 
@@ -130,7 +179,17 @@ export function MainLayout({
   const renderFooter = () =>
     isHomePage ? null : <Footer sx={slotProps?.footer?.sx} layoutQuery={layoutQuery} />;
 
-  const renderMain = () => <MainSection {...slotProps?.main}>{children}</MainSection>;
+  const renderMain = () => (
+    <MainSection
+      {...slotProps?.main}
+      sx={[
+        { pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', md: 0 } },
+        ...(Array.isArray(slotProps?.main?.sx) ? slotProps.main.sx : [slotProps?.main?.sx]),
+      ]}
+    >
+      {children}
+    </MainSection>
+  );
 
   return (
     <LayoutSection
@@ -149,6 +208,7 @@ export function MainLayout({
       sx={sx}
     >
       {renderMain()}
+      <LovezaBottomNav user={headerUser} />
     </LayoutSection>
   );
 }

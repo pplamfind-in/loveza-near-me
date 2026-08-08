@@ -63,7 +63,10 @@ async function hashNonce(value: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({
+  clientId,
+  nextPath,
+}: GoogleLoginButtonProps) {
   const router = useRouter();
   const buttonRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef('');
@@ -76,7 +79,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
       setLoading(true);
       setError(null);
 
-      const { error: signInError } = await supabase.auth.signInWithIdToken({
+      const { data, error: signInError } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: credential,
         nonce: nonceRef.current,
@@ -88,7 +91,11 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
         return;
       }
 
-      router.replace(getSafeRedirectPath(nextPath, '/account'));
+      const role = data.user?.app_metadata.role ?? 'user';
+      const safeUserPath = getSafeRedirectPath(nextPath, '/account');
+      const userPath = safeUserPath.startsWith('/admin') ? '/account' : safeUserPath;
+
+      router.replace(role === 'admin' ? '/admin' : userPath);
       router.refresh();
     },
     [nextPath, router]

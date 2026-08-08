@@ -4,6 +4,8 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { Iconify } from 'src/components/iconify';
+
 const finderSteps = [
   {
     number: '01',
@@ -52,6 +54,25 @@ function MapPreview() {
         backgroundSize: 'auto, auto, 48px 48px, 48px 48px',
       }}
     >
+      <Box
+        sx={{
+          top: 20,
+          left: 20,
+          zIndex: 2,
+          px: 1.5,
+          py: 0.75,
+          display: 'flex',
+          gap: 0.75,
+          position: 'absolute',
+          alignItems: 'center',
+          borderRadius: 99,
+          bgcolor: 'rgba(255,255,255,.88)',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        <Iconify icon="ri:map-2-fill" width={16} sx={{ color: '#00a99d' }} />
+        <Typography sx={{ fontSize: 11, fontWeight: 900 }}>ตัวอย่างหน้าค้นหา</Typography>
+      </Box>
       {[
         { top: '15%', left: '23%', color: '#ef2382' },
         { top: '27%', right: '19%', color: '#6a40a5' },
@@ -120,7 +141,7 @@ function MapPreview() {
 
 export function FinderSection() {
   return (
-    <Box component="section" id="finder" sx={{ px: { xs: 1.5, sm: 3 }, pb: { xs: 8, md: 11 } }}>
+    <Box component="section" id="finder" sx={{ px: { xs: 1.5, sm: 3 }, pt: { xs: 4, md: 8 }, pb: { xs: 4, md: 6 } }}>
       <Container
         maxWidth="xl"
         sx={{
@@ -159,20 +180,31 @@ export function FinderSection() {
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 4 }}>
               <Button
-                href="#how-it-works"
+                href="/nearby"
                 variant="contained"
+                startIcon={<Iconify icon="ri:navigation-fill" />}
                 sx={{ px: 3, py: 1.45, borderRadius: 99, bgcolor: '#ef2382', '&:hover': { bgcolor: '#d91873' } }}
               >
-                ดูวิธีการทำงาน ↓
+                ค้นหาใกล้ฉัน
               </Button>
-              <Button href="/auth/user" sx={{ px: 3, py: 1.45, color: '#55296f', borderRadius: 99 }}>
-                Login Google เพื่อแจ้งพิกัด
+              <Button
+                href="/report"
+                startIcon={<Iconify icon="ri:edit-2-fill" />}
+                sx={{ px: 3, py: 1.45, color: '#55296f', borderRadius: 99 }}
+              >
+                เจอ Loveza แจ้งพิกัด
               </Button>
             </Stack>
 
             <Stack direction="row" spacing={2.5} sx={{ mt: 4, color: '#6c7080' }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 800 }}>● GPS บนมือถือ</Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 800 }}>● ข้อมูลสต็อกล่าสุด</Typography>
+              <Stack direction="row" spacing={0.6} alignItems="center">
+                <Iconify icon="ri:smartphone-fill" width={16} sx={{ color: '#00a99d' }} />
+                <Typography sx={{ fontSize: 12, fontWeight: 800 }}>GPS บนมือถือ</Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.6} alignItems="center">
+                <Iconify icon="ri:time-fill" width={16} sx={{ color: '#ef2382' }} />
+                <Typography sx={{ fontSize: 12, fontWeight: 800 }}>ข้อมูลสต็อกล่าสุด</Typography>
+              </Stack>
             </Stack>
           </Box>
 

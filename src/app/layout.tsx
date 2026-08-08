@@ -12,6 +12,7 @@ import { CONFIG } from 'src/global-config';
 import { LocalizationProvider } from 'src/locales';
 import { detectLanguage } from 'src/locales/server';
 import { I18nProvider } from 'src/locales/i18n-provider';
+import { QueryProvider } from 'src/lib/react-query/query-provider';
 import { themeConfig, ThemeProvider, primary as primaryColor } from 'src/theme';
 
 import { Snackbar } from 'src/components/snackbar';
@@ -127,7 +128,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       <Snackbar />
                       <ProgressBar />
                       <SettingsDrawer defaultSettings={defaultSettings} />
-                      {children}
+                      <QueryProvider>{children}</QueryProvider>
                       <CookieConsent initialConsent={appConfig.cookieConsent ?? null} />
                     </MotionLazy>
                   </ThemeProvider>

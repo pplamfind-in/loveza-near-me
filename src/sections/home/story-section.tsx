@@ -3,16 +3,18 @@ import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { Iconify } from 'src/components/iconify';
+
 const benefits = [
-  { title: 'วิตามินบี', body: 'ผสมวิตามิน B3, B6 และ B12', color: '#ffdd3f', icon: 'B' },
-  { title: '330 ml', body: 'กระป๋องสลิม ดื่มง่าย เย็นไว', color: '#82e4dd', icon: '↕' },
-  { title: '3 รสชาติ', body: 'เลือกความสดชื่นที่ใช่สำหรับคุณ', color: '#ff9bc9', icon: '3' },
-  { title: 'พร้อมส่ง', body: 'เปิดกระป๋อง พร้อมซ่าได้ทันที', color: '#6940a5', icon: '✦' },
+  { title: 'วิตามินบี', body: 'ผสมวิตามิน B3, B6 และ B12', color: '#ffdd3f', icon: 'ri:capsule-fill' },
+  { title: '330 ml', body: 'กระป๋องสลิม ดื่มง่าย เย็นไว', color: '#82e4dd', icon: 'ri:drinks-2-fill' },
+  { title: '3 รสชาติ', body: 'เลือกความสดชื่นที่ใช่สำหรับคุณ', color: '#ff9bc9', icon: 'ri:contrast-drop-2-fill' },
+  { title: 'พร้อมส่ง', body: 'เปิดกระป๋อง พร้อมซ่าได้ทันที', color: '#6940a5', icon: 'ri:flashlight-fill' },
 ];
 
 export function StorySection() {
   return (
-    <Box component="section" id="about" sx={{ py: { xs: 10, md: 15 } }}>
+    <Box component="section" id="about" sx={{ py: { xs: 9, md: 13 } }}>
       <Container maxWidth="lg">
         <Box
           sx={{
@@ -65,7 +67,7 @@ export function StorySection() {
                   '&:hover': { transform: index % 2 ? 'translateY(12px)' : 'translateY(-8px)' },
                 }}
               >
-                <Typography sx={{ fontSize: 34, lineHeight: 1 }}>{item.icon}</Typography>
+                <Iconify icon={item.icon} width={34} />
                 <Typography sx={{ mt: 4, fontSize: { xs: 18, sm: 23 }, fontWeight: 900 }}>{item.title}</Typography>
                 <Typography sx={{ mt: 0.5, opacity: 0.72 }}>{item.body}</Typography>
               </Box>

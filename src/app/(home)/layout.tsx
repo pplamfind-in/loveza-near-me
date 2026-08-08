@@ -1,9 +1,9 @@
-import { MainLayout } from 'src/layouts/main';
+import { LovezaMainLayout } from 'src/layouts/main/loveza-layout';
 
 type Props = {
   children: React.ReactNode;
 };
 
-export default function Layout({ children }: Props) {
-  return <MainLayout slotProps={{ footer: { sx: { display: 'none' } } }}>{children}</MainLayout>;
+export default async function Layout({ children }: Props) {
+  return <LovezaMainLayout>{children}</LovezaMainLayout>;
 }

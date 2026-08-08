@@ -1,3 +1,5 @@
+import type { LovezaProduct } from 'src/types/loveza-product';
+
 import Box from '@mui/material/Box';
 
 import { HeroSection } from '../hero-section';
@@ -6,7 +8,11 @@ import { FooterSection } from '../footer-section';
 import { FinderSection } from '../finder-section';
 import { FlavorsSection } from '../flavors-section';
 
-export function HomeView() {
+type HomeViewProps = {
+  products: LovezaProduct[];
+};
+
+export function HomeView({ products }: HomeViewProps) {
   return (
     <Box
       sx={{
@@ -17,9 +23,9 @@ export function HomeView() {
       }}
     >
       <HeroSection />
-      <StorySection />
-      <FlavorsSection />
       <FinderSection />
+      <FlavorsSection products={products} />
+      <StorySection />
       <FooterSection />
     </Box>
   );

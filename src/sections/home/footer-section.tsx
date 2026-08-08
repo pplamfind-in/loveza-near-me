@@ -13,11 +13,10 @@ export function FooterSection() {
             LOVE ZA<span style={{ color: '#ef2382' }}>!</span>
           </Typography>
           <Stack direction="row" spacing={{ xs: 2, sm: 4 }}>
-            <Link href="#about" color="inherit" underline="hover">เรื่องของเรา</Link>
-            <Link href="#flavors" color="inherit" underline="hover">รสชาติ</Link>
-            <Link href="#finder" color="inherit" underline="hover">ค้นหาร้าน</Link>
-            <Link href="#how-it-works" color="inherit" underline="hover">แจ้งพิกัด</Link>
-            <Link href="/auth/user" color="inherit" underline="hover">เข้าสู่ระบบ</Link>
+            <Link href="/#about" color="inherit" underline="hover">เรื่องของเรา</Link>
+            <Link href="/#flavors" color="inherit" underline="hover">รสชาติ</Link>
+            <Link href="/nearby" color="inherit" underline="hover">ค้นหาร้าน</Link>
+            <Link href="/report" color="inherit" underline="hover">แจ้งพิกัด</Link>
           </Stack>
           <Typography sx={{ color: '#8c9389', fontSize: 13 }}>© 2026 LOVEZA LOVE POTION. 330 ML.</Typography>
         </Stack>

@@ -1,19 +1,21 @@
+import type { LovezaProduct } from 'src/types/loveza-product';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { Iconify } from 'src/components/iconify';
+
 import { ProductCan } from './product-can';
 
-const flavors = [
-  { name: 'Honey Lemon', thaiName: 'รสน้ำผึ้งมะนาว', color: '#00a9dc', accent: '#087cae', fruit: '🍋', meta: 'VITAMIN B3 • B6 • B12' },
-  { name: 'Lychee', thaiName: 'รสลิ้นจี่', color: '#ee2c82', accent: '#00a99d', fruit: '🫧', meta: 'VITAMIN B3 • B6 • B12' },
-  { name: 'Kyoho Grape', thaiName: 'รสองุ่นเคียวโฮ', color: '#7245a3', accent: '#4d287e', fruit: '🍇', meta: 'VITAMIN B3 • B6 • B12' },
-];
+type FlavorsSectionProps = {
+  products: LovezaProduct[];
+};
 
-export function FlavorsSection() {
+export function FlavorsSection({ products }: FlavorsSectionProps) {
   return (
-    <Box component="section" id="flavors" sx={{ pb: { xs: 11, md: 16 } }}>
+    <Box component="section" id="flavors" sx={{ py: { xs: 9, md: 13 } }}>
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center' }}>
           <Typography sx={{ color: '#ef2382', fontWeight: 800, letterSpacing: 2, fontSize: 12 }}>
@@ -31,30 +33,45 @@ export function FlavorsSection() {
               overflowWrap: 'anywhere',
             }}
           >
-            3 รสชาติ พร้อมส่ง
+            {products.length} รสชาติ พร้อมส่ง
           </Typography>
         </Box>
 
         <Box sx={{ mt: { xs: 4, md: 6 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 2, md: 1 } }}>
-          {flavors.map((flavor) => (
-            <Box key={flavor.name}>
-              <ProductCan {...flavor} />
+          {products.map((product) => (
+            <Box key={product.id}>
+              <ProductCan
+                name={product.name}
+                thaiName={product.thai_name}
+                color={product.color}
+                accent={product.accent}
+                fruit={product.fruit}
+                meta={product.meta}
+                imageUrl={product.image_url}
+              />
               <Box sx={{ textAlign: 'center' }}>
                 <Button
                   href="#finder"
                   sx={{
                     px: 2.5,
-                    color: flavor.accent,
+                    color: product.accent,
                     fontWeight: 800,
                     borderRadius: 99,
-                    bgcolor: `${flavor.accent}14`,
+                    bgcolor: `${product.accent}14`,
                   }}
                 >
-                  {flavor.name} &nbsp; ↗
+                  {product.name}
+                  <Iconify icon="ri:arrow-right-up-line" width={18} sx={{ ml: 0.75 }} />
                 </Button>
               </Box>
             </Box>
           ))}
+
+          {products.length === 0 ? (
+            <Typography sx={{ gridColumn: '1 / -1', py: 8, color: 'text.secondary' }}>
+              กำลังเตรียมสินค้าใหม่ พบกันเร็ว ๆ นี้
+            </Typography>
+          ) : null}
         </Box>
       </Container>
     </Box>

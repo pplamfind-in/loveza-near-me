@@ -48,6 +48,11 @@ export type DashboardLayoutProps = LayoutBaseProps & {
     header?: HeaderSectionProps;
     nav?: {
       data?: NavSectionProps['data'];
+      hideWorkspace?: boolean;
+      slots?: {
+        topArea?: React.ReactNode;
+        bottomArea?: React.ReactNode;
+      };
     };
     main?: MainSectionProps;
   };
@@ -119,6 +124,7 @@ export function DashboardLayout({
             data={navData}
             open={open}
             onClose={onClose}
+            slots={slotProps?.nav?.slots}
             cssVars={navVars.section}
             checkPermissions={canDisplayItemByRole}
           />
@@ -139,10 +145,12 @@ export function DashboardLayout({
           )}
 
           {/** @slot Workspace popover */}
-          <WorkspacesPopover
-            data={_workspaces}
-            sx={{ ...(isNavHorizontal && { color: 'var(--layout-nav-text-primary-color)' }) }}
-          />
+          {!slotProps?.nav?.hideWorkspace ? (
+            <WorkspacesPopover
+              data={_workspaces}
+              sx={{ ...(isNavHorizontal && { color: 'var(--layout-nav-text-primary-color)' }) }}
+            />
+          ) : null}
         </>
       ),
       rightArea: (
@@ -186,6 +194,7 @@ export function DashboardLayout({
       isNavMini={isNavMini}
       layoutQuery={layoutQuery}
       cssVars={navVars.section}
+      slots={slotProps?.nav?.slots}
       checkPermissions={canDisplayItemByRole}
       onToggleNav={() =>
         settings.setField(

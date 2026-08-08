@@ -6,13 +6,15 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { Iconify } from 'src/components/iconify';
+
 export function HeroSection() {
   return (
-    <Box component="section" id="home" sx={{ px: { xs: 1.5, sm: 3 }, pt: { xs: 11, md: 12 } }}>
+    <Box component="section" id="home" sx={{ px: { xs: 1.5, sm: 3 }, pt: { xs: 9, sm: 10, md: 12 } }}>
       <Box
         sx={{
           mx: 'auto',
-          minHeight: { xs: 650, sm: 620, md: 670 },
+          minHeight: { xs: 570, sm: 610, md: 670 },
           maxWidth: 1440,
           display: 'flex',
           overflow: 'hidden',
@@ -20,6 +22,7 @@ export function HeroSection() {
           borderRadius: { xs: '28px', md: '44px' },
           bgcolor: '#dff6ff',
           boxShadow: '0 28px 90px rgba(45, 132, 170, 0.18)',
+          '& img': { objectPosition: { xs: '64% center', sm: 'center', md: 'center' } },
         }}
       >
         <Image
@@ -28,7 +31,7 @@ export function HeroSection() {
           sizes="(max-width: 768px) 100vw, 1440px"
           alt="Loveza Love Potion vitamin soda in Honey Lemon, Lychee and Kyoho Grape"
           src="/assets/loveza/loveza-hero-v2.png"
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
+          style={{ objectFit: 'cover' }}
         />
 
         <Box
@@ -36,7 +39,7 @@ export function HeroSection() {
             inset: 0,
             position: 'absolute',
             background: {
-              xs: 'linear-gradient(180deg, rgba(230,248,255,.04) 20%, rgba(171,225,244,.95) 74%)',
+              xs: 'linear-gradient(180deg, rgba(230,248,255,.02) 10%, rgba(181,231,247,.72) 47%, rgba(176,228,245,.98) 76%)',
               md: 'linear-gradient(90deg, rgba(226,247,255,.98) 0%, rgba(220,244,253,.88) 40%, rgba(220,244,253,0) 68%)',
             },
           }}
@@ -44,7 +47,7 @@ export function HeroSection() {
 
         <Container
           maxWidth="xl"
-          sx={{ zIndex: 1, display: 'flex', alignItems: { xs: 'flex-end', md: 'center' }, py: 7 }}
+          sx={{ zIndex: 1, display: 'flex', alignItems: { xs: 'flex-end', md: 'center' }, py: { xs: 3.5, sm: 5, md: 7 } }}
         >
           <Box sx={{ maxWidth: 580, color: '#55296f' }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2.5 }}>
@@ -57,9 +60,9 @@ export function HeroSection() {
             <Typography
               component="h1"
               sx={{
-                fontSize: { xs: 54, sm: 74, md: 94 },
+                fontSize: { xs: 46, sm: 70, md: 94 },
                 fontWeight: 900,
-                lineHeight: 0.88,
+                lineHeight: { xs: 0.94, md: 0.88 },
                 letterSpacing: '-0.075em',
                 textShadow: '0 8px 32px rgba(76,105,0,.15)',
               }}
@@ -72,8 +75,8 @@ export function HeroSection() {
 
             <Typography
               sx={{
-                mt: 3,
-                maxWidth: { xs: 315, sm: 420 },
+                mt: { xs: 2, md: 3 },
+                maxWidth: { xs: 310, sm: 420 },
                 fontSize: { xs: 15, md: 18 },
                 lineHeight: 1.7,
                 overflowWrap: 'anywhere',
@@ -83,10 +86,11 @@ export function HeroSection() {
               สดชื่นเต็มกระป๋อง พร้อมส่งทั้ง 3 รสชาติ
             </Typography>
 
-            <Stack direction="row" spacing={1.5} sx={{ mt: 4 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: { xs: 2.5, md: 4 }, maxWidth: { xs: 300, sm: 'none' } }}>
               <Button
-                href="#finder"
+                href="/nearby"
                 variant="contained"
+                startIcon={<Iconify icon="ri:map-pin-2-fill" />}
                 sx={{
                   px: 3.25,
                   py: 1.4,
@@ -99,8 +103,12 @@ export function HeroSection() {
               >
                 ตามหา Loveza ใกล้ฉัน
               </Button>
-              <Button href="/auth/user" sx={{ color: '#55296f', borderRadius: 99, px: 2.5 }}>
-                Login เพื่อแจ้งพิกัด ↗
+              <Button
+                href="/report"
+                startIcon={<Iconify icon="ri:edit-2-fill" />}
+                sx={{ color: '#55296f', borderRadius: 99, px: 2.5, bgcolor: 'rgba(255,255,255,.5)' }}
+              >
+                เจอแล้ว แจ้งพิกัด
               </Button>
             </Stack>
           </Box>

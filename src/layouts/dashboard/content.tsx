@@ -41,7 +41,7 @@ export function DashboardContent({
           display: 'flex',
           flex: '1 1 auto',
           flexDirection: 'column',
-          pt: 'var(--layout-dashboard-content-pt)',
+          pt: '100px',
           pb: 'var(--layout-dashboard-content-pb)',
           [theme.breakpoints.up(layoutQuery)]: {
             px: 'var(--layout-dashboard-content-px)',
