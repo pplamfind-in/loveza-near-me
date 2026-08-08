@@ -1,47 +1,54 @@
-# ตามหา Loveza
-
-Mobile-first web app for finding stores that have Loveza in stock, and reporting sightings when you find one. Built with Next.js App Router, TypeScript, MUI, and Supabase.
-
 ## Prerequisites
 
-- Node.js >=22
-- A Supabase project (URL + anon key in `.env`)
+- Node.js >=22 (Recommended)
 
-## Setup
+## Installation
 
-```sh
-npm install
-```
-
-Run the database migration once against your Supabase project (SQL editor or `supabase db push`):
-
-```
-supabase/migrations/0001_init_loveza_schema.sql
-```
-
-That migration also creates the `report-images` storage bucket and RLS policies. To make yourself an admin (for `/admin`), sign up a user through Supabase Auth, then run:
-
-```sql
-insert into public.profiles (id, role) values ('<auth-user-uuid>', 'admin')
-on conflict (id) do update set role = 'admin';
-```
-
-## Development
+**Using Yarn (Recommended)**
 
 ```sh
+yarn install
+yarn dev
+```
+
+**Using Npm**
+
+```sh
+npm i
 npm run dev
 ```
 
-Runs on [http://localhost:3300](http://localhost:3300).
+## Build
 
-## Scripts
+```sh
+yarn build
+# or
+npm run build
+```
 
-- `npm run dev` — start the dev server
-- `npm run build` — production build
-- `npm run lint` / `npm run lint:fix` — ESLint
-- `npm run type-check` — TypeScript, no emit
-- `npm run fm:check` / `npm run fm:fix` — Prettier
+## Mock server
 
-## Routes
+By default we provide demo data from : `https://api-dev-minimal-[version].vercel.app`
 
-`/` · `/nearby` · `/store/[id]` · `/report` · `/latest` · `/admin`
+To set up your local server:
+
+- **Guide:** [https://docs.minimals.cc/mock-server](https://docs.minimals.cc/mock-server).
+
+- **Resource:** [Download](https://www.dropbox.com/scl/fo/bopqsyaatc8fbquswxwww/AKgu6V6ZGmxtu22MuzsL5L4?rlkey=8s55vnilwz2d8nsrcmdo2a6ci&dl=0).
+
+## Full version
+
+- Create React App ([migrate to CRA](https://docs.minimals.cc/migrate-to-cra/)).
+- Next.js
+- Vite.js
+
+## Starter version
+
+- To remove unnecessary components. This is a simplified version ([https://starter.minimals.cc/](https://starter.minimals.cc/))
+- Good to start a new project. You can copy components from the full version.
+- Make sure to install the dependencies exactly as compared to the full version.
+
+---
+
+**NOTE:**
+_When copying folders remember to also copy hidden files like .env. This is important because .env files often contain environment variables that are crucial for the application to run correctly._

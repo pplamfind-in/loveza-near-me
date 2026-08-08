@@ -1,19 +1,7 @@
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
+import { SplashScreen } from 'src/components/loading-screen';
 
 // ----------------------------------------------------------------------
 
 export default function Loading() {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        minHeight: '100dvh',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
+  return <SplashScreen />;
 }

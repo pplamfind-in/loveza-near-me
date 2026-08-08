@@ -1,59 +1,141 @@
 import 'src/global.css';
 
 import type { Metadata, Viewport } from 'next';
+import type { CookieConsentValue } from 'src/components/cookie-consent';
 
+import { cookies } from 'next/headers';
+
+import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 
 import { CONFIG } from 'src/global-config';
-import { ThemeProvider } from 'src/theme';
-import { primaryColor } from 'src/theme/palette';
+import { LocalizationProvider } from 'src/locales';
+import { detectLanguage } from 'src/locales/server';
+import { I18nProvider } from 'src/locales/i18n-provider';
+import { themeConfig, ThemeProvider, primary as primaryColor } from 'src/theme';
 
-import { ServiceWorkerRegister } from 'src/components/layout/service-worker-register';
+import { Snackbar } from 'src/components/snackbar';
+import { LocatorJS } from 'src/components/locator-js';
+import { ProgressBar } from 'src/components/progress-bar';
+import { CookieConsent } from 'src/components/cookie-consent';
+import { MotionLazy } from 'src/components/animate/motion-lazy';
+import { detectSettings } from 'src/components/settings/server';
+import { SettingsDrawer, defaultSettings, SettingsProvider } from 'src/components/settings';
+
+import { AuthProvider as JwtAuthProvider } from 'src/auth/context/jwt';
+import { AuthProvider as Auth0AuthProvider } from 'src/auth/context/auth0';
+import { AuthProvider as AmplifyAuthProvider } from 'src/auth/context/amplify';
+import { AuthProvider as SupabaseAuthProvider } from 'src/auth/context/supabase';
+import { AuthProvider as FirebaseAuthProvider } from 'src/auth/context/firebase';
 
 // ----------------------------------------------------------------------
+
+const AuthProvider =
+  (CONFIG.auth.method === 'amplify' && AmplifyAuthProvider) ||
+  (CONFIG.auth.method === 'firebase' && FirebaseAuthProvider) ||
+  (CONFIG.auth.method === 'supabase' && SupabaseAuthProvider) ||
+  (CONFIG.auth.method === 'auth0' && Auth0AuthProvider) ||
+  JwtAuthProvider;
+
+const OG_IMAGE_URL =
+  'https://res.cloudinary.com/dkdbilwtj/image/upload/v1781623827/og-images_wrlxnc.jpg';
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  themeColor: primaryColor,
+  themeColor: primaryColor.main,
 };
 
 export const metadata: Metadata = {
-  title: {
-    default: 'ตามหา Loveza ใกล้คุณ',
-    template: '%s | ตามหา Loveza',
-  },
-  description: 'ค้นหาและช่วยแจ้งพิกัดร้านที่พบเครื่องดื่ม Loveza ใกล้คุณ',
-  applicationName: CONFIG.appName,
+  icons: [
+    {
+      rel: 'icon',
+      url: `${CONFIG.assetsDir}/favicon.ico`,
+    },
+  ],
   openGraph: {
-    title: 'ตามหา Loveza ใกล้คุณ',
-    description: 'ค้นหาและช่วยแจ้งพิกัดร้านที่พบเครื่องดื่ม Loveza ใกล้คุณ',
-    siteName: CONFIG.appName,
-    locale: 'th_TH',
-    type: 'website',
+    images: [OG_IMAGE_URL],
   },
   twitter: {
-    card: 'summary',
-    title: 'ตามหา Loveza ใกล้คุณ',
-    description: 'ค้นหาและช่วยแจ้งพิกัดร้านที่พบเครื่องดื่ม Loveza ใกล้คุณ',
+    card: 'summary_large_image',
+    images: [OG_IMAGE_URL],
   },
 };
+
+// ----------------------------------------------------------------------
 
 type RootLayoutProps = {
   children: React.ReactNode;
 };
 
-export default function RootLayout({ children }: RootLayoutProps) {
+async function getAppConfig() {
+  if (CONFIG.isStaticExport) {
+    return {
+      lang: 'en',
+      i18nLang: undefined,
+      cookieSettings: undefined,
+      dir: defaultSettings.direction,
+      cookieConsent: null,
+    };
+  } else {
+    const [lang, settings, cookieStore] = await Promise.all([
+      detectLanguage(),
+      detectSettings(),
+      cookies(),
+    ]);
+
+    const consent = cookieStore.get('loveza_cookie_consent')?.value;
+    const cookieConsent: CookieConsentValue | null =
+      consent === 'all' || consent === 'necessary' ? consent : null;
+
+    return {
+      lang,
+      i18nLang: lang,
+      cookieSettings: settings,
+      dir: settings.direction,
+      cookieConsent,
+    };
+  }
+}
+
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const appConfig = await getAppConfig();
+
   return (
-    <html lang="th" suppressHydrationWarning>
+    <html lang={appConfig.lang} dir={appConfig.dir} suppressHydrationWarning>
       <body>
-        <AppRouterCacheProvider options={{ key: 'css' }}>
-          <ThemeProvider>
-            <ServiceWorkerRegister />
-            {children}
-          </ThemeProvider>
-        </AppRouterCacheProvider>
+        <InitColorSchemeScript
+          modeStorageKey={themeConfig.modeStorageKey}
+          attribute={themeConfig.cssVariables.colorSchemeSelector}
+          defaultMode={themeConfig.defaultMode}
+        />
+
+        <I18nProvider lang={appConfig.i18nLang}>
+          <AuthProvider>
+            <SettingsProvider
+              defaultSettings={defaultSettings}
+              cookieSettings={appConfig.cookieSettings}
+            >
+              <LocalizationProvider>
+                <AppRouterCacheProvider options={{ key: 'css' }}>
+                  <ThemeProvider
+                    modeStorageKey={themeConfig.modeStorageKey}
+                    defaultMode={themeConfig.defaultMode}
+                  >
+                    <MotionLazy>
+                      <LocatorJS />
+                      <Snackbar />
+                      <ProgressBar />
+                      <SettingsDrawer defaultSettings={defaultSettings} />
+                      {children}
+                      <CookieConsent initialConsent={appConfig.cookieConsent ?? null} />
+                    </MotionLazy>
+                  </ThemeProvider>
+                </AppRouterCacheProvider>
+              </LocalizationProvider>
+            </SettingsProvider>
+          </AuthProvider>
+        </I18nProvider>
       </body>
     </html>
   );
