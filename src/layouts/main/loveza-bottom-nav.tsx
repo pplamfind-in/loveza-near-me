@@ -62,7 +62,7 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
         position: 'fixed',
         borderRadius: '22px 22px 0 0',
         pb: 'env(safe-area-inset-bottom)',
-        borderTop: '1px solid rgba(106,64,165,.1)',
+        borderTop: '3px solid #351129',
       })}
     >
       <BottomNavigation
@@ -70,7 +70,7 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
         value={activePath ?? false}
         sx={{
           height: 68,
-          bgcolor: 'rgba(255,255,255,.96)',
+          bgcolor: '#FFF7FB',
           borderRadius: '22px 22px 0 0',
           '& .MuiBottomNavigationAction-root': {
             my: 0.75,
@@ -80,8 +80,10 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
             borderRadius: 2.5,
             transition: 'color 160ms ease, background-color 160ms ease',
             '&.Mui-selected': {
-              color: '#ef2382',
-              bgcolor: '#fff0f7',
+              color: '#351129',
+              bgcolor: '#FDE047',
+              border: '2px solid #351129',
+              boxShadow: '2px 2px 0 #351129',
               '& svg': { transform: 'translateY(-1px) scale(1.08)' },
             },
           },

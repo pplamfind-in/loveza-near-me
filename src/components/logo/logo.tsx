@@ -38,9 +38,13 @@ export function Logo({
   // const PRIMARY_DARKER = theme.vars.palette.primary.dark;
 
   const singleLogo = (
-    <span style={{ color: '#00a99d', fontSize: 20, fontWeight: 1000, letterSpacing: '-1.3px', whiteSpace: 'nowrap' }}>
-      LOVE ZA<span style={{ color: '#ef2382' }}>!</span>
-    </span>
+    <img
+      alt="Loveza"
+      src={`${CONFIG.assetsDir}/logo/logo-single.svg`}
+      width="100%"
+      height="100%"
+      style={{ display: 'block', objectFit: 'contain' }}
+    />
   );
 
   const fullLogo = (
@@ -191,8 +195,8 @@ export function Logo({
       className={mergeClasses([logoClasses.root, className])}
       sx={[
         {
-          width: 112,
-          height: 40,
+          width: 54,
+          height: 50,
           ...(!isSingle && { width: 102, height: 36 }),
           ...(disabled && { pointerEvents: 'none' }),
         },

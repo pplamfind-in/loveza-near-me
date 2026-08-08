@@ -15,6 +15,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
   revalidatePath('/admin');
   revalidatePath('/admin/locations');
+  revalidatePath('/admin/network');
   revalidatePath('/admin/users');
   revalidatePath('/nearby');
 

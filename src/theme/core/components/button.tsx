@@ -188,12 +188,16 @@ const MuiButtonBase: Components<Theme>['MuiButtonBase'] = {
 const MuiButton: Components<Theme>['MuiButton'] = {
   // ▼▼▼▼▼▼▼▼ ⚙️ PROPS ▼▼▼▼▼▼▼▼
   defaultProps: {
-    color: 'inherit',
+    color: 'primary',
     disableElevation: true,
   },
   // ▼▼▼▼▼▼▼▼ 🎨 STYLE ▼▼▼▼▼▼▼▼
   styleOverrides: {
-    root: {
+    root: ({ theme }) => ({
+      borderRadius: 999,
+      fontWeight: 800,
+      letterSpacing: '-0.01em',
+      transition: 'transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease',
       variants: [
         ...containedVariants,
         ...outlinedVariants,
@@ -201,8 +205,24 @@ const MuiButton: Components<Theme>['MuiButton'] = {
         ...softVariants,
         ...sizeVariants,
         ...disabledVariants,
+        {
+          props: (props) => props.variant === 'contained' && props.color === 'primary',
+          style: {
+            backgroundImage: `linear-gradient(135deg, ${theme.vars.palette.primary.main}, ${theme.vars.palette.secondary.main})`,
+            boxShadow: theme.vars.customShadows.primary,
+            '&:hover': {
+              transform: 'translateY(-1px)',
+              backgroundImage: `linear-gradient(135deg, ${theme.vars.palette.primary.dark}, ${theme.vars.palette.secondary.dark})`,
+              boxShadow: `0 12px 28px ${varAlpha(theme.vars.palette.primary.mainChannel, 0.3)}`,
+            },
+            '&:active': { transform: 'translateY(0)' },
+            [`&.${buttonClasses.disabled}`]: {
+              backgroundImage: 'none',
+            },
+          },
+        },
       ],
-    },
+    }),
   },
 };
 

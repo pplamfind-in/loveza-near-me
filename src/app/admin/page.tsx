@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 
 import { createClient } from 'src/lib/supabase/server';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { sumEstimatedQuantity, getPendingReportsCount } from 'src/lib/admin/stats';
 
 import { AdminOverview } from 'src/sections/admin/admin-overview';
 import { PendingReportsPanel } from 'src/sections/admin/pending-reports-panel';
@@ -13,14 +14,11 @@ export const metadata: Metadata = { title: 'Admin Dashboard | Loveza Near Me' };
 
 export default async function AdminPage() {
   const supabase = await createClient();
-  const [usersResult, storesResult, productsResult, pendingResult] = await Promise.all([
+  const [usersResult, storesResult, productsResult, pendingReports] = await Promise.all([
     supabase.rpc('admin_user_activity'),
     supabase.from('stores').select('estimated_quantity'),
     supabase.from('products').select('is_active'),
-    supabase
-      .from('reports')
-      .select('id', { count: 'exact', head: true })
-      .eq('approval_status', 'pending'),
+    getPendingReportsCount(supabase),
   ]);
 
   const stores = storesResult.data ?? [];
@@ -28,16 +26,13 @@ export default async function AdminPage() {
   const stats: AdminOverviewStats = {
     users: usersResult.data?.length ?? 0,
     locations: stores.length,
-    totalStock: stores.reduce(
-      (total, store) => total + Number(store.estimated_quantity ?? 0),
-      0
-    ),
+    totalStock: sumEstimatedQuantity(stores),
     products: products.length,
     activeProducts: products.filter((product) => product.is_active).length,
-    pendingReports: pendingResult.count ?? 0,
+    pendingReports: pendingReports.count,
   };
   const hasError = Boolean(
-    usersResult.error || storesResult.error || productsResult.error || pendingResult.error
+    usersResult.error || storesResult.error || productsResult.error || pendingReports.error
   );
 
   return (

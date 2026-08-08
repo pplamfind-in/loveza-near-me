@@ -1,0 +1,198 @@
+'use client';
+
+import { useState } from 'react';
+
+import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Slider from '@mui/material/Slider';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import {
+  MIN_RADIUS_M,
+  MAX_RADIUS_M,
+  RADIUS_OPTIONS_M,
+  formatDuplicateRadius,
+} from 'src/lib/admin/duplicate-radius';
+
+import { Iconify } from 'src/components/iconify';
+
+type AdminSettingsPanelProps = {
+  initialRadiusM: number;
+  updatedAt: string | null;
+  hasError?: boolean;
+};
+
+function getClosestRadiusIndex(radiusM: number) {
+  return RADIUS_OPTIONS_M.reduce(
+    (closestIndex, option, index) =>
+      Math.abs(option - radiusM) < Math.abs(RADIUS_OPTIONS_M[closestIndex] - radiusM)
+        ? index
+        : closestIndex,
+    0
+  );
+}
+
+export function AdminSettingsPanel({
+  initialRadiusM,
+  updatedAt,
+  hasError = false,
+}: AdminSettingsPanelProps) {
+  const [radiusM, setRadiusM] = useState(initialRadiusM);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(updatedAt);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleRadiusChange = (value: number) => {
+    setRadiusM(Math.min(MAX_RADIUS_M, Math.max(MIN_RADIUS_M, Math.round(value))));
+    setMessage(null);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ duplicateRadiusM: radiusM }),
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        settings?: { duplicateRadiusM: number; updatedAt: string };
+      };
+
+      if (!response.ok || !payload.settings) {
+        throw new Error(payload.error || 'บันทึกการตั้งค่าไม่สำเร็จ');
+      }
+
+      setRadiusM(payload.settings.duplicateRadiusM);
+      setLastUpdatedAt(payload.settings.updatedAt);
+      setMessage({ type: 'success', text: 'บันทึกระยะตรวจพิกัดซ้ำเรียบร้อยแล้ว' });
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'บันทึกการตั้งค่าไม่สำเร็จ',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Stack spacing={3}>
+      <Box>
+        <Typography component="h1" sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 900 }}>
+          ตั้งค่าระบบ
+        </Typography>
+        <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
+          กำหนดกติกาการรับพิกัดจากผู้ใช้งานทุกคน
+        </Typography>
+      </Box>
+
+      {hasError ? (
+        <Alert severity="error">
+          โหลดการตั้งค่าไม่สำเร็จ กรุณาตรวจสอบว่าได้รัน migration ล่าสุดแล้ว
+        </Alert>
+      ) : null}
+
+      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+        <Stack spacing={3}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box
+              sx={{
+                width: 52,
+                height: 52,
+                color: '#E5007E',
+                display: 'grid',
+                flexShrink: 0,
+                borderRadius: 2.5,
+                placeItems: 'center',
+                bgcolor: 'rgba(239,35,130,.10)',
+              }}
+            >
+              <Iconify icon="ri:radar-fill" width={28} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+                ระยะตรวจร้านซ้ำและค้นหาใกล้ฉัน
+              </Typography>
+              <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
+                ใช้ป้องกันการแจ้งพิกัดร้านซ้ำ และกำหนดระยะค้นหาร้านในหน้า Loveza ใกล้ฉัน
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ px: { xs: 1, sm: 2 } }}>
+            <Slider
+              value={getClosestRadiusIndex(radiusM)}
+              min={0}
+              max={RADIUS_OPTIONS_M.length - 1}
+              step={1}
+              marks={[
+                { value: 0, label: '10 ม.' },
+                { value: 4, label: '100 ม.' },
+                { value: 7, label: '1 กม.' },
+                { value: 9, label: '5 กม.' },
+                { value: 11, label: '15 กม.' },
+              ]}
+              valueLabelDisplay="on"
+              valueLabelFormat={(index) =>
+                formatDuplicateRadius(RADIUS_OPTIONS_M[index] ?? MIN_RADIUS_M)
+              }
+              onChange={(_event, value) =>
+                handleRadiusChange(RADIUS_OPTIONS_M[value as number] ?? MIN_RADIUS_M)
+              }
+              aria-label="ระยะตรวจร้านซ้ำเป็นเมตร"
+            />
+          </Box>
+
+          <TextField
+            fullWidth
+            type="number"
+            label="ระยะตรวจซ้ำ (เมตร)"
+            value={radiusM}
+            onChange={(event) => handleRadiusChange(Number(event.target.value || MIN_RADIUS_M))}
+            slotProps={{ htmlInput: { min: MIN_RADIUS_M, max: MAX_RADIUS_M, step: 10 } }}
+            helperText="ปรับได้ตั้งแต่ 10 เมตร–15 กิโลเมตร (1,000 เมตร = 1 กม.) ค่าเริ่มต้นคือ 75 เมตร"
+          />
+
+          {message ? <Alert severity={message.type}>{message.text}</Alert> : null}
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+          >
+            <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+              {lastUpdatedAt
+                ? `แก้ไขล่าสุด ${new Date(lastUpdatedAt).toLocaleString('th-TH')}`
+                : 'ยังไม่มีประวัติการแก้ไข'}
+            </Typography>
+            <Button
+              variant="contained"
+              disabled={saving || hasError}
+              onClick={handleSave}
+              startIcon={
+                saving ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  <Iconify icon="ri:save-3-fill" />
+                )
+              }
+              sx={{ minWidth: 150, borderRadius: 99 }}
+            >
+              {saving ? 'กำลังบันทึก' : 'บันทึกการตั้งค่า'}
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
+    </Stack>
+  );
+}

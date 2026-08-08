@@ -2,7 +2,7 @@ import type { SchemesRecord } from '../types';
 
 import { varAlpha } from 'minimal-shared/utils';
 
-import { grey, info, error, common, primary, success, warning, secondary } from './palette';
+import { info, error, common, primary, success, warning, secondary } from './palette';
 
 // ----------------------------------------------------------------------
 
@@ -63,6 +63,6 @@ function createCustomShadows(colorChannel: string): CustomShadows {
  * 📦 Final
  * **********************************************************************/
 export const customShadows: SchemesRecord<CustomShadows> = {
-  light: createCustomShadows(grey['500Channel']),
+  light: createCustomShadows(primary.darkerChannel),
   dark: createCustomShadows(common.blackChannel),
 };

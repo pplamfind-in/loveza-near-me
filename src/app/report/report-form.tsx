@@ -43,15 +43,26 @@ const defaultValues: ReportFormInput = {
   note: '',
 };
 
-const FLAVOR_SELECT_OPTIONS = FLAVOR_OPTIONS.map((option) => ({ label: option.label, value: option.value }));
+const FLAVOR_SELECT_OPTIONS = FLAVOR_OPTIONS.map((option) => ({
+  label: option.label,
+  value: option.value,
+}));
 const PROVINCE_OPTIONS = thailandProvinces.map((province) => province.nameTh);
 
 export function ReportForm() {
   const mutation = useSubmitReportMutation();
   const state: ReportFormState =
-    mutation.data ?? (mutation.isError ? { status: 'error', message: 'ส่งข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง' } : initialState);
+    mutation.data ??
+    (mutation.isError
+      ? { status: 'error', message: 'ส่งข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง' }
+      : initialState);
   const pending = mutation.isPending;
-  const { coordinates: gps, isLoading: locating, error: gpsError, requestLocation } = useGeolocation();
+  const {
+    coordinates: gps,
+    isLoading: locating,
+    error: gpsError,
+    requestLocation,
+  } = useGeolocation();
 
   const methods = useForm({
     mode: 'onSubmit',
@@ -71,7 +82,9 @@ export function ReportForm() {
   const locationError = errors.latitude?.message ?? errors.longitude?.message;
 
   const districtOptions = useMemo(
-    () => thailandProvinces.find((item) => item.nameTh === province)?.districts.map((d) => d.nameTh) ?? [],
+    () =>
+      thailandProvinces.find((item) => item.nameTh === province)?.districts.map((d) => d.nameTh) ??
+      [],
     [province]
   );
 
@@ -120,7 +133,9 @@ export function ReportForm() {
         <Field.Text name="storeName" label="ชื่อร้าน *" />
 
         <Stack spacing={1.25}>
-          <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'text.secondary' }}>ตำแหน่ง *</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'text.secondary' }}>
+            ตำแหน่ง *
+          </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <Field.Autocomplete
               name="province"
@@ -139,7 +154,13 @@ export function ReportForm() {
           </Stack>
           <Field.Text name="address" label="ที่อยู่/สาขา (ถ้ามี)" />
           <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-            <Button type="button" variant="outlined" onClick={requestLocation} disabled={locating}>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={requestLocation}
+              disabled={locating}
+              sx={{ border: '2px solid #351129', boxShadow: '3px 3px 0 #351129' }}
+            >
               {locating ? <CircularProgress size={20} /> : 'ใช้ตำแหน่งปัจจุบัน'}
             </Button>
             {hasCoordinates ? <Chip color="success" label="จับตำแหน่งแล้ว" size="small" /> : null}
@@ -169,7 +190,9 @@ export function ReportForm() {
         <Field.MultiSelect checkbox name="flavors" label="รสชาติ" options={FLAVOR_SELECT_OPTIONS} />
 
         <Stack spacing={1}>
-          <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'text.secondary' }}>รูปภาพ</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'text.secondary' }}>
+            รูปภาพ
+          </Typography>
           <Field.Upload
             name="photo"
             accept={{ 'image/*': [] }}
@@ -185,7 +208,21 @@ export function ReportForm() {
           <Alert severity={state.status === 'success' ? 'success' : 'error'}>{state.message}</Alert>
         ) : null}
 
-        <Button type="submit" variant="contained" disabled={pending} size="large" sx={{ borderRadius: 99 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={pending}
+          size="large"
+          sx={{
+            color: '#351129',
+            border: '2px solid #351129',
+            borderRadius: 99,
+            backgroundImage: 'none',
+            bgcolor: '#FDE047',
+            boxShadow: '4px 5px 0 #351129',
+            '&:hover': { bgcolor: '#FFE96B', boxShadow: '2px 3px 0 #351129' },
+          }}
+        >
           {pending ? <CircularProgress size={24} color="inherit" /> : 'ส่งพิกัด'}
         </Button>
         <Typography sx={{ color: 'text.secondary', fontSize: 12, textAlign: 'center' }}>

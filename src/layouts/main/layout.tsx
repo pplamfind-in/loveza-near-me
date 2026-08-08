@@ -14,9 +14,8 @@ import Button from '@mui/material/Button';
 
 import { usePathname } from 'src/routes/hooks';
 
-import { signOutAction } from 'src/app/auth/actions';
-
 import { Logo } from 'src/components/logo';
+import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
 
 import { useAuthContext } from 'src/auth/hooks';
 
@@ -74,8 +73,7 @@ export function MainLayout({
       }
     : null;
   const headerUser = initialUser ?? contextUser;
-  const navData =
-    slotProps?.nav?.data ?? getMainNavData(Boolean(headerUser), headerUser?.role);
+  const navData = slotProps?.nav?.data ?? getMainNavData(Boolean(headerUser), headerUser?.role);
 
   const renderHeader = () => {
     const headerSlots: HeaderSectionProps['slots'] = {
@@ -103,10 +101,10 @@ export function MainLayout({
               bottomArea: headerUser ? (
                 <Box sx={{ p: 2.5 }}>
                   <LovezaHeaderAccount user={headerUser} mobile />
-                  <Box component="form" action={signOutAction} sx={{ mt: 1 }}>
-                    <Button type="submit" color="inherit" fullWidth>
-                      ออกจากระบบ
-                    </Button>
+                  <Box sx={{ mt: 1 }}>
+                    <LovezaSignOutButton
+                      buttonProps={{ color: 'inherit', fullWidth: true, variant: 'text' }}
+                    />
                   </Box>
                 </Box>
               ) : (
@@ -134,7 +132,7 @@ export function MainLayout({
                 mr: 1.5,
                 display: 'flex',
                 '& ul': { gap: { md: 1.5, lg: 2.5 } },
-                ...(isHomePage && { '& button span': { color: '#405135' } }),
+                ...(isHomePage && { '& button span': { color: '#4B2440' } }),
               },
             })}
           />

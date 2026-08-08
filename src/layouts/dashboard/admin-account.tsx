@@ -1,11 +1,9 @@
+import { Stack } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
-import { signOutAction } from 'src/app/auth/actions';
-
-import { Iconify } from 'src/components/iconify';
+import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
 
 type AdminAccountProps = {
   displayName: string;
@@ -15,35 +13,42 @@ type AdminAccountProps = {
 
 export function AdminAccount({ displayName, email, photoURL }: AdminAccountProps) {
   return (
-    <>
+    <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
       <Avatar
         src={photoURL || undefined}
         alt={displayName}
         imgProps={{ referrerPolicy: 'no-referrer' }}
-        sx={{ width: 38, height: 38, bgcolor: '#ef2382', fontWeight: 900 }}
+        sx={{ width: 38, height: 38, bgcolor: '#E5007E', fontWeight: 900 }}
       >
         {displayName.charAt(0).toUpperCase()}
       </Avatar>
 
       <span style={{ minWidth: 0 }}>
-        <Typography noWrap sx={{ maxWidth: 150, fontSize: 13, fontWeight: 900 }}>
+        <Typography noWrap variant="subtitle1" sx={{ maxWidth: 150, fontWeight: 900 }}>
           {displayName}
         </Typography>
         <Typography
           noWrap
-          sx={{ maxWidth: 150, color: 'text.secondary', display: { xs: 'none', md: 'block' }, fontSize: 11 }}
+          sx={{
+            maxWidth: 150,
+            color: 'text.secondary',
+            display: { xs: 'none', md: 'block' },
+            fontSize: 11,
+          }}
         >
           {email}
         </Typography>
       </span>
 
       <Tooltip title="ออกจากระบบ">
-        <form action={signOutAction}>
-          <IconButton type="submit" aria-label="ออกจากระบบ Admin" color="inherit">
-            <Iconify icon="ri:logout-box-r-line" width={22} />
-          </IconButton>
-        </form>
+        <span>
+          <LovezaSignOutButton
+            iconOnly
+            label="ออกจากระบบ Admin"
+            iconButtonProps={{ color: 'inherit' }}
+          />
+        </span>
       </Tooltip>
-    </>
+    </Stack>
   );
 }

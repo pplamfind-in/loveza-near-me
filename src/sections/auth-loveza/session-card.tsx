@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 
-import { signOutAction } from 'src/app/auth/actions';
+import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
 
 type SessionCardProps = {
   user: User;
@@ -30,9 +30,10 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
         maxWidth: compact ? 'none' : 680,
         mx: compact ? 0 : 'auto',
         p: { xs: 3, md: compact ? 3.5 : 5 },
+        border: isAdmin ? 'none' : '3px solid #351129',
         borderRadius: '30px',
         bgcolor: '#fff',
-        boxShadow: '0 24px 70px rgba(52,78,82,.12)',
+        boxShadow: isAdmin ? '0 24px 70px rgba(52,78,82,.12)' : '7px 8px 0 #351129',
       }}
     >
       <Stack
@@ -53,7 +54,9 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
             sx={{
               width: { xs: 64, md: 76 },
               height: { xs: 64, md: 76 },
-              bgcolor: '#ef2382',
+              border: isAdmin ? 'none' : '3px solid #351129',
+              bgcolor: '#E5007E',
+              boxShadow: isAdmin ? 'none' : '4px 4px 0 #351129',
               fontSize: 30,
               fontWeight: 900,
             }}
@@ -86,8 +89,9 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
           mt: 4,
           p: 2,
           color: '#5c6865',
+          border: isAdmin ? 'none' : '2px solid #351129',
           borderRadius: '16px',
-          bgcolor: '#f4f9f8',
+          bgcolor: isAdmin ? '#f4f9f8' : '#FFF0B8',
           lineHeight: 1.7,
         }}
       >
@@ -97,8 +101,6 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
       </Typography>
 
       <Stack
-        component="form"
-        action={signOutAction}
         direction={compact ? 'column' : { xs: 'column', sm: 'row' }}
         spacing={1.5}
         sx={{ mt: 4 }}
@@ -106,13 +108,23 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
         <Button
           href={isAdmin ? '#pending-reports' : '/report'}
           variant="contained"
-          sx={{ borderRadius: 99, bgcolor: '#ef2382', '&:hover': { bgcolor: '#d91873' } }}
+          sx={
+            isAdmin
+              ? { borderRadius: 99, bgcolor: '#E5007E', '&:hover': { bgcolor: '#d91873' } }
+              : {
+                  color: '#351129',
+                  border: '2px solid #351129',
+                  borderRadius: 99,
+                  backgroundImage: 'none',
+                  bgcolor: '#FDE047',
+                  boxShadow: '4px 5px 0 #351129',
+                  '&:hover': { bgcolor: '#FFE96B', boxShadow: '2px 3px 0 #351129' },
+                }
+          }
         >
           {isAdmin ? 'ดูข้อมูลรอตรวจสอบ' : 'แจ้งพิกัด Loveza ตอนนี้'}
         </Button>
-        <Button type="submit" color="inherit" sx={{ borderRadius: 99 }}>
-          ออกจากระบบ
-        </Button>
+        <LovezaSignOutButton buttonProps={{ color: 'inherit', sx: { borderRadius: 99 } }} />
       </Stack>
     </Box>
   );

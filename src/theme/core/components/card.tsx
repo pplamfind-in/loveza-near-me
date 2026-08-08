@@ -1,5 +1,7 @@
 import type { Theme, Components } from '@mui/material/styles';
 
+import { varAlpha } from 'minimal-shared/utils';
+
 // ----------------------------------------------------------------------
 
 const MuiCard: Components<Theme>['MuiCard'] = {
@@ -7,6 +9,7 @@ const MuiCard: Components<Theme>['MuiCard'] = {
   styleOverrides: {
     root: ({ theme }) => ({
       position: 'relative',
+      border: `1px solid ${varAlpha(theme.vars.palette.primary.mainChannel, 0.08)}`,
       boxShadow: `var(--card-shadow, ${theme.vars.customShadows.card})`,
       borderRadius: `var(--card-radius, ${Number(theme.shape.borderRadius) * 2}px)`,
       zIndex: 0, // Fix Safari overflow: hidden with border radius

@@ -17,5 +17,5 @@ export const defaultSettings: SettingsState = {
   compactLayout: true,
   fontSize: 16,
   fontFamily: themeConfig.fontFamily.primary,
-  version: CONFIG.appVersion,
+  version: `${CONFIG.appVersion}-loveza-gen-z-v1`,
 };

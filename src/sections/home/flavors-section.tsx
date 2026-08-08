@@ -15,31 +15,96 @@ type FlavorsSectionProps = {
 
 export function FlavorsSection({ products }: FlavorsSectionProps) {
   return (
-    <Box component="section" id="flavors" sx={{ py: { xs: 9, md: 13 } }}>
-      <Container maxWidth="xl">
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ color: '#ef2382', fontWeight: 800, letterSpacing: 2, fontSize: 12 }}>
-            LOVEZA LOVE POTION
-          </Typography>
+    <Box component="section" id="flavors" sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 7, md: 8 } }}>
+      <Container
+        maxWidth="xl"
+        sx={{
+          p: { xs: '30px 14px !important', sm: '48px 30px !important', md: '64px !important' },
+          color: '#fff',
+          overflow: 'hidden',
+          border: '3px solid #351129',
+          borderRadius: { xs: '32px', md: '48px' },
+          background:
+            'radial-gradient(circle at 18px 18px, rgba(255,255,255,.12) 3px, transparent 3.5px) 0 0 / 38px 38px, #6D28D9',
+          boxShadow: '10px 12px 0 #351129',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            alignItems: { xs: 'flex-start', md: 'flex-end' },
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{
+                px: 1.5,
+                py: 0.75,
+                width: 'fit-content',
+                color: '#351129',
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: 2,
+                border: '2px solid #351129',
+                borderRadius: 99,
+                bgcolor: '#70E1F5',
+                boxShadow: '3px 3px 0 #351129',
+                transform: 'rotate(-2deg)',
+              }}
+            >
+              PICK YOUR VIBE
+            </Typography>
+            <Typography
+              component="h2"
+              sx={{
+                mt: 1,
+                maxWidth: 650,
+                fontSize: { xs: 40, sm: 52, md: 68 },
+                lineHeight: 1,
+                fontWeight: 900,
+                letterSpacing: '-.06em',
+              }}
+            >
+              เลือกรส แล้วไปซ่า!
+            </Typography>
+          </Box>
           <Typography
-            component="h2"
             sx={{
-              mt: 1,
-              px: 1,
-              fontSize: { xs: 36, sm: 46, md: 64 },
-              lineHeight: 1.08,
-              fontWeight: 900,
-              letterSpacing: '-.06em',
-              overflowWrap: 'anywhere',
+              maxWidth: 390,
+              color: '#F4EFFF',
+              fontSize: { xs: 14, md: 16 },
+              lineHeight: 1.7,
             }}
           >
-            {products.length} รสชาติ พร้อมส่ง
+            ทั้ง {products.length} รสชาติ พร้อมเติมความสดชื่น
+            เลือกรสที่ใช่แล้วตามหาร้านใกล้คุณได้เลย
           </Typography>
         </Box>
 
-        <Box sx={{ mt: { xs: 4, md: 6 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 2, md: 1 } }}>
+        <Box
+          sx={{
+            mt: { xs: 3, md: 5 },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+            gap: { xs: 2, md: 2.5 },
+          }}
+        >
           {products.map((product) => (
-            <Box key={product.id}>
+            <Box
+              key={product.id}
+              sx={{
+                pb: 2.5,
+                border: '3px solid #351129',
+                borderRadius: { xs: '28px', md: '36px' },
+                bgcolor: '#FFF9FC',
+                boxShadow: '6px 7px 0 #351129',
+                transition: 'transform 180ms ease',
+                '&:hover': { transform: 'translateY(-8px) rotate(-1deg)' },
+              }}
+            >
               <ProductCan
                 name={product.name}
                 thaiName={product.thai_name}
@@ -51,16 +116,18 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
               />
               <Box sx={{ textAlign: 'center' }}>
                 <Button
-                  href="#finder"
+                  href="/nearby"
                   sx={{
                     px: 2.5,
                     color: product.accent,
                     fontWeight: 800,
+                    border: '2px solid #351129',
                     borderRadius: 99,
-                    bgcolor: `${product.accent}14`,
+                    bgcolor: '#fff',
+                    boxShadow: '3px 4px 0 #351129',
                   }}
                 >
-                  {product.name}
+                  ค้นหารส {product.name}
                   <Iconify icon="ri:arrow-right-up-line" width={18} sx={{ ml: 0.75 }} />
                 </Button>
               </Box>

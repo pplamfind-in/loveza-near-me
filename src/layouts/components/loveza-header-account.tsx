@@ -28,14 +28,16 @@ export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccoun
         borderRadius: 99,
         justifyContent: 'flex-start',
         textTransform: 'none',
-        bgcolor: 'rgba(255,255,255,.72)',
+        border: '2px solid #351129',
+        bgcolor: '#fff',
+        boxShadow: '3px 3px 0 #351129',
       }}
     >
       <Avatar
         src={user.photoURL || undefined}
         alt={user.displayName}
         imgProps={{ referrerPolicy: 'no-referrer' }}
-        sx={{ width: 38, height: 38, bgcolor: '#ef2382', fontWeight: 900 }}
+        sx={{ width: 38, height: 38, bgcolor: '#E5007E', fontWeight: 900 }}
       >
         {user.displayName.charAt(0).toUpperCase()}
       </Avatar>

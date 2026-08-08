@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
+
 import { redirect } from 'next/navigation';
 
+import { NO_INDEX_ROBOTS } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
 import { DashboardLayout } from 'src/layouts/dashboard';
 import { adminNavData } from 'src/layouts/nav-config-admin';
@@ -8,6 +11,8 @@ import { AdminAccount } from 'src/layouts/dashboard/admin-account';
 type AdminLayoutProps = {
   children: React.ReactNode;
 };
+
+export const metadata: Metadata = { robots: NO_INDEX_ROBOTS };
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   const supabase = await createClient();
@@ -40,7 +45,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             ),
           },
         },
-        main: { sx: { bgcolor: '#f7f3fb' } },
+        main: {
+          sx: {
+            background:
+              'radial-gradient(circle at 100% 0%, rgba(229,0,126,.08), transparent 24%), linear-gradient(180deg, #FFF8FC 0%, #F9F4FF 100%)',
+          },
+        },
       }}
     >
       {children}

@@ -8,7 +8,6 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const latitude = coordinate(url.searchParams.get('lat'));
   const longitude = coordinate(url.searchParams.get('lng'));
-  const radius = Math.min(Math.max(Number(url.searchParams.get('radius') ?? 25), 1), 100);
 
   if (
     !Number.isFinite(latitude) ||
@@ -22,15 +21,26 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
+  const { data: radiusSetting, error: radiusError } = await supabase.rpc('nearby_search_radius_m');
+  const radiusM = Number(radiusSetting);
+
+  if (radiusError || !Number.isInteger(radiusM) || radiusM <= 0) {
+    console.error('[api/stores/nearby] radius setting failed', radiusError);
+    return NextResponse.json({ error: 'Search radius unavailable' }, { status: 500 });
+  }
+
   const { data, error } = await supabase.rpc('nearby_stores', {
     user_latitude: latitude,
     user_longitude: longitude,
-    radius_km: Number.isFinite(radius) ? radius : 25,
+    radius_km: radiusM / 1_000,
   });
 
   if (error) {
     return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
   }
 
-  return NextResponse.json({ stores: data ?? [] });
+  return NextResponse.json(
+    { stores: data ?? [], radiusM },
+    { headers: { 'Cache-Control': 'no-store' } }
+  );
 }

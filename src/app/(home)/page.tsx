@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { createClient } from 'src/lib/supabase/server';
+import { SITE_DESCRIPTION, createSeoMetadata } from 'src/lib/seo';
 
 import { HomeView } from 'src/sections/home/view';
 
@@ -8,11 +9,11 @@ import { type LovezaProduct, DEFAULT_LOVEZA_PRODUCTS } from 'src/types/loveza-pr
 
 // ----------------------------------------------------------------------
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSeoMetadata({
   title: 'Loveza Near Me — ตามหาร้าน Loveza ใกล้คุณ',
-  description:
-    'ค้นหาร้านที่มี Loveza ใกล้คุณด้วย GPS ดูสถานะสินค้า และช่วยแจ้งพิกัดที่พบผ่านข้อมูลจาก Community',
-};
+  description: SITE_DESCRIPTION,
+  path: '/',
+});
 
 export default async function Page() {
   const supabase = await createClient();

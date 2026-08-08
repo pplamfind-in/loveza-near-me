@@ -14,6 +14,13 @@ import { detectLanguage } from 'src/locales/server';
 import { I18nProvider } from 'src/locales/i18n-provider';
 import { QueryProvider } from 'src/lib/react-query/query-provider';
 import { themeConfig, ThemeProvider, primary as primaryColor } from 'src/theme';
+import {
+  SITE_URL,
+  SITE_NAME,
+  OG_IMAGE_URL,
+  SITE_DESCRIPTION,
+  createSeoMetadata,
+} from 'src/lib/seo';
 
 import { Snackbar } from 'src/components/snackbar';
 import { LocatorJS } from 'src/components/locator-js';
@@ -38,9 +45,6 @@ const AuthProvider =
   (CONFIG.auth.method === 'auth0' && Auth0AuthProvider) ||
   JwtAuthProvider;
 
-const OG_IMAGE_URL =
-  'https://res.cloudinary.com/dkdbilwtj/image/upload/v1781623827/og-images_wrlxnc.jpg';
-
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -48,19 +52,59 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  ...createSeoMetadata({
+    title: 'Loveza Near Me — ตามหาร้าน Loveza ใกล้คุณ',
+    description: SITE_DESCRIPTION,
+    path: '/',
+  }),
+  applicationName: SITE_NAME,
+  manifest: '/manifest.webmanifest',
+  keywords: [
+    'Loveza',
+    'Loveza Near Me',
+    'Loveza ใกล้ฉัน',
+    'ร้านขาย Loveza',
+    'พิกัด Loveza',
+    'เลิฟซ่า',
+    'น้ำดื่มโซดาผสมวิตามิน',
+    'น้ำโซดาวิตามิน B3 B6 B12',
+  ],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: 'food and drink',
+  formatDetection: { email: false, address: false, telephone: false },
   icons: [
     {
       rel: 'icon',
       url: `${CONFIG.assetsDir}/favicon.ico`,
     },
   ],
-  openGraph: {
-    images: [OG_IMAGE_URL],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    images: [OG_IMAGE_URL],
-  },
+};
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: `${SITE_URL}/`,
+      name: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      inLanguage: 'th-TH',
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': `${SITE_URL}/#application`,
+      name: SITE_NAME,
+      url: `${SITE_URL}/`,
+      description: SITE_DESCRIPTION,
+      image: OG_IMAGE_URL,
+      applicationCategory: 'LifestyleApplication',
+      operatingSystem: 'Any',
+      inLanguage: 'th-TH',
+    },
+  ],
 };
 
 // ----------------------------------------------------------------------
@@ -105,6 +149,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang={appConfig.lang} dir={appConfig.dir} suppressHydrationWarning>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
+          }}
+        />
         <InitColorSchemeScript
           modeStorageKey={themeConfig.modeStorageKey}
           attribute={themeConfig.cssVariables.colorSchemeSelector}

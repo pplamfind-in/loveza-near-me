@@ -17,7 +17,7 @@ const finderSteps = [
     number: '02',
     title: 'พบแล้วช่วยบอกต่อ',
     body: 'เข้าสู่ระบบด้วย Google แล้วแจ้งร้าน รสชาติ และจำนวนสินค้าที่พบได้ทันที',
-    color: '#ef2382',
+    color: '#E5007E',
   },
   {
     number: '03',
@@ -41,6 +41,7 @@ function MapPreview() {
         display: 'flex',
         overflow: 'hidden',
         position: 'relative',
+        border: '3px solid #351129',
         borderRadius: { xs: '26px', md: '36px' },
         flexDirection: 'column',
         justifyContent: 'flex-end',
@@ -52,6 +53,7 @@ function MapPreview() {
           linear-gradient(90deg, rgba(0,169,157,.08) 1px, transparent 1px)
         `,
         backgroundSize: 'auto, auto, 48px 48px, 48px 48px',
+        boxShadow: '6px 7px 0 #351129',
       }}
     >
       <Box
@@ -74,7 +76,7 @@ function MapPreview() {
         <Typography sx={{ fontSize: 11, fontWeight: 900 }}>ตัวอย่างหน้าค้นหา</Typography>
       </Box>
       {[
-        { top: '15%', left: '23%', color: '#ef2382' },
+        { top: '15%', left: '23%', color: '#E5007E' },
         { top: '27%', right: '19%', color: '#6a40a5' },
         { top: '44%', left: '48%', color: '#00a99d' },
       ].map((pin, index) => (
@@ -121,16 +123,30 @@ function MapPreview() {
             key={store.name}
             direction="row"
             alignItems="center"
-            sx={{ p: 1.6, borderRadius: '18px', bgcolor: 'rgba(255,255,255,.94)', boxShadow: '0 12px 30px rgba(61,96,107,.12)' }}
+            sx={{
+              p: 1.6,
+              border: '2px solid #351129',
+              borderRadius: '18px',
+              bgcolor: 'rgba(255,255,255,.94)',
+              boxShadow: '3px 4px 0 #351129',
+            }}
           >
-            <Box sx={{ width: 10, height: 10, mr: 1.5, borderRadius: '50%', bgcolor: store.color }} />
+            <Box
+              sx={{ width: 10, height: 10, mr: 1.5, borderRadius: '50%', bgcolor: store.color }}
+            />
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ fontSize: 14, fontWeight: 800 }}>{store.name}</Typography>
-              <Typography sx={{ mt: 0.25, color: '#718078', fontSize: 12 }}>อัปเดตล่าสุด 12 นาทีที่แล้ว</Typography>
+              <Typography sx={{ mt: 0.25, color: '#718078', fontSize: 12 }}>
+                อัปเดตล่าสุด 12 นาทีที่แล้ว
+              </Typography>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
-              <Typography sx={{ color: '#55296f', fontSize: 12, fontWeight: 900 }}>{store.distance}</Typography>
-              <Typography sx={{ color: store.color, fontSize: 11, fontWeight: 800 }}>{store.stock}</Typography>
+              <Typography sx={{ color: '#55296f', fontSize: 12, fontWeight: 900 }}>
+                {store.distance}
+              </Typography>
+              <Typography sx={{ color: store.color, fontSize: 11, fontWeight: 800 }}>
+                {store.stock}
+              </Typography>
             </Box>
           </Stack>
         ))}
@@ -141,15 +157,21 @@ function MapPreview() {
 
 export function FinderSection() {
   return (
-    <Box component="section" id="finder" sx={{ px: { xs: 1.5, sm: 3 }, pt: { xs: 4, md: 8 }, pb: { xs: 4, md: 6 } }}>
+    <Box
+      component="section"
+      id="finder"
+      sx={{ px: { xs: 1.5, sm: 3 }, pt: { xs: 4, md: 0 }, pb: { xs: 4, md: 6 } }}
+    >
       <Container
         maxWidth="xl"
         sx={{
           p: { xs: '30px 20px !important', sm: '48px !important', md: '72px !important' },
           overflow: 'hidden',
+          border: '3px solid #351129',
           borderRadius: { xs: '30px', md: '44px' },
-          background: 'linear-gradient(135deg, #f3fbfc 0%, #fff5fa 54%, #f5f0fb 100%)',
-          boxShadow: '0 30px 80px rgba(74,68,110,.12)',
+          background:
+            'radial-gradient(circle at 16px 16px, rgba(229,0,126,.08) 2px, transparent 2.5px) 0 0 / 32px 32px, #FFF4B8',
+          boxShadow: '10px 12px 0 #351129',
         }}
       >
         <Box
@@ -161,19 +183,42 @@ export function FinderSection() {
           }}
         >
           <Box>
-            <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
+            <Typography
+              sx={{
+                px: 1.5,
+                py: 0.75,
+                width: 'fit-content',
+                color: '#351129',
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: 2,
+                border: '2px solid #351129',
+                borderRadius: 99,
+                bgcolor: '#70E1F5',
+                boxShadow: '3px 3px 0 #351129',
+                transform: 'rotate(-2deg)',
+              }}
+            >
               LOVEZA NEAR ME
             </Typography>
             <Typography
               component="h2"
-              sx={{ mt: 2, fontSize: { xs: 44, md: 68 }, lineHeight: .98, fontWeight: 900, letterSpacing: '-.06em' }}
+              sx={{
+                mt: 2,
+                fontSize: { xs: 44, md: 68 },
+                lineHeight: 0.98,
+                fontWeight: 900,
+                letterSpacing: '-.06em',
+              }}
             >
               ตามหา Loveza
-              <Box component="span" sx={{ display: 'block', color: '#ef2382' }}>
+              <Box component="span" sx={{ display: 'block', color: '#E5007E' }}>
                 ใกล้คุณ
               </Box>
             </Typography>
-            <Typography sx={{ mt: 3, maxWidth: 500, color: '#5f6170', fontSize: 17, lineHeight: 1.8 }}>
+            <Typography
+              sx={{ mt: 3, maxWidth: 500, color: '#5f6170', fontSize: 17, lineHeight: 1.8 }}
+            >
               ไม่ต้องเดินหาร้านแบบเดาสุ่ม เปิด GPS เพื่อดูว่าร้านไหนมี Loveza ขาย อยู่ห่างเท่าไร
               และเหลือสินค้าแค่ไหน จากข้อมูลที่ Community ช่วยกันอัปเดต
             </Typography>
@@ -183,7 +228,13 @@ export function FinderSection() {
                 href="/nearby"
                 variant="contained"
                 startIcon={<Iconify icon="ri:navigation-fill" />}
-                sx={{ px: 3, py: 1.45, borderRadius: 99, bgcolor: '#ef2382', '&:hover': { bgcolor: '#d91873' } }}
+                sx={{
+                  px: 3,
+                  py: 1.45,
+                  borderRadius: 99,
+                  bgcolor: '#E5007E',
+                  '&:hover': { bgcolor: '#d91873' },
+                }}
               >
                 ค้นหาใกล้ฉัน
               </Button>
@@ -202,7 +253,7 @@ export function FinderSection() {
                 <Typography sx={{ fontSize: 12, fontWeight: 800 }}>GPS บนมือถือ</Typography>
               </Stack>
               <Stack direction="row" spacing={0.6} alignItems="center">
-                <Iconify icon="ri:time-fill" width={16} sx={{ color: '#ef2382' }} />
+                <Iconify icon="ri:time-fill" width={16} sx={{ color: '#E5007E' }} />
                 <Typography sx={{ fontSize: 12, fontWeight: 800 }}>ข้อมูลสต็อกล่าสุด</Typography>
               </Stack>
             </Stack>
@@ -212,18 +263,44 @@ export function FinderSection() {
         </Box>
 
         <Box id="how-it-works" sx={{ pt: { xs: 8, md: 10 } }}>
-          <Typography sx={{ textAlign: 'center', color: '#6a40a5', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
+          <Typography
+            sx={{
+              textAlign: 'center',
+              color: '#6a40a5',
+              fontSize: 12,
+              fontWeight: 900,
+              letterSpacing: 2,
+            }}
+          >
             HOW IT WORKS
           </Typography>
           <Box
             id="community"
-            sx={{ mt: 3, display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}
+            sx={{
+              mt: 3,
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+            }}
           >
             {finderSteps.map((step) => (
-              <Box key={step.number} sx={{ p: { xs: 3, md: 3.5 }, borderRadius: '26px', bgcolor: '#fff' }}>
-                <Typography sx={{ color: step.color, fontSize: 13, fontWeight: 900 }}>{step.number}</Typography>
+              <Box
+                key={step.number}
+                sx={{
+                  p: { xs: 3, md: 3.5 },
+                  border: '2px solid #351129',
+                  borderRadius: '22px',
+                  bgcolor: ['#FFE0F0', '#DDFBF7', '#E8DEFF'][Number(step.number) - 1],
+                  boxShadow: '4px 5px 0 #351129',
+                }}
+              >
+                <Typography sx={{ color: step.color, fontSize: 13, fontWeight: 900 }}>
+                  {step.number}
+                </Typography>
                 <Typography sx={{ mt: 3, fontSize: 22, fontWeight: 900 }}>{step.title}</Typography>
-                <Typography sx={{ mt: 1, color: '#70747d', lineHeight: 1.7 }}>{step.body}</Typography>
+                <Typography sx={{ mt: 1, color: '#70747d', lineHeight: 1.7 }}>
+                  {step.body}
+                </Typography>
               </Box>
             ))}
           </Box>

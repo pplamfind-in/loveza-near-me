@@ -11,12 +11,17 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   const { error } = await supabase
     .from('reports')
-    .update({ approval_status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+    .update({
+      approval_status: 'rejected',
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.id,
+    })
     .eq('id', id);
 
   if (error) return NextResponse.json({ error: 'Reject report failed' }, { status: 500 });
 
   revalidatePath('/admin');
+  revalidatePath('/admin/network');
   revalidatePath('/admin/users');
 
   return NextResponse.json({ status: 'success' });

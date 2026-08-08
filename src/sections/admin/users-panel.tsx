@@ -114,7 +114,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
                       src={user.avatar_url || undefined}
                       alt={user.display_name}
                       imgProps={{ referrerPolicy: 'no-referrer' }}
-                      sx={{ bgcolor: '#ef2382', fontWeight: 900 }}
+                      sx={{ bgcolor: '#E5007E', fontWeight: 900 }}
                     >
                       {user.display_name.charAt(0).toUpperCase()}
                     </Avatar>
@@ -122,7 +122,10 @@ export function UsersPanel({ users }: UsersPanelProps) {
                       <Typography noWrap sx={{ maxWidth: 230, fontWeight: 800 }}>
                         {user.display_name}
                       </Typography>
-                      <Typography noWrap sx={{ maxWidth: 230, color: 'text.secondary', fontSize: 13 }}>
+                      <Typography
+                        noWrap
+                        sx={{ maxWidth: 230, color: 'text.secondary', fontSize: 13 }}
+                      >
                         {user.email}
                       </Typography>
                     </Box>

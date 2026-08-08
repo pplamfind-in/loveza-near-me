@@ -36,7 +36,8 @@
 * Baseline
 *************************************** */
 :root {
-  background: #ffffff;
+  color-scheme: light;
+  background: #fff9fc;
 }
 
 html {
@@ -53,6 +54,19 @@ body,
   min-height: 100%;
   flex-direction: column;
   font-family: 'LINE Seed Sans TH', sans-serif;
+}
+body {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(229, 0, 126, 0.05), transparent 28%),
+    radial-gradient(circle at 100% 10%, rgba(124, 58, 237, 0.05), transparent 26%), #fff9fc;
+}
+::selection {
+  color: #ffffff;
+  background: #e5007e;
+}
+:focus-visible {
+  outline: 3px solid rgba(229, 0, 126, 0.3);
+  outline-offset: 2px;
 }
 img {
   max-width: 100%;

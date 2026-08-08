@@ -102,15 +102,15 @@ export const text = {
 };
 
 export const background = {
-  light: createPaletteChannel({ paper: '#FFFFFF', default: '#FFFFFF', neutral: grey[200] }),
+  light: createPaletteChannel({ paper: '#FFFFFF', default: '#FFF9FC', neutral: '#F8EEF4' }),
   dark: createPaletteChannel({ paper: grey[800], default: grey[900], neutral: '#28323D' }),
 };
 
 export const action = (mode: 'light' | 'dark'): Partial<TypeAction> => ({
   active: mode === 'light' ? grey[600] : grey[500],
-  hover: varAlpha(grey['500Channel'], 0.08),
-  selected: varAlpha(grey['500Channel'], 0.16),
-  focus: varAlpha(grey['500Channel'], 0.24),
+  hover: varAlpha(primary.mainChannel, mode === 'light' ? 0.06 : 0.12),
+  selected: varAlpha(primary.mainChannel, mode === 'light' ? 0.12 : 0.2),
+  focus: varAlpha(primary.mainChannel, mode === 'light' ? 0.2 : 0.28),
   disabled: varAlpha(grey['500Channel'], 0.8),
   disabledBackground: varAlpha(grey['500Channel'], 0.24),
   hoverOpacity: 0.08,

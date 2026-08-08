@@ -20,7 +20,8 @@ const statusLabels: Record<string, { label: string; color: 'warning' | 'success'
   rejected: { label: 'ไม่อนุมัติ', color: 'error' },
 };
 
-const flavorLabel = (value: string) => FLAVOR_OPTIONS.find((option) => option.value === value)?.label ?? value;
+const flavorLabel = (value: string) =>
+  FLAVOR_OPTIONS.find((option) => option.value === value)?.label ?? value;
 
 export function ReportHistorySection() {
   const { data: reports = [], isLoading: loading, isError } = useAccountReportsQuery();
@@ -32,7 +33,15 @@ export function ReportHistorySection() {
   return (
     <Box
       id="report-history"
-      sx={{ p: { xs: 2.5, md: 3.5 }, minWidth: 0, borderRadius: 4, bgcolor: '#fff', scrollMarginTop: 100 }}
+      sx={{
+        p: { xs: 2.5, md: 3.5 },
+        minWidth: 0,
+        border: '3px solid #351129',
+        borderRadius: 4,
+        bgcolor: '#fff',
+        boxShadow: '7px 8px 0 #351129',
+        scrollMarginTop: 100,
+      }}
     >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -48,7 +57,18 @@ export function ReportHistorySection() {
             ติดตามสถานะข้อมูลที่คุณช่วยแจ้งให้ชุมชน Loveza
           </Typography>
         </Box>
-        <Button href="/report" variant="contained" sx={{ borderRadius: 99 }}>
+        <Button
+          href="/report"
+          variant="contained"
+          sx={{
+            color: '#351129',
+            border: '2px solid #351129',
+            borderRadius: 99,
+            backgroundImage: 'none',
+            bgcolor: '#FDE047',
+            boxShadow: '3px 4px 0 #351129',
+          }}
+        >
           + แจ้งพิกัดใหม่
         </Button>
       </Stack>
@@ -76,11 +96,24 @@ export function ReportHistorySection() {
               { label: 'รอตรวจสอบ', value: pendingCount, color: '#b87500', bgcolor: '#fff6df' },
               { label: 'อนุมัติแล้ว', value: approvedCount, color: '#008c81', bgcolor: '#e8f8f5' },
             ].map((item) => (
-              <Box key={item.label} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, bgcolor: item.bgcolor }}>
-                <Typography sx={{ color: item.color, fontSize: { xs: 24, sm: 30 }, fontWeight: 900 }}>
+              <Box
+                key={item.label}
+                sx={{
+                  p: { xs: 1.5, sm: 2 },
+                  border: '2px solid #351129',
+                  borderRadius: 2.5,
+                  bgcolor: item.bgcolor,
+                  boxShadow: '3px 3px 0 #351129',
+                }}
+              >
+                <Typography
+                  sx={{ color: item.color, fontSize: { xs: 24, sm: 30 }, fontWeight: 900 }}
+                >
                   {item.value}
                 </Typography>
-                <Typography sx={{ color: item.color, fontSize: 12, fontWeight: 800 }}>{item.label}</Typography>
+                <Typography sx={{ color: item.color, fontSize: 12, fontWeight: 800 }}>
+                  {item.label}
+                </Typography>
               </Box>
             ))}
           </Box>
@@ -90,12 +123,25 @@ export function ReportHistorySection() {
               const status = statusLabels[report.approval_status] ?? statusLabels.pending;
 
               return (
-                <Paper key={report.id} elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: '#f8faf9' }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+                <Paper
+                  key={report.id}
+                  elevation={0}
+                  sx={{ p: 2.5, border: '2px solid #351129', borderRadius: 3, bgcolor: '#FFF7FB' }}
+                >
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    spacing={2}
+                  >
                     <Box>
-                      <Typography sx={{ fontSize: 19, fontWeight: 900 }}>{report.store_name}</Typography>
+                      <Typography sx={{ fontSize: 19, fontWeight: 900 }}>
+                        {report.store_name}
+                      </Typography>
                       <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-                        {[report.address, report.district, report.province].filter(Boolean).join(', ')}
+                        {[report.address, report.district, report.province]
+                          .filter(Boolean)
+                          .join(', ')}
                       </Typography>
                     </Box>
                     <Chip label={status.label} color={status.color} size="small" />
@@ -103,8 +149,12 @@ export function ReportHistorySection() {
                   <Typography sx={{ mt: 2, fontWeight: 700 }}>
                     {STORE_STATUS_LABEL[report.stock_status as keyof typeof STORE_STATUS_LABEL] ??
                       report.stock_status}
-                    {report.estimated_quantity !== null ? ` · ประมาณ ${report.estimated_quantity} กระป๋อง` : ''}
-                    {report.flavors?.length ? ` · ${report.flavors.map(flavorLabel).join(', ')}` : ''}
+                    {report.estimated_quantity !== null
+                      ? ` · ประมาณ ${report.estimated_quantity} กระป๋อง`
+                      : ''}
+                    {report.flavors?.length
+                      ? ` · ${report.flavors.map(flavorLabel).join(', ')}`
+                      : ''}
                   </Typography>
                   <Typography sx={{ mt: 1, color: 'text.secondary', fontSize: 13 }}>
                     แจ้งเมื่อ {new Date(report.created_at).toLocaleString('th-TH')}
@@ -119,9 +169,6 @@ export function ReportHistorySection() {
                 <Typography sx={{ mt: 1, mb: 2, color: 'text.secondary' }}>
                   ถ้าพบ Loveza ที่ร้านไหน ช่วยบอกต่อเป็นคนแรกได้เลย
                 </Typography>
-                <Button href="/report" variant="contained">
-                  แจ้งพิกัด Loveza
-                </Button>
               </Paper>
             ) : null}
           </Stack>

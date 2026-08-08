@@ -36,14 +36,15 @@ export async function POST(request: Request) {
   const hasPhoto = values.photo instanceof File && values.photo.size > 0;
 
   let photoUrl: string | null = null;
+  let photoPath: string | null = null;
 
   if (hasPhoto) {
     const photo = values.photo as File;
     const extension = photo.name.split('.').pop() || 'jpg';
-    const path = `${user.id}/${randomUUID()}.${extension}`;
+    photoPath = `${user.id}/${randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage
       .from('report-images')
-      .upload(path, photo, { contentType: photo.type });
+      .upload(photoPath, photo, { contentType: photo.type });
 
     if (uploadError) {
       return NextResponse.json(
@@ -52,32 +53,79 @@ export async function POST(request: Request) {
       );
     }
 
-    photoUrl = supabase.storage.from('report-images').getPublicUrl(path).data.publicUrl;
+    photoUrl = supabase.storage.from('report-images').getPublicUrl(photoPath).data.publicUrl;
   }
 
-  const { error } = await supabase.from('reports').insert({
-    reporter_id: user.id,
-    store_name: values.storeName,
-    address: values.address || null,
-    province: values.province,
-    district: values.district,
-    latitude: values.latitude,
-    longitude: values.longitude,
-    flavors: values.flavors,
-    stock_status: values.stockStatus,
-    estimated_quantity: values.estimatedQuantity,
-    photo_url: photoUrl,
-    note: values.note || null,
-    approval_status: 'pending',
+  const { data, error } = await supabase.rpc('submit_store_report', {
+    p_store_name: values.storeName,
+    p_address: values.address || null,
+    p_province: values.province,
+    p_district: values.district,
+    p_latitude: values.latitude,
+    p_longitude: values.longitude,
+    p_flavors: values.flavors,
+    p_stock_status: values.stockStatus,
+    p_estimated_quantity: values.estimatedQuantity,
+    p_photo_url: photoUrl,
+    p_note: values.note || null,
   });
 
   if (error) {
-    return NextResponse.json({ status: 'error', message: 'บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง' }, { status: 500 });
+    if (photoPath) {
+      const { error: removeError } = await supabase.storage
+        .from('report-images')
+        .remove([photoPath]);
+      if (removeError) {
+        console.error('[api/reports] failed to clean up orphaned photo', removeError);
+      }
+    }
+    console.error('[api/reports] atomic report submission failed', error);
+    if (error.message.includes('Invalid report data')) {
+      return NextResponse.json(
+        { status: 'error', message: 'ข้อมูลพิกัดไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง' },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { status: 'error', message: 'บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง' },
+      { status: 500 }
+    );
+  }
+
+  const result = data as {
+    duplicate?: boolean;
+    duplicateName?: string;
+    distanceM?: number;
+    radiusM?: number;
+  } | null;
+
+  if (result?.duplicate) {
+    if (photoPath) {
+      const { error: removeError } = await supabase.storage
+        .from('report-images')
+        .remove([photoPath]);
+      if (removeError) {
+        console.error('[api/reports] failed to clean up orphaned photo', removeError);
+      }
+    }
+
+    const distance = Math.max(0, Math.round(result.distanceM ?? 0));
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: `พบพิกัด ${result.duplicateName || 'ร้านเดิม'} อยู่ใกล้กันประมาณ ${distance} เมตร จึงไม่บันทึกซ้ำ`,
+      },
+      { status: 409 }
+    );
   }
 
   revalidatePath('/admin');
+  revalidatePath('/admin/network');
   revalidatePath('/admin/users');
   revalidatePath('/account');
 
-  return NextResponse.json({ status: 'success', message: 'ส่งข้อมูลแล้ว ขอบคุณที่ช่วยชุมชน Loveza!' });
+  return NextResponse.json({
+    status: 'success',
+    message: 'เพิ่มจุดขายแล้ว ระบบกำลังแสดงผลแบบเรียลไทม์ ขอบคุณที่ช่วยชุมชน Loveza!',
+  });
 }

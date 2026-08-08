@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { redirect } from 'next/navigation';
 
+import { NO_INDEX_ROBOTS } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
 
 import { AuthShell } from 'src/sections/auth-loveza/auth-shell';
@@ -9,7 +10,10 @@ import { GoogleLoginButton } from 'src/sections/auth-loveza/google-login-button'
 
 import { getSafeRedirectPath } from 'src/auth/utils/safe-redirect';
 
-export const metadata: Metadata = { title: 'เข้าสู่ระบบ | Loveza Near Me' };
+export const metadata: Metadata = {
+  title: 'เข้าสู่ระบบ | Loveza Near Me',
+  robots: NO_INDEX_ROBOTS,
+};
 
 type LoginPageProps = {
   searchParams: Promise<{ next?: string }>;

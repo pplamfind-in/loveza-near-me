@@ -28,6 +28,11 @@ export const adminNavData: NavSectionProps['data'] = [
         path: '/admin/users',
         icon: navIcon('ri:group-fill'),
       },
+      {
+        title: 'ตั้งค่าระบบ',
+        path: '/admin/settings',
+        icon: navIcon('ri:settings-3-fill'),
+      },
     ],
   },
 ];

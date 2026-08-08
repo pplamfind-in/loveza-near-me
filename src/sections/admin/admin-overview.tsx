@@ -86,7 +86,10 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
           <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
             LOVEZA ADMIN
           </Typography>
-          <Typography component="h1" sx={{ mt: 0.75, fontSize: { xs: 30, md: 38 }, fontWeight: 900 }}>
+          <Typography
+            component="h1"
+            sx={{ mt: 0.75, fontSize: { xs: 30, md: 38 }, fontWeight: 900 }}
+          >
             ภาพรวมระบบ
           </Typography>
           <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
@@ -95,6 +98,16 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
         </Box>
 
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Button
+            component={Link}
+            href="/admin/network"
+            color="secondary"
+            variant="contained"
+            startIcon={<Iconify icon="ri:fullscreen-fill" />}
+            sx={{ borderRadius: 99 }}
+          >
+            เปิดภาพรวมเต็มจอ
+          </Button>
           <Button
             component={Link}
             href="/admin/products"
@@ -150,7 +163,10 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
                 borderRadius: 3,
                 textDecoration: 'none',
                 transition: 'transform .2s ease, box-shadow .2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 14px 32px rgba(52,78,82,.10)' },
+                '&:hover': {
+                  transform: 'translateY(-3px)',
+                  boxShadow: '0 14px 32px rgba(52,78,82,.10)',
+                },
               }}
             >
               <Box
@@ -172,7 +188,9 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
               <Typography sx={{ mt: 0.25, fontSize: 26, fontWeight: 900 }}>
                 {value.toLocaleString('th-TH')} {card.suffix}
               </Typography>
-              <Typography sx={{ mt: 0.75, color: 'text.secondary', fontSize: 11 }}>{hint}</Typography>
+              <Typography sx={{ mt: 0.75, color: 'text.secondary', fontSize: 11 }}>
+                {hint}
+              </Typography>
             </Paper>
           );
         })}
