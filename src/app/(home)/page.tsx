@@ -10,7 +10,7 @@ import { type LovezaProduct, DEFAULT_LOVEZA_PRODUCTS } from 'src/types/loveza-pr
 // ----------------------------------------------------------------------
 
 export const metadata: Metadata = createSeoMetadata({
-  title: 'Loveza Near Me — ตามหาร้าน Loveza ใกล้คุณ',
+  title: 'Loveza Hunt — ตามหาร้าน Loveza ใกล้คุณ',
   description: SITE_DESCRIPTION,
   path: '/',
 });

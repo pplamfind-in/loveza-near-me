@@ -13,7 +13,7 @@ import { createClient } from 'src/lib/supabase/server';
 import { ReportForm } from './report-form';
 
 export const metadata: Metadata = {
-  title: 'แจ้งพิกัด Loveza | Loveza Near Me',
+  title: 'แจ้งพิกัด Loveza | Loveza Hunt',
   robots: NO_INDEX_ROBOTS,
 };
 

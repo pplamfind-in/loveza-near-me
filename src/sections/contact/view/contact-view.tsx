@@ -75,7 +75,7 @@ export function ContactView() {
               {
                 icon: 'ri:lightbulb-flash-fill',
                 title: 'มีไอเดียเริ่ด ๆ?',
-                body: 'เสนอ Feature ที่อยากเห็นใน Loveza Near Me',
+                body: 'เสนอ Feature ที่อยากเห็นใน Loveza Hunt',
                 color: '#FDE047',
               },
               {

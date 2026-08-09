@@ -196,7 +196,7 @@ export function FinderSection() {
                   transform: 'rotate(-2deg)',
                 }}
               >
-                LOVEZA NEAR ME
+                LOVEZA HUNT
               </Typography>
               <Typography
                 component="h2"

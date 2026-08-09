@@ -10,7 +10,7 @@ import { sumEstimatedQuantity, getPendingReportsCount } from 'src/lib/admin/stat
 import { AdminOverview } from 'src/sections/admin/admin-overview';
 import { PendingReportsPanel } from 'src/sections/admin/pending-reports-panel';
 
-export const metadata: Metadata = { title: 'Admin Dashboard | Loveza Near Me' };
+export const metadata: Metadata = { title: 'Admin Dashboard | Loveza Hunt' };
 
 export default async function AdminPage() {
   const supabase = await createClient();

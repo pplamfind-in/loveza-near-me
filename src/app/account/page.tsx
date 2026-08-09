@@ -13,7 +13,7 @@ import { SessionCard } from 'src/sections/auth-loveza/session-card';
 import { ReportHistorySection } from 'src/sections/account/report-history-section';
 
 export const metadata: Metadata = {
-  title: 'บัญชีของฉัน | Loveza Near Me',
+  title: 'บัญชีของฉัน | Loveza Hunt',
   robots: NO_INDEX_ROBOTS,
 };
 

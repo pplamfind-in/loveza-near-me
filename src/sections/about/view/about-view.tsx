@@ -69,7 +69,7 @@ export function AboutView() {
               transform: 'rotate(-2deg)',
             }}
           >
-            ABOUT LOVEZA NEAR ME
+            ABOUT LOVEZA HUNT
           </Typography>
           <Typography
             component="h1"
@@ -93,7 +93,7 @@ export function AboutView() {
               lineHeight: 1.7,
             }}
           >
-            Loveza Near Me คือพื้นที่ของคนที่ชอบ Loveza ช่วยกันปักหมุดร้าน เช็กจำนวนที่เหลือ
+            Loveza Hunt คือพื้นที่ของคนที่ชอบ Loveza ช่วยกันปักหมุดร้าน เช็กจำนวนที่เหลือ
             และส่งต่อพิกัดให้ทุกคนตามไปซื้อได้ง่ายขึ้น
           </Typography>
           <Button

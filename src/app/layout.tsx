@@ -55,7 +55,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   ...createSeoMetadata({
-    title: 'Loveza Near Me — ตามหาร้าน Loveza ใกล้คุณ',
+    title: 'Loveza Hunt — ตามหาร้าน Loveza ใกล้คุณ',
     description: SITE_DESCRIPTION,
     path: '/',
   }),
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   keywords: [
     'Loveza',
-    'Loveza Near Me',
+    'Loveza Hunt',
     'Loveza ใกล้ฉัน',
     'ร้านขาย Loveza',
     'พิกัด Loveza',

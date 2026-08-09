@@ -7,9 +7,9 @@ import { AboutView } from 'src/sections/about/view';
 // ----------------------------------------------------------------------
 
 export const metadata: Metadata = createSeoMetadata({
-  title: 'เรื่องของเรา | Loveza Near Me',
+  title: 'เรื่องของเรา | Loveza Hunt',
   description:
-    'รู้จัก Loveza Near Me ระบบ Community ที่ช่วยกันแจ้งพิกัดร้าน สถานะสินค้า และตามหา Loveza ใกล้ตัวได้ง่ายขึ้น',
+    'รู้จัก Loveza Hunt ระบบ Community ที่ช่วยกันแจ้งพิกัดร้าน สถานะสินค้า และตามหา Loveza ใกล้ตัวได้ง่ายขึ้น',
   path: '/about-us/',
 });
 

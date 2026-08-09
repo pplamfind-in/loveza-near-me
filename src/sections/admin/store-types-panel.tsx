@@ -22,10 +22,7 @@ import DialogActions from '@mui/material/DialogActions';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import {
-  STORE_TYPE_LOGO_TYPES,
-  MAX_STORE_TYPE_LOGO_SIZE,
-} from 'src/lib/supabase/store-type-logo';
+import { STORE_TYPE_LOGO_TYPES, MAX_STORE_TYPE_LOGO_SIZE } from 'src/lib/supabase/store-type-logo';
 import {
   useAdminStoreTypesQuery,
   useSaveStoreTypeMutation,
@@ -45,7 +42,11 @@ const EMPTY_VALUE: FormValue = {
 };
 
 const toCode = (value: string) =>
-  value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
 
 export function StoreTypesPanel() {
   const { data: storeTypes = [], isLoading, isError } = useAdminStoreTypesQuery();
@@ -127,9 +128,16 @@ export function StoreTypesPanel() {
             จัดการตัวเลือกในหน้าแจ้งพิกัด และ Logo ที่แสดงในหมุดร้านบนแผนที่
           </Typography>
         </Box>
-        <Button variant="contained" startIcon={<Iconify icon="ri:add-line" />} onClick={openCreate}>
-          เพิ่มประเภทร้าน
-        </Button>
+        <Box>
+          <Button
+            variant="contained"
+            size="medium"
+            startIcon={<Iconify icon="ri:add-line" />}
+            onClick={openCreate}
+          >
+            เพิ่มประเภทร้าน
+          </Button>
+        </Box>
       </Stack>
 
       {isError || deleteMutation.isError ? (
@@ -139,9 +147,13 @@ export function StoreTypesPanel() {
       ) : null}
 
       {isLoading ? (
-        <Stack alignItems="center" sx={{ py: 10 }}><CircularProgress /></Stack>
+        <Stack alignItems="center" sx={{ py: 10 }}>
+          <CircularProgress />
+        </Stack>
       ) : (
-        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+        <Box
+          sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}
+        >
           {storeTypes.map((item) => (
             <Paper key={item.id} elevation={0} sx={{ p: 2.5, borderRadius: 3 }}>
               <Stack direction="row" spacing={2} alignItems="center">
@@ -160,52 +172,170 @@ export function StoreTypesPanel() {
                   }}
                 >
                   {item.logo_url ? (
-                    <Box component="img" src={item.logo_url} alt={item.name} sx={{ width: 1, height: 1, objectFit: 'contain' }} />
+                    <Box
+                      component="img"
+                      src={item.logo_url}
+                      alt={item.name}
+                      sx={{ width: 1, height: 1, objectFit: 'contain' }}
+                    />
                   ) : (
                     <Iconify icon="ri:store-2-fill" width={28} />
                   )}
                 </Box>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography noWrap sx={{ fontSize: 18, fontWeight: 900 }}>{item.name}</Typography>
-                    <Chip size="small" label={item.is_active ? 'ใช้งาน' : 'ซ่อน'} color={item.is_active ? 'success' : 'default'} />
+                    <Typography noWrap sx={{ fontSize: 18, fontWeight: 900 }}>
+                      {item.name}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={item.is_active ? 'ใช้งาน' : 'ซ่อน'}
+                      color={item.is_active ? 'success' : 'default'}
+                    />
                   </Stack>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{item.code} · ลำดับ {item.sort_order}</Typography>
+                  <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+                    {item.code} · ลำดับ {item.sort_order}
+                  </Typography>
                 </Box>
-                <IconButton aria-label={`แก้ไข ${item.name}`} onClick={() => openEdit(item)}><Iconify icon="ri:edit-2-line" /></IconButton>
-                <IconButton color="error" aria-label={`ลบ ${item.name}`} onClick={() => handleDelete(item)}><Iconify icon="ri:delete-bin-6-line" /></IconButton>
+                <IconButton aria-label={`แก้ไข ${item.name}`} onClick={() => openEdit(item)}>
+                  <Iconify icon="ri:edit-2-line" />
+                </IconButton>
+                <IconButton
+                  color="error"
+                  aria-label={`ลบ ${item.name}`}
+                  onClick={() => handleDelete(item)}
+                >
+                  <Iconify icon="ri:delete-bin-6-line" />
+                </IconButton>
               </Stack>
             </Paper>
           ))}
         </Box>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => !saveMutation.isPending && setDialogOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={() => !saveMutation.isPending && setDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>{editing ? 'แก้ไขประเภทร้าน' : 'เพิ่มประเภทร้าน'}</DialogTitle>
-        <DialogContent><Stack spacing={2} sx={{ pt: 1 }}>
-          {saveMutation.isError ? <Alert severity="error">{saveMutation.error.message}</Alert> : null}
-          <TextField required label="ชื่อประเภทร้าน" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value, code: editing ? current.code : toCode(event.target.value) }))} />
-          <TextField required label="Code" helperText="เช่น seven_eleven หรือ cj_more" value={form.code} onChange={(event) => setForm((current) => ({ ...current, code: toCode(event.target.value) }))} />
-          <Stack spacing={1}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800 }}>Logo ร้านค้า</Typography>
-            <Box sx={{ width: 120, height: 120, p: 1.5, display: 'grid', overflow: 'hidden', borderRadius: '50%', placeItems: 'center', bgcolor: '#FFF0F8', border: '2px dashed #351129' }}>
-              {logoPreview ? <Box component="img" src={logoPreview} alt="ตัวอย่าง Logo" sx={{ width: 1, height: 1, objectFit: 'contain' }} /> : <Iconify icon="ri:image-add-line" width={34} />}
-            </Box>
-            <Stack direction="row" spacing={1}>
-              <Button component="label" variant="outlined" startIcon={<Iconify icon="ri:upload-2-line" />}>
-                {logoPreview ? 'เปลี่ยน Logo' : 'เพิ่ม Logo'}
-                <input hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { handleLogo(event.target.files?.[0] ?? null); event.target.value = ''; }} />
-              </Button>
-              {logoPreview ? <Button color="error" onClick={() => { setLogoFile(null); setLogoPreview(''); setForm((current) => ({ ...current, logo_url: '' })); }}>ลบ Logo</Button> : null}
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {saveMutation.isError ? (
+              <Alert severity="error">{saveMutation.error.message}</Alert>
+            ) : null}
+            <TextField
+              required
+              label="ชื่อประเภทร้าน"
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  name: event.target.value,
+                  code: editing ? current.code : toCode(event.target.value),
+                }))
+              }
+            />
+            <TextField
+              required
+              label="Code"
+              helperText="เช่น seven_eleven หรือ cj_more"
+              value={form.code}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, code: toCode(event.target.value) }))
+              }
+            />
+            <Stack spacing={1}>
+              <Typography sx={{ fontSize: 13, fontWeight: 800 }}>Logo ร้านค้า</Typography>
+              <Box
+                sx={{
+                  width: 120,
+                  height: 120,
+                  p: 1.5,
+                  display: 'grid',
+                  overflow: 'hidden',
+                  borderRadius: '50%',
+                  placeItems: 'center',
+                  bgcolor: '#FFF0F8',
+                  border: '2px dashed #351129',
+                }}
+              >
+                {logoPreview ? (
+                  <Box
+                    component="img"
+                    src={logoPreview}
+                    alt="ตัวอย่าง Logo"
+                    sx={{ width: 1, height: 1, objectFit: 'contain' }}
+                  />
+                ) : (
+                  <Iconify icon="ri:image-add-line" width={34} />
+                )}
+              </Box>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  startIcon={<Iconify icon="ri:upload-2-line" />}
+                >
+                  {logoPreview ? 'เปลี่ยน Logo' : 'เพิ่ม Logo'}
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) => {
+                      handleLogo(event.target.files?.[0] ?? null);
+                      event.target.value = '';
+                    }}
+                  />
+                </Button>
+                {logoPreview ? (
+                  <Button
+                    color="error"
+                    onClick={() => {
+                      setLogoFile(null);
+                      setLogoPreview('');
+                      setForm((current) => ({ ...current, logo_url: '' }));
+                    }}
+                  >
+                    ลบ Logo
+                  </Button>
+                ) : null}
+              </Stack>
+              {logoError ? <Alert severity="error">{logoError}</Alert> : null}
             </Stack>
-            {logoError ? <Alert severity="error">{logoError}</Alert> : null}
+            <TextField
+              type="number"
+              label="ลำดับการแสดง"
+              value={form.sort_order}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, sort_order: Number(event.target.value) }))
+              }
+            />
+            <FormControlLabel
+              label="เปิดให้ผู้ใช้เลือกประเภทนี้"
+              control={
+                <Switch
+                  checked={form.is_active}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, is_active: event.target.checked }))
+                  }
+                />
+              }
+            />
           </Stack>
-          <TextField type="number" label="ลำดับการแสดง" value={form.sort_order} onChange={(event) => setForm((current) => ({ ...current, sort_order: Number(event.target.value) }))} />
-          <FormControlLabel label="เปิดให้ผู้ใช้เลือกประเภทนี้" control={<Switch checked={form.is_active} onChange={(event) => setForm((current) => ({ ...current, is_active: event.target.checked }))} />} />
-        </Stack></DialogContent>
+        </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
-          <Button color="inherit" onClick={() => setDialogOpen(false)} disabled={saveMutation.isPending}>ยกเลิก</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={saveMutation.isPending}>{saveMutation.isPending ? <CircularProgress size={20} /> : 'บันทึก'}</Button>
+          <Button
+            color="inherit"
+            onClick={() => setDialogOpen(false)}
+            disabled={saveMutation.isPending}
+          >
+            ยกเลิก
+          </Button>
+          <Button variant="contained" onClick={handleSubmit} disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? <CircularProgress size={20} /> : 'บันทึก'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Stack>

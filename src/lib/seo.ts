@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
-export const SITE_NAME = 'Loveza Near Me';
+export const SITE_NAME = 'Loveza Hunt';
 export const BRAND_ASSET_VERSION = 'loveza-hunt-20260809';
 export const SITE_DESCRIPTION =
   'ค้นหาร้านที่มี Loveza ใกล้คุณด้วย GPS ดูสถานะและจำนวนสินค้า พร้อมช่วยแจ้งพิกัดให้ Community ตามไปซื้อได้ง่ายขึ้น';
 export const OG_IMAGE_URL =
-  'https://res.cloudinary.com/dkdbilwtj/image/upload/v1786220351/ChatGPT_Image_Aug_9_2026_03_18_34_AM_om72zh.png';
+  'https://res.cloudinary.com/dkdbilwtj/image/upload/v1786288069/ChatGPT_Image_Aug_9_2026_10_07_20_PM_zyotz2.png';
 
 const productionDomain = process.env.VERCEL_PROJECT_PRODUCTION_URL;
 const configuredSiteUrl =
@@ -63,7 +63,7 @@ export function createSeoMetadata({
           url: OG_IMAGE_URL,
           width: 1536,
           height: 1024,
-          alt: 'Loveza Near Me ค้นหาร้าน Loveza ใกล้คุณ',
+          alt: 'Loveza Hunt ค้นหาร้าน Loveza ใกล้คุณ',
           type: 'image/png',
         },
       ],

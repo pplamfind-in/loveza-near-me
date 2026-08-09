@@ -17,7 +17,7 @@ import { GoogleLoginButton } from 'src/sections/auth-loveza/google-login-button'
 import { getSafeRedirectPath } from 'src/auth/utils/safe-redirect';
 
 export const metadata: Metadata = {
-  title: 'เข้าสู่ระบบ | Loveza Near Me',
+  title: 'เข้าสู่ระบบ | Loveza Hunt',
   robots: NO_INDEX_ROBOTS,
 };
 
@@ -41,7 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       title="พร้อมออกล่าแล้วใช่ไหม?"
       description="เข้าสู่ระบบด้วย Google เพื่อค้นหาร้านใกล้ตัว แจ้งพิกัดใหม่ และดูประวัติการตามล่าของคุณ"
     >
-      <Stack spacing={1.5} textAlign="center" alignItems="center" justifyContent="center">
+      <Stack spacing={2} textAlign="center" alignItems="center" justifyContent="center">
         <GoogleLoginButton clientId={process.env.GOOGLE_CLIENT_ID ?? ''} nextPath={params.next} />
         <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center">
           <Iconify icon="ri:shield-check-fill" width={16} sx={{ color: '#25A56A' }} />
@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           variant="outlined"
           startIcon={<Iconify icon="ri:arrow-left-line" />}
           sx={{
-            width: '320px',
+            width: '220px',
             minHeight: 48,
             color: '#351129',
             border: '2px solid #351129',

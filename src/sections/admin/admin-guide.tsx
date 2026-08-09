@@ -191,7 +191,7 @@ export function AdminGuide() {
           คู่มือระบบ
         </Typography>
         <Typography sx={{ mt: 0.5, color: 'text.secondary', maxWidth: 680 }}>
-          สรุปการทำงานของระบบ Loveza Near Me ทั้งหมดในหน้าเดียว สำหรับทีม Admin ใช้อ้างอิงก่อนขึ้น
+          สรุปการทำงานของระบบ Loveza Hunt ทั้งหมดในหน้าเดียว สำหรับทีม Admin ใช้อ้างอิงก่อนขึ้น
           Production
         </Typography>
       </Box>
