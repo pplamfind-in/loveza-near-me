@@ -14,11 +14,11 @@ const commonNavData: NavMainProps['data'] = [
     path: '/nearby',
     icon: <Iconify width={22} icon="ri:map-pin-2-fill" />,
   },
-  // {
-  //   title: 'ซ่าทั่วไทย',
-  //   path: '/mapza',
-  //   icon: <Iconify width={22} icon="ri:map-2-fill" />,
-  // },
+  {
+    title: 'ซ่าทั่วไทย',
+    path: '/mapza',
+    icon: <Iconify width={22} icon="ri:map-2-fill" />,
+  },
 ];
 
 const guestNavData: NavMainProps['data'] = [

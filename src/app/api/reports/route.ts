@@ -56,8 +56,9 @@ export async function POST(request: Request) {
     photoUrl = supabase.storage.from('report-images').getPublicUrl(photoPath).data.publicUrl;
   }
 
-  const { data, error } = await supabase.rpc('submit_store_report', {
+  const { data, error } = await supabase.rpc('submit_store_report_v2', {
     p_store_name: values.storeName,
+    p_store_type: values.storeType,
     p_address: values.address || null,
     p_province: values.province,
     p_district: values.district,

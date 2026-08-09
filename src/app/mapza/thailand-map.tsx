@@ -1,24 +1,33 @@
 'use client';
 
-import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import type { Feature, Geometry, FeatureCollection, GeoJsonProperties } from 'geojson';
 import type { MapzaStore } from 'src/types/store';
 
-import { Layer, Source } from 'react-map-gl/maplibre';
-import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 
 import { Iconify } from 'src/components/iconify';
-import { Map, MapPopup, MapControls } from 'src/components/map';
+
+import { STORE_STATUS_LABEL } from 'src/types/store';
 
 type ThailandMapProps = {
   stores: MapzaStore[];
   hasError?: boolean;
+};
+
+type ProvinceNameRecord = {
+  provinceNameEn: string;
+  provinceNameTh: string;
 };
 
 type ProvinceSummary = {
@@ -29,118 +38,110 @@ type ProvinceSummary = {
   stores: MapzaStore[];
 };
 
-type SelectedProvince = ProvinceSummary & {
-  latitude: number;
-  longitude: number;
-};
-
-const PROVINCE_LAYER_ID = 'mapza-province-fill';
-const THAILAND_CENTER = { latitude: 13.2, longitude: 101, zoom: 4.65 };
-const MAPZA_STYLE = {
-  version: 8 as const,
-  sources: {},
-  layers: [
-    {
-      id: 'mapza-background',
-      type: 'background' as const,
-      paint: { 'background-color': '#B9C8C5' },
-    },
-  ],
+const SVG_WIDTH = 720;
+const SVG_HEIGHT = 1300;
+const THAILAND_BOUNDS = {
+  minLongitude: 97.2,
+  maxLongitude: 106,
+  minLatitude: 5.4,
+  maxLatitude: 20.6,
 };
 
 const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
   `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
-function isPointInRing(longitude: number, latitude: number, ring: number[][]) {
-  let inside = false;
-
-  for (let current = 0, previous = ring.length - 1; current < ring.length; previous = current) {
-    const [currentLongitude, currentLatitude] = ring[current];
-    const [previousLongitude, previousLatitude] = ring[previous];
-    const intersects =
-      currentLatitude > latitude !== previousLatitude > latitude &&
-      longitude <
-        ((previousLongitude - currentLongitude) * (latitude - currentLatitude)) /
-          (previousLatitude - currentLatitude) +
-          currentLongitude;
-
-    if (intersects) inside = !inside;
-  }
-
-  return inside;
+function normalizeProvinceName(value: string) {
+  const normalized = value.toLocaleLowerCase('en-US').replace(/[^a-z0-9]/g, '');
+  if (normalized === 'bangkokmetropolis') return 'bangkok';
+  return normalized;
 }
 
-function isPointInPolygon(longitude: number, latitude: number, polygon: number[][][]) {
-  if (!polygon[0] || !isPointInRing(longitude, latitude, polygon[0])) return false;
-
-  return !polygon.slice(1).some((hole) => isPointInRing(longitude, latitude, hole));
+function projectPoint([longitude, latitude]: number[]) {
+  const x =
+    ((longitude - THAILAND_BOUNDS.minLongitude) /
+      (THAILAND_BOUNDS.maxLongitude - THAILAND_BOUNDS.minLongitude)) *
+    SVG_WIDTH;
+  const y =
+    ((THAILAND_BOUNDS.maxLatitude - latitude) /
+      (THAILAND_BOUNDS.maxLatitude - THAILAND_BOUNDS.minLatitude)) *
+    SVG_HEIGHT;
+  return [x, y];
 }
 
-function isStoreInGeometry(store: MapzaStore, geometry: Geometry) {
+function ringToPath(ring: number[][]) {
+  return ring
+    .map((point, index) => {
+      const [x, y] = projectPoint(point);
+      return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(' ');
+}
+
+function geometryToPath(geometry: Geometry) {
   if (geometry.type === 'Polygon') {
-    return isPointInPolygon(store.longitude, store.latitude, geometry.coordinates);
+    return geometry.coordinates.map((ring) => `${ringToPath(ring)} Z`).join(' ');
   }
 
   if (geometry.type === 'MultiPolygon') {
-    return geometry.coordinates.some((polygon) =>
-      isPointInPolygon(store.longitude, store.latitude, polygon)
-    );
+    return geometry.coordinates
+      .flatMap((polygon) => polygon.map((ring) => `${ringToPath(ring)} Z`))
+      .join(' ');
   }
 
-  return false;
+  return '';
 }
 
-function collectGeometryPoints(value: unknown, points: number[][]) {
-  if (!Array.isArray(value)) return;
+const PROVINCE_COLOR_SCALE = [
+  { maxCount: 0, color: '#b1bfbf', label: 'ยังไม่มีข้อมูล' },
+  { maxCount: 2, color: '#70E1F5', label: '1-2 จุดขาย' },
+  { maxCount: 6, color: '#FDE047', label: '3-6 จุดขาย' },
+  { maxCount: 14, color: '#FF78B8', label: '7-14 จุดขาย' },
+  { maxCount: Infinity, color: '#E5007E', label: '15 จุดขายขึ้นไป' },
+] as const;
 
-  if (typeof value[0] === 'number' && typeof value[1] === 'number') {
-    points.push(value as number[]);
-    return;
-  }
-
-  value.forEach((item) => collectGeometryPoints(item, points));
+function getProvinceColor(storeCount: number) {
+  const tier = PROVINCE_COLOR_SCALE.find((scale) => storeCount <= scale.maxCount);
+  return (tier ?? PROVINCE_COLOR_SCALE[PROVINCE_COLOR_SCALE.length - 1]).color;
 }
 
-function getProvinceCenter(geometry: Geometry) {
-  const points: number[][] = [];
-  collectGeometryPoints('coordinates' in geometry ? geometry.coordinates : [], points);
-
-  if (!points.length)
-    return { longitude: THAILAND_CENTER.longitude, latitude: THAILAND_CENTER.latitude };
-
-  const longitudes = points.map(([longitude]) => longitude);
-  const latitudes = points.map(([, latitude]) => latitude);
-
-  return {
-    longitude: (Math.min(...longitudes) + Math.max(...longitudes)) / 2,
-    latitude: (Math.min(...latitudes) + Math.max(...latitudes)) / 2,
-  };
-}
-
-function getProvinceName(feature: Feature<Geometry, GeoJsonProperties>) {
-  const properties = feature.properties ?? {};
-  const thaiName = String(properties.NL_NAME_1 ?? '')
-    .replace(/^จังหวัด/, '')
-    .trim();
-
-  return thaiName || String(properties.NAME_1 ?? 'ไม่ทราบจังหวัด');
+function getProvinceName(
+  feature: Feature<Geometry, GeoJsonProperties>,
+  namesByEnglishName: Map<string, string>
+) {
+  const englishName = String(feature.properties?.NAME_1 ?? '');
+  return (
+    namesByEnglishName.get(normalizeProvinceName(englishName)) || englishName || 'ไม่ทราบจังหวัด'
+  );
 }
 
 export default function ThailandMap({ stores, hasError = false }: ThailandMapProps) {
-  const mapRef = useRef<MapRef>(null);
   const [geoJson, setGeoJson] = useState<FeatureCollection<Geometry> | null>(null);
+  const [provinceNames, setProvinceNames] = useState<ProvinceNameRecord[]>([]);
   const [mapError, setMapError] = useState(false);
-  const [selectedProvince, setSelectedProvince] = useState<SelectedProvince | null>(null);
+  const [provinceSearch, setProvinceSearch] = useState('');
+  const [selectedProvince, setSelectedProvince] = useState<ProvinceSummary | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch('/assets/data/thailand-provinces.geojson', { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error('Unable to load Thailand GeoJSON');
-        return response.json() as Promise<FeatureCollection<Geometry>>;
+    Promise.all([
+      fetch('/assets/data/thailand-provinces.geojson', { signal: controller.signal }).then(
+        (response) => {
+          if (!response.ok) throw new Error('Unable to load Thailand GeoJSON');
+          return response.json() as Promise<FeatureCollection<Geometry>>;
+        }
+      ),
+      fetch('/assets/data/thailand-province-names.json', { signal: controller.signal }).then(
+        (response) => {
+          if (!response.ok) throw new Error('Unable to load province names');
+          return response.json() as Promise<ProvinceNameRecord[]>;
+        }
+      ),
+    ])
+      .then(([geometry, names]) => {
+        setGeoJson(geometry);
+        setProvinceNames(names);
       })
-      .then(setGeoJson)
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         setMapError(true);
@@ -149,39 +150,48 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
     return () => controller.abort();
   }, []);
 
-  const { mapData, provinceSummaries } = useMemo(() => {
-    if (!geoJson) return { mapData: null, provinceSummaries: [] as ProvinceSummary[] };
+  const namesByEnglishName = useMemo(
+    () =>
+      new Map(
+        provinceNames.map((province) => [
+          normalizeProvinceName(province.provinceNameEn),
+          province.provinceNameTh,
+        ])
+      ),
+    [provinceNames]
+  );
 
-    const summaries: ProvinceSummary[] = [];
-    const features = geoJson.features.map((feature, index) => {
-      const provinceStores = stores.filter((store) => isStoreInGeometry(store, feature.geometry));
+  const storesByProvince = useMemo(() => {
+    const map = new Map<string, MapzaStore[]>();
+    stores.forEach((store) => {
+      if (!store.province) return;
+      const bucket = map.get(store.province);
+      if (bucket) bucket.push(store);
+      else map.set(store.province, [store]);
+    });
+    return map;
+  }, [stores]);
+
+  const provinceSummaries = useMemo(() => {
+    if (!geoJson) return [];
+
+    return geoJson.features.map((feature, index) => {
+      const name = getProvinceName(feature, namesByEnglishName);
+      const provinceStores = storesByProvince.get(name) ?? [];
       const quantity = provinceStores.reduce(
         (total, store) => total + Math.max(store.estimated_quantity ?? 0, 0),
         0
       );
-      const storeProvinceName = provinceStores.find((store) => store.province)?.province;
-      const name = storeProvinceName || getProvinceName(feature);
-      const id = String(feature.id ?? index);
-
-      summaries.push({ id, name, quantity, geometry: feature.geometry, stores: provinceStores });
 
       return {
-        ...feature,
-        id,
-        properties: {
-          ...feature.properties,
-          province_name: name,
-          store_count: provinceStores.length,
-          estimated_quantity: quantity,
-        },
-      };
+        id: String(feature.properties?.ID_1 ?? feature.id ?? index),
+        name,
+        quantity,
+        geometry: feature.geometry,
+        stores: provinceStores,
+      } satisfies ProvinceSummary;
     });
-
-    return {
-      mapData: { ...geoJson, features } satisfies FeatureCollection<Geometry>,
-      provinceSummaries: summaries,
-    };
-  }, [geoJson, stores]);
+  }, [geoJson, namesByEnglishName, storesByProvince]);
 
   const activeProvinces = useMemo(
     () =>
@@ -191,33 +201,19 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
     [provinceSummaries]
   );
 
-  const openProvince = useCallback((province: ProvinceSummary) => {
-    const center = getProvinceCenter(province.geometry);
-    setSelectedProvince({ ...province, ...center });
-    mapRef.current?.flyTo({
-      center: [center.longitude, center.latitude],
-      zoom: 7.4,
-      duration: 650,
-    });
-  }, []);
-
-  const handleProvinceClick = useCallback(
-    (event: MapLayerMouseEvent) => {
-      const featureId = event.features?.[0]?.id;
-      const province = provinceSummaries.find((item) => item.id === String(featureId));
-      if (!province) return;
-
-      const { lng, lat } = event.lngLat;
-      setSelectedProvince({ ...province, longitude: lng, latitude: lat });
-    },
-    [provinceSummaries]
-  );
+  const filteredProvinces = useMemo(() => {
+    const keyword = provinceSearch.trim().toLocaleLowerCase('th-TH');
+    if (!keyword) return activeProvinces;
+    return activeProvinces.filter((province) =>
+      province.name.toLocaleLowerCase('th-TH').includes(keyword)
+    );
+  }, [activeProvinces, provinceSearch]);
 
   if (mapError) {
     return <Alert severity="error">โหลดขอบเขตแผนที่ประเทศไทยไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</Alert>;
   }
 
-  if (!mapData) {
+  if (!geoJson || !provinceNames.length) {
     return <Skeleton variant="rounded" height={680} sx={{ borderRadius: 4 }} />;
   }
 
@@ -244,6 +240,43 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
           เรียงตามจำนวนจุดขาย Loveza
         </Typography>
 
+        <Autocomplete
+          fullWidth
+          autoHighlight
+          options={activeProvinces}
+          inputValue={provinceSearch}
+          value={
+            activeProvinces.find((province) => province.id === selectedProvince?.id) ?? null
+          }
+          getOptionLabel={(province) => province.name}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          noOptionsText="ไม่พบจังหวัดที่มีจุดขาย"
+          onInputChange={(_event, value) => setProvinceSearch(value)}
+          onChange={(_event, province) => {
+            setSelectedProvince(province);
+            setProvinceSearch(province?.name ?? '');
+          }}
+          renderOption={(props, province) => {
+            const { key, ...optionProps } = props;
+            return (
+              <Box component="li" {...optionProps} key={key} sx={{ gap: 1.25 }}>
+                <Iconify icon="ri:map-pin-2-fill" width={20} sx={{ color: '#E5007E' }} />
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 900 }}>{province.name}</Typography>
+                  <Typography sx={{ color: 'text.secondary', fontSize: 11 }}>
+                    {province.stores.length} จุดขาย · ประมาณ{' '}
+                    {province.quantity.toLocaleString('th-TH')} กระป๋อง
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField {...params} size="small" label="ค้นหาจังหวัด" placeholder="พิมพ์ชื่อจังหวัด" />
+          )}
+          sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { bgcolor: '#fff', borderRadius: 2.5 } }}
+        />
+
         {hasError ? <Alert severity="error">โหลดข้อมูลจุดขายไม่สำเร็จ</Alert> : null}
         {!hasError && activeProvinces.length === 0 ? (
           <Alert severity="info">ยังไม่มีข้อมูลจุดขายบนแผนที่</Alert>
@@ -256,15 +289,19 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
             display: 'flex',
             overflowY: 'auto',
             flexDirection: 'column',
-            maxHeight: { xs: 400, lg: 610 },
+            maxHeight: { xs: 400, lg: 800 },
           }}
         >
-          {activeProvinces.map((province, index) => (
+          {!hasError && activeProvinces.length > 0 && filteredProvinces.length === 0 ? (
+            <Alert severity="info">ไม่พบจังหวัดที่ค้นหา</Alert>
+          ) : null}
+
+          {filteredProvinces.map((province, index) => (
             <Box
               key={province.id}
               component="button"
               type="button"
-              onClick={() => openProvince(province)}
+              onClick={() => setSelectedProvince(province)}
               sx={{
                 p: 1.4,
                 gap: 1.25,
@@ -275,9 +312,14 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
                 textAlign: 'left',
                 alignItems: 'center',
                 borderRadius: 2.5,
-                bgcolor: index % 3 === 0 ? '#FFF0F7' : index % 3 === 1 ? '#EFFCFF' : '#FFF8D8',
+                bgcolor: index % 3 === 0 ? '#FFF0F7' : index % 3 === 1 ? '#dee3e4' : '#FFF8D8',
                 border: '2px solid #351129',
                 boxShadow: '3px 3px 0 #351129',
+                ...(selectedProvince?.id === province.id && {
+                  bgcolor: '#FDE047',
+                  boxShadow: '1px 2px 0 #351129',
+                  transform: 'translateY(1px)',
+                }),
                 '&:hover, &:focus-visible': { outline: 'none', transform: 'translateY(-1px)' },
               }}
             >
@@ -291,7 +333,7 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
                   placeItems: 'center',
                   color: '#fff',
                   bgcolor: '#E5007E',
-                  border: '2px solid #351129',
+                  border: '2px solid #26121f',
                 }}
               >
                 <Iconify icon="ri:map-pin-2-fill" width={20} />
@@ -318,67 +360,32 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
           position: 'relative',
           border: '3px solid #351129',
           borderRadius: 4,
+          bgcolor: '#feffff',
+          backgroundImage:
+            'radial-gradient(circle at 20% 20%, rgba(243, 222, 222, 0.07), transparent 28%), repeating-linear-gradient(165deg, transparent 0 34px, rgba(255,255,255,.07) 35px 36px)',
           boxShadow: '7px 8px 0 #351129',
         }}
       >
-        <Map
-          ref={mapRef}
-          mapStyle={MAPZA_STYLE}
-          initialViewState={THAILAND_CENTER}
-          interactiveLayerIds={[PROVINCE_LAYER_ID]}
-          onClick={handleProvinceClick}
-          onMouseEnter={() => {
-            if (mapRef.current) mapRef.current.getCanvas().style.cursor = 'pointer';
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          sx={{
+            zIndex: 2,
+            top: { sm: 14 },
+            left: { sm: 14 },
+            right: { sm: 14 },
+            m: { xs: 1.5, sm: 0 },
+            mb: { xs: 0, sm: 0 },
+            position: { xs: 'relative', sm: 'absolute' },
+            pointerEvents: 'none',
           }}
-          onMouseLeave={() => {
-            if (mapRef.current) mapRef.current.getCanvas().style.cursor = '';
-          }}
-          sx={{ height: { xs: 600, md: 680 } }}
         >
-          <MapControls hideGeolocate />
-
-          <Source id="mapza-provinces" type="geojson" data={mapData}>
-            <Layer
-              id={PROVINCE_LAYER_ID}
-              type="fill"
-              paint={{
-                'fill-color': [
-                  'case',
-                  ['==', ['get', 'store_count'], 0],
-                  '#8F9B9C',
-                  [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'store_count'],
-                    1,
-                    '#70E1F5',
-                    3,
-                    '#FDE047',
-                    7,
-                    '#FF78B8',
-                    15,
-                    '#E5007E',
-                  ],
-                ],
-                'fill-opacity': 0.96,
-              }}
-            />
-            <Layer
-              id="mapza-province-outline"
-              type="line"
-              paint={{ 'line-color': '#FFFFFF', 'line-width': 1.35, 'line-opacity': 0.95 }}
-            />
-          </Source>
-
           <Box
             sx={{
-              top: 14,
-              left: 14,
-              zIndex: 1,
               p: 1.2,
-              gap: 1,
+              px: 3,
+              gap: 0.8,
               display: 'flex',
-              position: 'absolute',
               flexDirection: 'column',
               borderRadius: 2.5,
               bgcolor: 'rgba(255,255,255,.94)',
@@ -387,92 +394,190 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
             }}
           >
             <Typography sx={{ fontSize: 11, fontWeight: 1000 }}>สถานะจังหวัด</Typography>
-            <Typography
-              sx={{
-                display: 'flex',
-                gap: 0.7,
-                alignItems: 'center',
-                fontSize: 10,
-                fontWeight: 800,
-              }}
-            >
-              <Box
-                component="span"
-                sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: '#E5007E' }}
-              />
-              มีจุดขาย Loveza
-            </Typography>
-            <Typography
-              sx={{
-                display: 'flex',
-                gap: 0.7,
-                alignItems: 'center',
-                fontSize: 10,
-                fontWeight: 800,
-              }}
-            >
-              <Box
-                component="span"
-                sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: '#8F9B9C' }}
-              />
-              ยังไม่มีข้อมูล
-            </Typography>
-          </Box>
-
-          {selectedProvince ? (
-            <MapPopup
-              longitude={selectedProvince.longitude}
-              latitude={selectedProvince.latitude}
-              onClose={() => setSelectedProvince(null)}
-              closeOnClick={false}
-              maxWidth="310px"
-            >
-              <Box
+            {PROVINCE_COLOR_SCALE.map((item) => (
+              <Typography
+                key={item.label}
                 sx={{
-                  minWidth: 230,
-                  p: 1,
-                  borderTop: `5px solid ${selectedProvince.stores.length ? '#E5007E' : '#8F9B9C'}`,
+                  display: 'flex',
+                  gap: 0.7,
+                  alignItems: 'center',
+                  fontSize: 10,
+                  fontWeight: 800,
                 }}
               >
-                <Typography sx={{ pr: 2, fontSize: 18, fontWeight: 1000 }}>
+                <Box
+                  component="span"
+                  sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: item.color }}
+                />
+                {item.label}
+              </Typography>
+            ))}
+          </Box>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => setSelectedProvince(null)}
+            startIcon={<Iconify icon="ri:focus-3-line" />}
+            sx={{
+              height: 38,
+              color: '#351129',
+              pointerEvents: 'auto',
+              border: '2px solid #351129',
+              borderRadius: 99,
+              bgcolor: '#FDE047',
+              boxShadow: '3px 3px 0 #351129',
+              '&:hover': { bgcolor: '#FFE96B' },
+            }}
+          >
+            ดูทั้งประเทศ
+          </Button>
+        </Stack>
+
+        <Box
+          sx={{
+            px: { xs: 1.5, sm: 3 },
+            pt: { xs: 1.5, sm: 4 },
+            pb: 2,
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <Box
+            component="svg"
+            viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+            role="img"
+            aria-label="แผนที่จังหวัดประเทศไทย แสดงจำนวนจุดขาย Loveza"
+            sx={{
+              width: 1,
+              height: 'auto',
+              maxWidth: { xs: 440, md: 620 },
+              aspectRatio: `${SVG_WIDTH} / ${SVG_HEIGHT}`,
+              overflow: 'visible',
+              filter: 'drop-shadow(0 10px 12px rgba(53,17,41,.18))',
+            }}
+          >
+            <title>แผนที่ซ่าทั่วไทย</title>
+            {provinceSummaries.map((province) => {
+              const selected = selectedProvince?.id === province.id;
+              return (
+                <path
+                  key={province.id}
+                  d={geometryToPath(province.geometry)}
+                  fill={getProvinceColor(province.stores.length)}
+                  fillRule="evenodd"
+                  stroke={selected ? '#351129' : '#FFFFFF'}
+                  strokeWidth={selected ? 4 : 1.8}
+                  vectorEffect="non-scaling-stroke"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${province.name} ${province.stores.length} จุดขาย`}
+                  onClick={() => setSelectedProvince(province)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelectedProvince(province);
+                    }
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    outline: 'none',
+                    opacity: selected ? 1 : 0.96,
+                    transition: 'opacity 160ms ease, filter 160ms ease',
+                    filter: selected ? 'brightness(1.08)' : undefined,
+                  }}
+                />
+              );
+            })}
+          </Box>
+        </Box>
+
+        {selectedProvince ? (
+          <Box
+            sx={{
+              m: 2,
+              mt: 0,
+              p: 2,
+              borderRadius: 3,
+              bgcolor: '#FFFDF8',
+              border: '3px solid #351129',
+              boxShadow: '4px 5px 0 #351129',
+            }}
+          >
+            <Stack direction="row" justifyContent="space-between" spacing={2}>
+              <Box>
+                <Typography sx={{ fontSize: 20, fontWeight: 1000 }}>
                   {selectedProvince.name}
                 </Typography>
-                {selectedProvince.stores.length ? (
-                  <>
-                    <Typography sx={{ mt: 0.75, color: '#E5007E', fontSize: 13, fontWeight: 1000 }}>
-                      พบ {selectedProvince.stores.length} จุดขาย · ประมาณ{' '}
-                      {selectedProvince.quantity.toLocaleString('th-TH')} กระป๋อง
-                    </Typography>
-                    <Typography sx={{ mt: 1, color: '#6C5870', fontSize: 12, fontWeight: 700 }}>
-                      {selectedProvince.stores
-                        .slice(0, 3)
-                        .map((store) => store.name)
-                        .join(' · ')}
-                    </Typography>
-                    <Button
-                      component="a"
-                      href={buildGoogleMapsUrl(
-                        selectedProvince.latitude,
-                        selectedProvince.longitude
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      size="small"
-                      startIcon={<Iconify icon="ri:map-pin-range-fill" />}
-                      sx={{ mt: 1, px: 0, fontWeight: 900 }}
-                    >
-                      เปิดพื้นที่ใน Google Maps
-                    </Button>
-                  </>
-                ) : (
-                  <Typography sx={{ mt: 0.75, color: '#64706F', fontSize: 13, fontWeight: 800 }}>
-                    จังหวัดนี้ยังไม่มีข้อมูลจุดขาย Loveza
-                  </Typography>
-                )}
+                <Typography sx={{ color: '#E5007E', fontSize: 13, fontWeight: 1000 }}>
+                  {selectedProvince.stores.length
+                    ? `พบ ${selectedProvince.stores.length} จุดขาย · ประมาณ ${selectedProvince.quantity.toLocaleString('th-TH')} กระป๋อง`
+                    : 'ยังไม่มีข้อมูลจุดขาย Loveza'}
+                </Typography>
               </Box>
-            </MapPopup>
-          ) : null}
-        </Map>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => setSelectedProvince(null)}
+                aria-label="ปิดรายละเอียดจังหวัด"
+                sx={{ minWidth: 36, alignSelf: 'flex-start' }}
+              >
+                <Iconify icon="ri:close-line" width={22} />
+              </Button>
+            </Stack>
+
+            {selectedProvince.stores.length ? (
+              <Stack
+                divider={<Divider flexItem />}
+                sx={{ mt: 1.25, maxHeight: 260, overflowY: 'auto' }}
+              >
+                {selectedProvince.stores.map((store) => (
+                  <Box key={store.id} sx={{ py: 1 }}>
+                    <Stack direction="row" spacing={1} justifyContent="space-between">
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>
+                          {store.name}
+                        </Typography>
+                        <Typography sx={{ color: '#6C5870', fontSize: 11 }}>
+                          {[store.district, store.address].filter(Boolean).join(' · ') ||
+                            selectedProvince.name}
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={
+                            STORE_STATUS_LABEL[store.current_status] ?? STORE_STATUS_LABEL.unknown
+                          }
+                          sx={{ mt: 0.6, height: 21, fontSize: 10, fontWeight: 900 }}
+                        />
+                      </Box>
+                      <Button
+                        component="a"
+                        href={buildGoogleMapsUrl(store.latitude, store.longitude)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="small"
+                        aria-label={`นำทางไป ${store.name}`}
+                        startIcon={<Iconify icon="ri:route-fill" />}
+                        sx={{ minWidth: 0, flexShrink: 0, alignSelf: 'center', fontWeight: 900 }}
+                      >
+                        นำทาง
+                      </Button>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Button
+                href="/report"
+                size="small"
+                variant="contained"
+                startIcon={<Iconify icon="ri:map-pin-add-fill" />}
+                sx={{ mt: 1.5, fontWeight: 900 }}
+              >
+                แจ้งพิกัดแรก
+              </Button>
+            )}
+          </Box>
+        ) : null}
       </Box>
     </Box>
   );

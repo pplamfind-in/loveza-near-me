@@ -38,6 +38,23 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [selectedStore, setSelectedStore] = useState<SortedNearbyStore | null>(null);
 
+  const selectStore = useCallback((store: SortedNearbyStore) => {
+    setSelectedStore(store);
+
+    const map = mapRef.current;
+    if (!map) return;
+
+    const mapHeight = map.getContainer().clientHeight;
+    const verticalOffset = Math.min(160, mapHeight * 0.32);
+
+    map.easeTo({
+      center: [store.longitude, store.latitude],
+      offset: [0, verticalOffset],
+      duration: 420,
+      essential: true,
+    });
+  }, []);
+
   const fitMarkers = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -106,6 +123,7 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
         }}
       >
         <Typography
+          component="div"
           sx={{ display: 'flex', gap: 0.5, alignItems: 'center', fontSize: 11, fontWeight: 800 }}
         >
           <Box
@@ -115,9 +133,10 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
           คุณ
         </Typography>
         <Typography
+          component="div"
           sx={{ display: 'flex', gap: 0.75, alignItems: 'center', fontSize: 11, fontWeight: 800 }}
         >
-          <Box sx={{ display: 'flex' }}>
+          <Box component="span" sx={{ display: 'flex' }}>
             {LOVEZA_STORE_COLORS.slice(0, 3).map((color, index) => (
               <Box
                 key={color.main}
@@ -140,14 +159,44 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
       <MapMarker
         latitude={coordinates.latitude}
         longitude={coordinates.longitude}
+        anchor="center"
         aria-label="ตำแหน่งปัจจุบันของคุณ"
-        sx={{
-          width: 40,
-          height: 40,
-          color: '#1687ff',
-          filter: 'drop-shadow(0 4px 8px rgba(22,135,255,.45))',
-        }}
-      />
+      >
+        <Box
+          role="img"
+          aria-label="ตำแหน่งปัจจุบันของคุณ"
+          sx={{
+            width: 46,
+            height: 46,
+            display: 'grid',
+            borderRadius: '50%',
+            placeItems: 'center',
+            position: 'relative',
+            bgcolor: 'rgba(45, 139, 255, .16)',
+            '&::before': {
+              content: '""',
+              inset: 0,
+              position: 'absolute',
+              borderRadius: '50%',
+              border: '2px solid rgba(45, 139, 255, .24)',
+              animation: 'loveza-location-pulse 1.8s ease-out infinite',
+            },
+            '&::after': {
+              content: '""',
+              width: 18,
+              height: 18,
+              border: '4px solid #fff',
+              borderRadius: '50%',
+              bgcolor: '#2D8BFF',
+              boxShadow: '0 3px 10px rgba(45, 139, 255, .45)',
+            },
+            '@keyframes loveza-location-pulse': {
+              '0%': { opacity: 0.8, transform: 'scale(.72)' },
+              '75%, 100%': { opacity: 0, transform: 'scale(1.45)' },
+            },
+          }}
+        />
+      </MapMarker>
 
       {stores.map((store) => {
         const storeColor = getNearbyStoreColor(store.id);
@@ -157,21 +206,74 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
             key={store.id}
             latitude={store.latitude}
             longitude={store.longitude}
+            anchor="bottom"
             aria-label={`ร้าน ${store.name}`}
             onClick={(event) => {
               event.originalEvent.stopPropagation();
-              setSelectedStore(store);
+              selectStore(store);
             }}
-            sx={{
-              width: 36,
-              height: 36,
-              cursor: 'pointer',
-              color: storeColor.main,
-              filter: `drop-shadow(0 5px 8px ${storeColor.main}66)`,
-              transition: 'transform .2s ease',
-              '&:hover': { transform: 'translateY(-3px) scale(1.12)' },
-            }}
-          />
+          >
+            <Box
+              role="img"
+              aria-label={`ร้าน ${store.name}`}
+              sx={{
+                width: 44,
+                height: 44,
+                cursor: 'pointer',
+                display: 'grid',
+                color: '#fff',
+                placeItems: 'center',
+                border: '4px solid #fff',
+                borderRadius: '50% 50% 50% 0',
+                bgcolor: storeColor.main,
+                boxShadow: `0 7px 15px ${storeColor.main}55`,
+                transform: 'rotate(-45deg)',
+                transition: 'transform .2s ease, filter .2s ease',
+                '&:hover': {
+                  filter: 'brightness(1.06)',
+                  transform: 'translateY(-3px) rotate(-45deg) scale(1.1)',
+                },
+              }}
+            >
+              {store.store_type_logo_url ? (
+                <Box
+                  component="span"
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    p: '3px',
+                    display: 'grid',
+                    overflow: 'hidden',
+                    borderRadius: '50%',
+                    placeItems: 'center',
+                    bgcolor: '#fff',
+                    transform: 'rotate(45deg)',
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={store.store_type_logo_url}
+                    alt=""
+                    sx={{ width: 1, height: 1, objectFit: 'contain' }}
+                  />
+                </Box>
+              ) : (
+                <Typography
+                  component="span"
+                  sx={{
+                    color: '#fff',
+                    fontSize: 15,
+                    fontWeight: 1000,
+                    lineHeight: 1,
+                    letterSpacing: '-.02em',
+                    transform: 'rotate(45deg)',
+                  }}
+                >
+                  LZ
+                </Typography>
+              )}
+            </Box>
+          </MapMarker>
         );
       })}
 
@@ -181,13 +283,22 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
           latitude={selectedStore.latitude}
           onClose={() => setSelectedStore(null)}
           closeOnClick={false}
-          maxWidth="280px"
+          offset={50}
+          maxWidth="min(280px, calc(100vw - 32px))"
+          sx={{
+            '& .maplibregl-popup-content': {
+              width: 'min(280px, calc(100vw - 32px))',
+              maxWidth: 'none',
+            },
+          }}
         >
           <Box
             sx={{
-              minWidth: 210,
+              width: 1,
+              minWidth: 0,
               p: 0.75,
-              borderTop: `4px solid ${getNearbyStoreColor(selectedStore.id).main}`,
+              boxSizing: 'border-box',
+              // borderTop: `4px solid ${getNearbyStoreColor(selectedStore.id).main}`,
             }}
           >
             <Typography sx={{ pr: 2, fontSize: 16, fontWeight: 900 }}>
@@ -219,7 +330,7 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
               rel="noopener noreferrer"
               size="small"
               startIcon={<Iconify icon="ri:route-fill" />}
-              sx={{ mt: 1, px: 0 }}
+              sx={{ mt: 1, px: 2 }}
             >
               นำทางไปที่ร้าน
             </Button>

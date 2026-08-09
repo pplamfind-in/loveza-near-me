@@ -138,6 +138,11 @@ export function ReportHistorySection() {
                       <Typography sx={{ fontSize: 19, fontWeight: 900 }}>
                         {report.store_name}
                       </Typography>
+                      <Chip
+                        size="small"
+                        label={report.store_type_name || report.store_type}
+                        sx={{ mt: 0.75, color: '#E5007E', fontWeight: 900, bgcolor: '#FFF0F8' }}
+                      />
                       <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
                         {[report.address, report.district, report.province]
                           .filter(Boolean)

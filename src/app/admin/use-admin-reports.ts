@@ -9,6 +9,8 @@ export type PendingReportProfile = { display_name: string | null; email: string 
 export type PendingReport = {
   id: string;
   store_name: string;
+  store_type: string;
+  store_type_name: string;
   address: string | null;
   district: string | null;
   province: string;

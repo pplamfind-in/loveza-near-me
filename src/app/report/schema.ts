@@ -26,6 +26,12 @@ const requiredPick = (message: string) =>
  */
 export const reportSchema = z.object({
   storeName: z.string().trim().min(2, 'กรุณาระบุชื่อร้าน').max(120),
+  storeType: z
+    .string()
+    .trim()
+    .min(2, 'กรุณาเลือกประเภทร้าน')
+    .max(50)
+    .regex(/^[a-z0-9]+(?:_[a-z0-9]+)*$/, 'ประเภทร้านไม่ถูกต้อง'),
   province: requiredPick('กรุณาเลือกจังหวัด'),
   district: requiredPick('กรุณาเลือกอำเภอ/เขต'),
   address: z.string().trim().max(300).optional(),

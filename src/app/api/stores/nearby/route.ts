@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 
 import { createClient } from 'src/lib/supabase/server';
 
+type StoreCredit = { store_id: string; reporter_display_name: string | null };
+
 const coordinate = (value: string | null) => (value === null ? Number.NaN : Number(value));
 
 export async function GET(request: Request) {
@@ -39,8 +41,51 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
   }
 
+  const storeIds = (data ?? []).map((store: { id: string }) => store.id);
+  const [storeRowsResult, creditsResult] = await Promise.all([
+    storeIds.length
+      ? supabase.from('stores').select('id, store_type').in('id', storeIds)
+      : Promise.resolve({ data: [], error: null }),
+    storeIds.length
+      ? supabase.rpc('nearby_store_reporter_credits', { store_ids: storeIds })
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  const { data: storeRows, error: storeRowsError } = storeRowsResult;
+  if (storeRowsError) {
+    return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
+  }
+  if (creditsResult.error) {
+    console.error('[api/stores/nearby] reporter credits query failed', creditsResult.error);
+  }
+
+  const typeCodes = [...new Set((storeRows ?? []).map((store) => store.store_type))];
+  const { data: storeTypes, error: storeTypesError } = typeCodes.length
+    ? await supabase.from('store_types').select('code, logo_url').in('code', typeCodes)
+    : { data: [], error: null };
+  if (storeTypesError) {
+    return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
+  }
+
+  const typesByStoreId = new Map((storeRows ?? []).map((store) => [store.id, store.store_type]));
+  const logosByType = new Map((storeTypes ?? []).map((item) => [item.code, item.logo_url]));
+  const creditsByStoreId = new Map(
+    (creditsResult.data ?? []).map((credit: StoreCredit) => [
+      credit.store_id,
+      credit.reporter_display_name,
+    ])
+  );
+  const stores = (data ?? []).map((store: { id: string }) => {
+    const storeType = typesByStoreId.get(store.id) ?? 'unknown';
+    return {
+      ...store,
+      store_type: storeType,
+      store_type_logo_url: logosByType.get(storeType) ?? null,
+      reporter_display_name: creditsByStoreId.get(store.id) ?? null,
+    };
+  });
+
   return NextResponse.json(
-    { stores: data ?? [], radiusM },
+    { stores, radiusM },
     { headers: { 'Cache-Control': 'no-store' } }
   );
 }

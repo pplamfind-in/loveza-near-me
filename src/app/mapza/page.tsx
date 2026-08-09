@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import type { MapzaStore } from 'src/types/store';
 
+import { preload } from 'react-dom';
+
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -20,6 +22,9 @@ export const metadata: Metadata = createSeoMetadata({
 });
 
 export default async function MapzaPage() {
+  preload('/assets/data/thailand-provinces.geojson', { as: 'fetch', crossOrigin: 'anonymous' });
+  preload('/assets/data/thailand-province-names.json', { as: 'fetch', crossOrigin: 'anonymous' });
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('stores')
@@ -30,6 +35,7 @@ export default async function MapzaPage() {
     .order('last_reported_at', { ascending: false, nullsFirst: false });
 
   const stores = (data ?? []) as MapzaStore[];
+  const hasError = Boolean(error);
   const provinceCount = new Set(stores.map((store) => store.province).filter(Boolean)).size;
   const totalQuantity = stores.reduce(
     (total, store) => total + Math.max(store.estimated_quantity ?? 0, 0),
@@ -61,24 +67,26 @@ export default async function MapzaPage() {
           }}
         >
           <Box sx={{ zIndex: 1, position: 'relative' }}>
-            <Typography
-              sx={{
-                px: 1.5,
-                py: 0.7,
-                width: 'fit-content',
-                color: '#351129',
-                fontSize: 11,
-                fontWeight: 1000,
-                letterSpacing: 2,
-                border: '2px solid #351129',
-                borderRadius: 99,
-                bgcolor: '#70E1F5',
-                boxShadow: '3px 3px 0 #351129',
-                transform: 'rotate(-2deg)',
-              }}
-            >
-              LOVEZA NATIONWIDE MAP
-            </Typography>
+            <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography
+                sx={{
+                  px: 1.5,
+                  py: 0.7,
+                  width: 'fit-content',
+                  color: '#351129',
+                  fontSize: 11,
+                  fontWeight: 1000,
+                  letterSpacing: 2,
+                  border: '2px solid #351129',
+                  borderRadius: 99,
+                  bgcolor: '#70E1F5',
+                  boxShadow: '3px 3px 0 #351129',
+                  transform: 'rotate(-2deg)',
+                }}
+              >
+                LOVEZA NATIONWIDE MAP
+              </Typography>
+            </Box>
             <Typography
               component="h1"
               sx={{
@@ -130,7 +138,7 @@ export default async function MapzaPage() {
           </Box>
         </Box>
 
-        <ThailandMap stores={stores} hasError={Boolean(error)} />
+        <ThailandMap stores={stores} hasError={hasError} />
       </Container>
     </Box>
   );

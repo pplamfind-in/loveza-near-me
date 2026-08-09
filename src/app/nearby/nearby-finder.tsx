@@ -41,6 +41,8 @@ const LOCATION_PERMISSION_KEY = 'loveza_location_allowed_v1';
 const LOCATION_RETRY_AFTER_RELOAD_KEY = 'loveza_location_retry_after_reload_v1';
 const LOCATION_SESSION_CACHE_KEY = 'loveza_location_session_v1';
 const LOCATION_SESSION_MAX_AGE_MS = 10 * 60 * 1000;
+const STORES_PAGE_SIZE = 3;
+const LOAD_MORE_DELAY_MS = 300;
 
 const locateButtonSx = {
   minHeight: 52,
@@ -69,6 +71,9 @@ export function NearbyFinder() {
     restoreLocation,
   } = useGeolocation();
   const permissionCheckedRef = useRef(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [visibleStoreCount, setVisibleStoreCount] = useState(STORES_PAGE_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const locationSettingsSteps = useMemo(() => {
     if (typeof navigator === 'undefined') return [];
@@ -216,7 +221,7 @@ export function NearbyFinder() {
     requestLocation();
   };
 
-  const { data, isFetching, isError } = useQuery({
+  const { data, isFetching, isError, dataUpdatedAt } = useQuery({
     queryKey: ['nearby-stores', coordinates?.latitude, coordinates?.longitude],
     enabled: !!coordinates,
     queryFn: async (): Promise<NearbySearchResult> => {
@@ -242,6 +247,8 @@ export function NearbyFinder() {
   });
 
   const stores = data?.stores ?? EMPTY_STORES;
+  const visibleStores = stores.slice(0, visibleStoreCount);
+  const hasMoreStores = visibleStoreCount < stores.length;
   const searchRadiusM = data?.radiusM ?? null;
   const loading = locating || isFetching;
   const message = isError
@@ -249,6 +256,38 @@ export function NearbyFinder() {
     : !loading && coordinates && stores.length === 0
       ? `ยังไม่พบร้านในระยะ ${searchRadiusM ? formatRadiusM(searchRadiusM) : 'ที่ Admin กำหนด'} ช่วยแจ้งพิกัดแรกได้เลย`
       : '';
+
+  useEffect(() => {
+    setVisibleStoreCount(STORES_PAGE_SIZE);
+    setIsLoadingMore(false);
+  }, [dataUpdatedAt]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMoreStores) return undefined;
+
+    let loadMoreTimer: number | undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+
+        observer.disconnect();
+        setIsLoadingMore(true);
+        loadMoreTimer = window.setTimeout(() => {
+          setVisibleStoreCount((current) => Math.min(current + STORES_PAGE_SIZE, stores.length));
+          setIsLoadingMore(false);
+        }, LOAD_MORE_DELAY_MS);
+      },
+      { rootMargin: '240px 0px' }
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+      if (loadMoreTimer) window.clearTimeout(loadMoreTimer);
+    };
+  }, [hasMoreStores, stores.length, visibleStoreCount]);
 
   return (
     <Stack spacing={2}>
@@ -335,20 +374,22 @@ export function NearbyFinder() {
               เรียงจากร้านที่อยู่ใกล้ที่สุด
             </Typography>
           </div>
-          <Chip
-            label={`${stores.length} ร้าน`}
-            sx={{ color: '#fff', fontWeight: 900, bgcolor: '#7b43a1' }}
-          />
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Chip
+              label={`${stores.length} ร้าน`}
+              sx={{ color: '#fff', fontWeight: 900, bgcolor: '#7b43a1' }}
+            />
+          </Stack>
         </Stack>
       ) : null}
       <Box
         sx={{
           display: 'grid',
           gap: 2,
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
         }}
       >
-        {stores.map((store, index) => {
+        {visibleStores.map((store, index) => {
           const storeColor = getNearbyStoreColor(store.id);
 
           return (
@@ -395,7 +436,30 @@ export function NearbyFinder() {
                       boxShadow: '3px 3px 0 #351129',
                     }}
                   >
-                    <Iconify icon="ri:store-2-fill" width={23} />
+                    {store.store_type_logo_url ? (
+                      <Box
+                        component="span"
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          p: '4px',
+                          display: 'grid',
+                          overflow: 'hidden',
+                          borderRadius: '50%',
+                          placeItems: 'center',
+                          bgcolor: '#fff',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={store.store_type_logo_url}
+                          alt={`Logo ${store.name}`}
+                          sx={{ width: 1, height: 1, objectFit: 'contain' }}
+                        />
+                      </Box>
+                    ) : (
+                      <Iconify icon="ri:store-2-fill" width={23} />
+                    )}
                   </Box>
                   <div>
                     <Typography sx={{ fontWeight: 1000, fontSize: 18 }}>{store.name}</Typography>
@@ -436,11 +500,26 @@ export function NearbyFinder() {
                 alignItems="flex-end"
                 sx={{ mt: 2 }}
               >
-                <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
-                  {store.last_reported_at
-                    ? `พบล่าสุด ${formatRelativeTimeTh(store.last_reported_at)}`
-                    : 'ยังไม่มีเวลารายงานล่าสุด'}
-                </Typography>
+                <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                  <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+                    {store.last_reported_at
+                      ? `พบล่าสุด ${formatRelativeTimeTh(store.last_reported_at)}`
+                      : 'ยังไม่มีเวลารายงานล่าสุด'}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      gap: 0.5,
+                      display: 'flex',
+                      color: storeColor.dark,
+                      alignItems: 'center',
+                      fontSize: 12,
+                      fontWeight: 900,
+                    }}
+                  >
+                    <Iconify icon="ri:user-heart-fill" width={15} />
+                    แจ้งโดย {store.reporter_display_name ?? 'นักล่า Loveza'}
+                  </Typography>
+                </Stack>
                 <Button
                   component="a"
                   href={buildGoogleMapsUrl(store.latitude, store.longitude)}
@@ -466,6 +545,35 @@ export function NearbyFinder() {
           );
         })}
       </Box>
+      {hasMoreStores ? (
+        <Stack
+          ref={loadMoreRef}
+          role="status"
+          aria-live="polite"
+          spacing={1}
+          alignItems="center"
+          sx={{ minHeight: 88, pt: 2, pb: 1, color: '#7b43a1' }}
+        >
+          {isLoadingMore ? (
+            <CircularProgress size={28} color="inherit" />
+          ) : (
+            <Iconify icon="ri:arrow-down-double-line" width={28} />
+          )}
+          <Typography sx={{ fontSize: 13, fontWeight: 900 }}>
+            {isLoadingMore ? 'กำลังโหลดร้านเพิ่มเติม...' : 'เลื่อนลงเพื่อดูร้านเพิ่มเติม'}
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+            แสดงแล้ว {visibleStores.length} จาก {stores.length} ร้าน
+          </Typography>
+        </Stack>
+      ) : stores.length > STORES_PAGE_SIZE ? (
+        <Typography
+          role="status"
+          sx={{ py: 2, color: 'text.secondary', textAlign: 'center', fontSize: 13, fontWeight: 800 }}
+        >
+          แสดงครบทั้งหมด {stores.length} ร้านแล้ว
+        </Typography>
+      ) : null}
 
       <Dialog
         open={locationDialogOpen && !coordinates}

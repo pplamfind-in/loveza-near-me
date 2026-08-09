@@ -23,8 +23,9 @@ import { thailandProvinces } from 'src/assets/data';
 import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
-import { FLAVOR_OPTIONS } from 'src/types/report';
+import { FLAVOR_OPTIONS, STORE_TYPE_OPTIONS } from 'src/types/report';
 
+import { useStoreTypesQuery } from './use-store-types';
 import { useSubmitReportMutation } from './use-submit-report';
 import {
   reportSchema,
@@ -40,6 +41,7 @@ type ReportFormInput = z.input<typeof reportSchema>;
 
 const defaultValues: ReportFormInput = {
   storeName: '',
+  storeType: 'general',
   province: null,
   district: null,
   address: '',
@@ -61,6 +63,7 @@ const PROVINCE_OPTIONS = thailandProvinces.map((province) => province.nameTh);
 function buildFormData(data: ReportFormValues, storeId?: string) {
   const formData = new FormData();
   formData.set('storeName', data.storeName);
+  formData.set('storeType', data.storeType);
   formData.set('province', data.province ?? '');
   formData.set('district', data.district ?? '');
   if (data.address) formData.set('address', data.address);
@@ -134,6 +137,13 @@ function FormSection({ step, icon, title, description, color, children }: FormSe
 
 export function ReportForm() {
   const mutation = useSubmitReportMutation();
+  const { data: masterStoreTypes = [] } = useStoreTypesQuery();
+  const storeTypeOptions = masterStoreTypes.length
+    ? masterStoreTypes.map((storeType) => ({
+        value: storeType.code,
+        label: storeType.name,
+      }))
+    : STORE_TYPE_OPTIONS;
   const state: ReportFormState =
     mutation.data ??
     (mutation.isError
@@ -143,7 +153,6 @@ export function ReportForm() {
   const {
     coordinates: gps,
     isLoading: locating,
-    error: gpsError,
     requestLocation,
   } = useGeolocation();
 
@@ -157,12 +166,10 @@ export function ReportForm() {
     watch,
     setValue,
     handleSubmit,
-    formState: { errors },
   } = methods;
 
   const [latitude, longitude, province] = watch(['latitude', 'longitude', 'province']);
   const hasCoordinates = latitude !== undefined && longitude !== undefined;
-  const locationError = errors.latitude?.message ?? errors.longitude?.message;
 
   const districtOptions = useMemo(
     () =>
@@ -221,10 +228,19 @@ export function ReportForm() {
             step="01"
             icon="ri:store-2-fill"
             title="เจอที่ร้านไหน?"
-            description="บอกชื่อร้านหรือชื่อสาขาให้เพื่อนตามหาได้ง่าย"
+            description="เลือกประเภทร้าน พร้อมบอกชื่อหรือสาขาให้เพื่อนตามหาได้ง่าย"
             color="#70E1F5"
           >
-            <Field.Text name="storeName" label="ชื่อร้าน / ชื่อสาขา *" />
+            <Stack spacing={2}>
+              <Field.Select name="storeType" label="ประเภทร้านค้า *">
+                {storeTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Field.Select>
+              <Field.Text name="storeName" label="ชื่อร้าน / ชื่อสาขา *" />
+            </Stack>
           </FormSection>
 
           <FormSection

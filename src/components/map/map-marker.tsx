@@ -13,14 +13,16 @@ export type MapMarkerProps = MarkerProps & {
   sx?: SxProps<Theme>;
 };
 
-export function MapMarker({ sx, ...other }: MapMarkerProps) {
+export function MapMarker({ sx, children, ...other }: MapMarkerProps) {
   return (
     <Marker {...other}>
-      <Iconify
-        width={26}
-        icon="custom:location-fill"
-        sx={[{ color: 'error.main' }, ...(Array.isArray(sx) ? sx : [sx])]}
-      />
+      {children ?? (
+        <Iconify
+          width={26}
+          icon="custom:location-fill"
+          sx={[{ color: 'error.main' }, ...(Array.isArray(sx) ? sx : [sx])]}
+        />
+      )}
     </Marker>
   );
 }

@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 export type UserReport = {
   id: string;
   store_name: string;
+  store_type: string;
+  store_type_name: string;
   address: string | null;
   province: string;
   district: string | null;

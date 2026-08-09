@@ -73,6 +73,11 @@ export function PendingReportsPanel() {
                 <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={3}>
                   <Box>
                     <Typography sx={{ fontSize: 20, fontWeight: 900 }}>{report.store_name}</Typography>
+                    <Chip
+                      size="small"
+                      label={report.store_type_name || report.store_type}
+                      sx={{ mt: 0.75, fontWeight: 900, bgcolor: '#FFF0F8', color: '#E5007E' }}
+                    />
                     <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
                       {[report.address, report.district, report.province].filter(Boolean).join(', ')}
                     </Typography>

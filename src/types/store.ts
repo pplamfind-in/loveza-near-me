@@ -17,6 +17,9 @@ export const STORE_STATUS_LABEL: Record<StoreStatus, string> = {
 export type NearbyStore = {
   id: string;
   name: string;
+  store_type?: string;
+  store_type_logo_url?: string | null;
+  reporter_display_name?: string | null;
   address: string | null;
   province: string;
   latitude: number;
