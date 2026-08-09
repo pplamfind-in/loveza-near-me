@@ -15,7 +15,10 @@ export type UseGeolocationReturn = {
 
 const ERROR_MESSAGE = {
   unsupported: 'อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง (Geolocation)',
-  permissionDenied: 'ไม่สามารถเข้าถึงตำแหน่งของคุณได้\nกรุณาอนุญาตตำแหน่ง หรือค้นหาจากพื้นที่แทน',
+  insecureContext:
+    'เบราว์เซอร์อนุญาตให้ใช้ตำแหน่งผ่าน HTTPS เท่านั้น กรุณาเปิดเว็บไซต์จาก URL แบบ HTTPS',
+  permissionDenied:
+    'ไม่สามารถเข้าถึงตำแหน่งของคุณได้ กรุณาอนุญาต Location ในการตั้งค่าเว็บไซต์ของเบราว์เซอร์ แล้วลองอีกครั้ง',
   timeout: 'ค้นหาตำแหน่งใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง',
   positionUnavailable: 'ไม่สามารถระบุตำแหน่งของคุณได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง',
   unknown: 'เกิดข้อผิดพลาดในการค้นหาตำแหน่ง กรุณาลองใหม่อีกครั้ง',
@@ -35,6 +38,11 @@ export function useGeolocation(options?: PositionOptions): UseGeolocationReturn 
   optionsRef.current = options;
 
   const requestLocation = useCallback(() => {
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setError(ERROR_MESSAGE.insecureContext);
+      return;
+    }
+
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setError(ERROR_MESSAGE.unsupported);
       return;

@@ -21,7 +21,7 @@ export default function NearbyPage() {
       component="main"
       sx={{
         minHeight: '100vh',
-        py: { xs: 5, md: 8 },
+        py: '100px',
         position: 'relative',
         overflow: 'hidden',
         background:
@@ -50,7 +50,7 @@ export default function NearbyPage() {
         },
       }}
     >
-      <Container maxWidth="lg" sx={{ zIndex: 1, position: 'relative' }}>
+      <Container maxWidth="xl" sx={{ zIndex: 1, position: 'relative' }}>
         <Box
           sx={{
             mb: 4,

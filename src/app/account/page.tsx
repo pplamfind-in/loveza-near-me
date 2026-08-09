@@ -30,12 +30,12 @@ export default async function AccountPage() {
       component="main"
       sx={{
         minHeight: '100vh',
-        py: { xs: 5, md: 8 },
+        py: '100px',
         background:
           'radial-gradient(circle at 12px 12px, rgba(229,0,126,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth="xl">
         <Box
           sx={{
             mb: { xs: 4, md: 5 },
@@ -65,7 +65,7 @@ export default async function AccountPage() {
             display: 'grid',
             gap: { xs: 6, md: 4, lg: 5 },
             alignItems: 'start',
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(360px, 0.82fr) minmax(0, 1.18fr)' },
+            gridTemplateColumns: { xs: '1fr', md: 'minmax(200px, 0.82fr) minmax(0, 1.8fr)' },
           }}
         >
           <Box sx={{ position: { md: 'sticky' }, top: { md: 100 } }}>

@@ -3,7 +3,6 @@ import type { User } from '@supabase/supabase-js';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 
@@ -33,7 +32,7 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
         border: isAdmin ? 'none' : '3px solid #351129',
         borderRadius: '30px',
         bgcolor: '#fff',
-        boxShadow: isAdmin ? '0 24px 70px rgba(52,78,82,.12)' : '7px 8px 0 #351129',
+        boxShadow: isAdmin ? '0 24px 70px rgba(121, 237, 255, 0.12)' : '7px 8px 0 #351129',
       }}
     >
       <Stack
@@ -105,26 +104,10 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
         spacing={1.5}
         sx={{ mt: 4 }}
       >
-        <Button
-          href={isAdmin ? '#pending-reports' : '/report'}
-          variant="contained"
-          sx={
-            isAdmin
-              ? { borderRadius: 99, bgcolor: '#E5007E', '&:hover': { bgcolor: '#d91873' } }
-              : {
-                  color: '#351129',
-                  border: '2px solid #351129',
-                  borderRadius: 99,
-                  backgroundImage: 'none',
-                  bgcolor: '#FDE047',
-                  boxShadow: '4px 5px 0 #351129',
-                  '&:hover': { bgcolor: '#FFE96B', boxShadow: '2px 3px 0 #351129' },
-                }
-          }
-        >
-          {isAdmin ? 'ดูข้อมูลรอตรวจสอบ' : 'แจ้งพิกัด Loveza ตอนนี้'}
-        </Button>
-        <LovezaSignOutButton buttonProps={{ color: 'inherit', sx: { borderRadius: 99 } }} />
+        <LovezaSignOutButton
+          confirm={compact && !isAdmin}
+          buttonProps={{ color: 'inherit', sx: { borderRadius: 99 } }}
+        />
       </Stack>
     </Box>
   );

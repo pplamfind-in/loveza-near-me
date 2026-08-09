@@ -38,7 +38,7 @@ export function ProductCan({
             src={imageUrl}
             alt={`${name} ${thaiName}`}
             sx={{
-              width: { xs: 210, md: 380 },
+              width: { xs: 210, md: 30 },
               height: { xs: 280, md: 330 },
               zIndex: 1,
               objectFit: 'contain',

@@ -2,8 +2,8 @@
 
 import type { NearbyStore } from 'src/types/store';
 
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -11,8 +11,12 @@ import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useGeolocation } from 'src/hooks/use-geolocation';
@@ -33,6 +37,7 @@ type SortedNearbyStore = NearbyStore & { distanceKm: number };
 type NearbySearchResult = { stores: SortedNearbyStore[]; radiusM: number };
 
 const EMPTY_STORES: SortedNearbyStore[] = [];
+const LOCATION_PERMISSION_KEY = 'loveza_location_allowed_v1';
 
 const locateButtonSx = {
   minHeight: 52,
@@ -54,10 +59,79 @@ const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
 
 export function NearbyFinder() {
   const { coordinates, isLoading: locating, error: gpsError, requestLocation } = useGeolocation();
+  const permissionCheckedRef = useRef(false);
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
 
   useEffect(() => {
-    requestLocation();
+    if (permissionCheckedRef.current) return undefined;
+    permissionCheckedRef.current = true;
+
+    let active = true;
+    let permissionStatus: PermissionStatus | undefined;
+    const wasPreviouslyAllowed = localStorage.getItem(LOCATION_PERMISSION_KEY) === 'true';
+
+    const handlePermissionState = () => {
+      if (!active || !permissionStatus) return;
+
+      if (permissionStatus.state === 'granted') {
+        setLocationDialogOpen(false);
+        requestLocation();
+        return;
+      }
+
+      if (permissionStatus.state === 'denied') {
+        localStorage.removeItem(LOCATION_PERMISSION_KEY);
+      }
+      setLocationDialogOpen(true);
+    };
+
+    const checkPermission = async () => {
+      if (!window.isSecureContext) {
+        setLocationDialogOpen(true);
+        return;
+      }
+
+      if (!navigator.permissions?.query) {
+        if (wasPreviouslyAllowed) requestLocation();
+        else setLocationDialogOpen(true);
+        return;
+      }
+
+      try {
+        permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        if (!active) return;
+        permissionStatus.addEventListener('change', handlePermissionState);
+        handlePermissionState();
+      } catch {
+        if (wasPreviouslyAllowed) requestLocation();
+        else setLocationDialogOpen(true);
+      }
+    };
+
+    void checkPermission();
+
+    return () => {
+      active = false;
+      permissionStatus?.removeEventListener('change', handlePermissionState);
+    };
   }, [requestLocation]);
+
+  useEffect(() => {
+    if (!coordinates) return;
+    localStorage.setItem(LOCATION_PERMISSION_KEY, 'true');
+    setLocationDialogOpen(false);
+  }, [coordinates]);
+
+  useEffect(() => {
+    if (!gpsError) return;
+    localStorage.removeItem(LOCATION_PERMISSION_KEY);
+    setLocationDialogOpen(true);
+  }, [gpsError]);
+
+  const handleRequestLocation = () => {
+    setLocationDialogOpen(false);
+    requestLocation();
+  };
 
   const { data, isFetching, isError } = useQuery({
     queryKey: ['nearby-stores', coordinates?.latitude, coordinates?.longitude],
@@ -97,14 +171,18 @@ export function NearbyFinder() {
     <Stack spacing={2}>
       {!coordinates ? (
         <Button
-          onClick={requestLocation}
+          onClick={() => setLocationDialogOpen(true)}
           disabled={loading}
           variant="contained"
           size="large"
           startIcon={!loading ? <Iconify icon="ri:focus-3-line" /> : undefined}
           sx={locateButtonSx}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : 'ลองใช้ตำแหน่งของฉันอีกครั้ง'}
+          {loading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            'เปิดตำแหน่งเพื่อค้นหาร้านใกล้ฉัน'
+          )}
         </Button>
       ) : null}
       {gpsError ? (
@@ -305,6 +383,102 @@ export function NearbyFinder() {
           );
         })}
       </Box>
+
+      <Dialog
+        open={locationDialogOpen && !coordinates}
+        onClose={() => setLocationDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        slotProps={{
+          paper: {
+            sx: {
+              m: 2,
+              width: 'calc(100% - 32px)',
+              maxWidth: 340,
+              overflow: 'visible',
+              border: '3px solid #351129',
+              borderRadius: '28px',
+              boxShadow: '8px 9px 0 #351129',
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 64,
+            height: 64,
+            mx: 'auto',
+            mt: -4,
+            color: '#351129',
+            display: 'grid',
+            placeItems: 'center',
+            border: '3px solid #351129',
+            borderRadius: '20px',
+            bgcolor: '#FDE047',
+            boxShadow: '4px 4px 0 #351129',
+            transform: 'rotate(-4deg)',
+          }}
+        >
+          <Iconify icon="ri:map-pin-user-fill" width={32} />
+        </Box>
+        <DialogTitle
+          sx={{
+            pt: 2.5,
+            pb: 1,
+            px: 2,
+            textAlign: 'center',
+            fontSize: { xs: 23, sm: 26 },
+            lineHeight: 1.25,
+            fontWeight: 1000,
+          }}
+        >
+          เปิด Location ก่อนออกล่า
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center' }}>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+            Loveza Near Me จะใช้ตำแหน่งปัจจุบันเพื่อค้นหาร้านที่อยู่ใกล้คุณเท่านั้น
+          </Typography>
+
+          {gpsError ? (
+            <Alert severity="warning" sx={{ mt: 2, textAlign: 'left', whiteSpace: 'pre-line' }}>
+              {gpsError}
+            </Alert>
+          ) : null}
+
+          <Box
+            sx={{
+              mt: 2,
+              p: 2,
+              textAlign: 'left',
+              border: '2px solid #351129',
+              borderRadius: '18px',
+              bgcolor: '#DDFBF7',
+            }}
+          >
+            <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>หากเคยกดไม่อนุญาต</Typography>
+            <Typography sx={{ mt: 0.75, color: '#5B3A50', fontSize: 12, lineHeight: 1.65 }}>
+              เปิดการตั้งค่าเว็บไซต์ใน Safari หรือ Chrome → Location → เลือก Allow
+              แล้วกลับมากดใหม่อีกครั้ง
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions
+          sx={{ px: 3, pb: 3, gap: 1, flexDirection: { xs: 'column-reverse', sm: 'row' } }}
+        >
+          <Button color="inherit" fullWidth onClick={() => setLocationDialogOpen(false)}>
+            ไว้ก่อน
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleRequestLocation}
+            startIcon={<Iconify icon="ri:focus-3-line" />}
+            sx={locateButtonSx}
+          >
+            เปิดตำแหน่ง
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

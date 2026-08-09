@@ -30,12 +30,12 @@ export default async function ReportPage() {
       component="main"
       sx={{
         minHeight: '100vh',
-        py: { xs: 5, md: 8 },
+        py: '100px',
         background:
           'radial-gradient(circle at 12px 12px, rgba(124,58,237,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth="xl">
         <Box
           sx={{
             mb: 3,

@@ -99,7 +99,7 @@ export function MainLayout({
             onClose={onClose}
             slots={{
               bottomArea: headerUser ? (
-                <Box sx={{ p: 2.5 }}>
+                <Box sx={{ p: 2.5 }} textAlign="center">
                   <LovezaHeaderAccount user={headerUser} mobile />
                   <Box sx={{ mt: 1 }}>
                     <LovezaSignOutButton
