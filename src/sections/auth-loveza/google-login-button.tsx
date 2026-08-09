@@ -7,7 +7,6 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { supabase } from 'src/lib/supabase';
@@ -63,10 +62,7 @@ async function hashNonce(value: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function GoogleLoginButton({
-  clientId,
-  nextPath,
-}: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps) {
   const router = useRouter();
   const buttonRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef('');
@@ -126,7 +122,7 @@ export function GoogleLoginButton({
         text: 'continue_with',
         shape: 'pill',
         locale: 'th',
-        width: Math.min(buttonRef.current.clientWidth, 400),
+        width: Math.min(buttonRef.current.clientWidth, 320),
       });
     };
 
@@ -147,14 +143,24 @@ export function GoogleLoginButton({
         onError={() => setError('โหลด Google Login ไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อ')}
       />
 
-      {!clientId && (
+      {/* {!clientId && (
         <Alert severity="warning">ยังไม่ได้กำหนด GOOGLE_CLIENT_ID ใน Environment Variables</Alert>
-      )}
+      )} */}
       {error && <Alert severity="error">{error}</Alert>}
 
       <Box sx={{ minHeight: 44, display: 'grid', placeItems: 'center', position: 'relative' }}>
         {loading && (
-          <Box sx={{ inset: 0, zIndex: 1, display: 'grid', position: 'absolute', placeItems: 'center', borderRadius: 99, bgcolor: 'rgba(255,255,255,.82)' }}>
+          <Box
+            sx={{
+              inset: 0,
+              zIndex: 1,
+              display: 'grid',
+              position: 'absolute',
+              placeItems: 'center',
+              borderRadius: 99,
+              bgcolor: 'rgba(255,255,255,.82)',
+            }}
+          >
             <CircularProgress size={24} />
           </Box>
         )}
@@ -162,9 +168,9 @@ export function GoogleLoginButton({
         <Box ref={buttonRef} sx={{ width: 1, display: 'flex', justifyContent: 'center' }} />
       </Box>
 
-      <Typography sx={{ color: '#8a9290', fontSize: 12, lineHeight: 1.65 }}>
+      {/* <Typography sx={{ color: '#8a9290', fontSize: 12, lineHeight: 1.65 }}>
         ใช้ Google Client ID เพื่อยืนยันตัวตน จากนั้น Supabase จะสร้าง Session สำหรับบันทึกผู้รายงาน
-      </Typography>
+      </Typography> */}
     </Stack>
   );
 }

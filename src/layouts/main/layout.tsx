@@ -11,6 +11,7 @@ import { useBoolean } from 'minimal-shared/hooks';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 
 import { usePathname } from 'src/routes/hooks';
 
@@ -118,7 +119,26 @@ export function MainLayout({
           />
 
           {/** @slot Logo */}
-          <Logo />
+          <Box sx={{ display: 'flex', gap: 1.1, alignItems: 'center' }}>
+            <Logo />
+            <Typography
+              sx={(theme) => ({
+                display: 'none',
+                color: '#351129',
+                fontSize: 16,
+                fontWeight: 1000,
+                lineHeight: 1,
+                letterSpacing: '-.03em',
+                whiteSpace: 'nowrap',
+                [theme.breakpoints.up(layoutQuery)]: { display: 'block' },
+              })}
+            >
+              LOVEZA{' '}
+              <Box component="span" sx={{ color: '#E5007E' }}>
+                HUNT
+              </Box>
+            </Typography>
+          </Box>
         </>
       ),
       rightArea: (

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { redirect } from 'next/navigation';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 
@@ -36,12 +37,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AuthShell
-      eyebrow="LOVEZA ACCOUNT"
-      title="เข้าสู่ระบบ Loveza"
-      description="ใช้บัญชี Google เดียวกัน ระบบจะพาคุณไปยังพื้นที่ผู้ใช้งานหรือ Admin ตามสิทธิ์ที่ได้รับ"
+      eyebrow="JOIN THE HUNT"
+      title="พร้อมออกล่าแล้วใช่ไหม?"
+      description="เข้าสู่ระบบด้วย Google เพื่อค้นหาร้านใกล้ตัว แจ้งพิกัดใหม่ และดูประวัติการตามล่าของคุณ"
     >
-      <Stack spacing={1.5}>
+      <Stack spacing={1.5} textAlign="center" alignItems="center" justifyContent="center">
         <GoogleLoginButton clientId={process.env.GOOGLE_CLIENT_ID ?? ''} nextPath={params.next} />
+        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center">
+          <Iconify icon="ri:shield-check-fill" width={16} sx={{ color: '#25A56A' }} />
+          <Box component="span" sx={{ color: '#756A77', fontSize: 11, fontWeight: 700 }}>
+            ใช้เพื่อยืนยันผู้แจ้งพิกัดและลดข้อมูลซ้ำเท่านั้น
+          </Box>
+        </Stack>
         <Button
           component="a"
           href="/"
@@ -49,6 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           variant="outlined"
           startIcon={<Iconify icon="ri:arrow-left-line" />}
           sx={{
+            width: '320px',
             minHeight: 48,
             color: '#351129',
             border: '2px solid #351129',
