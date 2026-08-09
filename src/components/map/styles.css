@@ -59,6 +59,28 @@ body:has(.maplibregl-pseudo-fullscreen) {
       bottom: max(10px, env(safe-area-inset-bottom));
       left: max(6px, env(safe-area-inset-left));
     }
+
+    @media (max-width: 899px) {
+      .maplibregl-ctrl-top-left {
+        top: auto;
+        right: max(14px, env(safe-area-inset-right));
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
+        left: auto;
+      }
+
+      .maplibregl-ctrl-top-left .maplibregl-ctrl {
+        margin: 0;
+      }
+
+      .maplibregl-ctrl-shrink {
+        width: 46px;
+        height: 46px;
+        border: 2px solid #351129;
+        border-radius: 14px;
+        background-color: #fde047;
+        box-shadow: 3px 4px 0 #351129;
+      }
+    }
   }
 
   /* Popup content box */
