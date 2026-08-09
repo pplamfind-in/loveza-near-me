@@ -84,7 +84,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
       >
         <Box>
           <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
-            LOVEZA ADMIN
+            LOVEZA HUNT ADMIN
           </Typography>
           <Typography
             component="h1"

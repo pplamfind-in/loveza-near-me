@@ -26,3 +26,8 @@ export type NearbyStore = {
   last_reported_at: string | null;
   distance_km: number;
 };
+
+export type MapzaStore = Omit<NearbyStore, 'distance_km'> & {
+  district: string | null;
+  subdistrict: string | null;
+};

@@ -41,7 +41,7 @@ export function FooterSection() {
             </Link>
           </Stack>
           <Typography sx={{ color: '#FFD9ED', fontSize: 13 }}>
-            © 2026 LOVEZA LOVE POTION. 330 ML.
+            © 2026 LOVEZA HUNT. All rights reserved.
           </Typography>
         </Stack>
       </Container>

@@ -23,6 +23,7 @@ export const NO_INDEX_ROBOTS: Metadata['robots'] = {
 export const PUBLIC_SEO_ROUTES = [
   { path: '/', changeFrequency: 'daily' as const, priority: 1 },
   { path: '/nearby/', changeFrequency: 'hourly' as const, priority: 0.9 },
+  { path: '/mapza/', changeFrequency: 'hourly' as const, priority: 0.9 },
   { path: '/about-us/', changeFrequency: 'monthly' as const, priority: 0.6 },
   { path: '/contact-us/', changeFrequency: 'monthly' as const, priority: 0.5 },
 ];

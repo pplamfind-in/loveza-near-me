@@ -3,7 +3,7 @@
 import type { NearbyStore } from 'src/types/store';
 
 import { useQuery } from '@tanstack/react-query';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -24,7 +24,7 @@ import { useGeolocation } from 'src/hooks/use-geolocation';
 import { calculateDistanceKm } from 'src/utils/geo';
 import { formatRelativeTimeTh } from 'src/utils/relative-time-th';
 
-import { formatDuplicateRadius } from 'src/lib/admin/duplicate-radius';
+import { formatRadiusM } from 'src/lib/admin/duplicate-radius';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -61,6 +61,23 @@ export function NearbyFinder() {
   const { coordinates, isLoading: locating, error: gpsError, requestLocation } = useGeolocation();
   const permissionCheckedRef = useRef(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const locationSettingsGuide = useMemo(() => {
+    if (typeof navigator === 'undefined') return '';
+
+    const userAgent = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+    const isChrome = /CriOS|Chrome/.test(userAgent);
+
+    if (isIOS && isChrome) {
+      return 'iPhone: เปิด Settings → Apps → Chrome → Location → เลือก While Using the App แล้วกลับมากดใหม่';
+    }
+
+    if (isIOS) {
+      return 'iPhone Safari: กด aA ที่แถบที่อยู่ → Website Settings → Location → Allow หรือเปิด Settings → Privacy & Security → Location Services → Safari Websites';
+    }
+
+    return 'Android Chrome: กดไอคอนด้านซ้ายของ URL → Permissions → Location → Allow แล้วกลับมากดใหม่';
+  }, []);
 
   useEffect(() => {
     if (permissionCheckedRef.current) return undefined;
@@ -164,7 +181,7 @@ export function NearbyFinder() {
   const message = isError
     ? 'ค้นหาร้านไม่สำเร็จ กรุณาลองอีกครั้ง'
     : !loading && coordinates && stores.length === 0
-      ? `ยังไม่พบร้านในระยะ ${searchRadiusM ? formatDuplicateRadius(searchRadiusM) : 'ที่ Admin กำหนด'} ช่วยแจ้งพิกัดแรกได้เลย`
+      ? `ยังไม่พบร้านในระยะ ${searchRadiusM ? formatRadiusM(searchRadiusM) : 'ที่ Admin กำหนด'} ช่วยแจ้งพิกัดแรกได้เลย`
       : '';
 
   return (
@@ -213,7 +230,7 @@ export function NearbyFinder() {
                 <div>
                   <Typography sx={{ fontWeight: 900 }}>
                     ตำแหน่งปัจจุบันของคุณ -{' '}
-                    {searchRadiusM && `ระยะค้นหา ${formatDuplicateRadius(searchRadiusM)}`}
+                    {searchRadiusM && `ระยะค้นหา ${formatRadiusM(searchRadiusM)}`}
                   </Typography>
                   <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
                     {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
@@ -457,8 +474,11 @@ export function NearbyFinder() {
           >
             <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>หากเคยกดไม่อนุญาต</Typography>
             <Typography sx={{ mt: 0.75, color: '#5B3A50', fontSize: 12, lineHeight: 1.65 }}>
-              เปิดการตั้งค่าเว็บไซต์ใน Safari หรือ Chrome → Location → เลือก Allow
-              แล้วกลับมากดใหม่อีกครั้ง
+              {locationSettingsGuide}
+            </Typography>
+            <Typography sx={{ mt: 1, color: '#7A5D72', fontSize: 11, lineHeight: 1.55 }}>
+              ต้องเปิดเว็บไซต์ผ่าน HTTPS เท่านั้น หากทดสอบจากมือถือด้วย IP เช่น http://192.168.x.x
+              เบราว์เซอร์จะไม่อนุญาตให้ใช้ตำแหน่ง
             </Typography>
           </Box>
         </DialogContent>
@@ -475,7 +495,7 @@ export function NearbyFinder() {
             startIcon={<Iconify icon="ri:focus-3-line" />}
             sx={locateButtonSx}
           >
-            เปิดตำแหน่ง
+            {gpsError ? 'ลองขอพิกัดอีกครั้ง' : 'เปิดตำแหน่ง'}
           </Button>
         </DialogActions>
       </Dialog>

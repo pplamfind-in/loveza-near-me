@@ -33,6 +33,11 @@ export const adminNavData: NavSectionProps['data'] = [
         path: '/admin/settings',
         icon: navIcon('ri:settings-3-fill'),
       },
+      {
+        title: 'คู่มือระบบ',
+        path: '/admin/guide',
+        icon: navIcon('ri:book-2-fill'),
+      },
     ],
   },
 ];

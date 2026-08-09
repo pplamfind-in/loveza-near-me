@@ -20,6 +20,14 @@ const isStaticExport = false;
 const nextConfig: NextConfig = {
   trailingSlash: true,
   output: isStaticExport ? 'export' : undefined,
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [{ key: 'Permissions-Policy', value: 'geolocation=(self)' }],
+      },
+    ];
+  },
   env: {
     BUILD_STATIC_EXPORT: JSON.stringify(isStaticExport),
   },

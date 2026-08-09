@@ -46,12 +46,20 @@ export const reportSchema = z.object({
       'รองรับเฉพาะไฟล์ JPG, PNG หรือ WEBP'
     ),
   note: z.string().trim().max(500).optional(),
+  storeId: z.string().uuid().optional(),
 });
 
 export type ReportFormValues = z.infer<typeof reportSchema>;
 
-// Shared response shape between POST /api/reports and the client form.
-export type ReportFormState = {
-  status: 'idle' | 'success' | 'error';
-  message: string;
+export type ReportDuplicateCandidate = {
+  storeId: string;
+  storeName: string;
+  distanceM: number;
 };
+
+// Shared response shape between POST /api/reports and the client form.
+export type ReportFormState =
+  | { status: 'idle'; message: string }
+  | { status: 'success'; message: string }
+  | { status: 'error'; message: string }
+  | { status: 'duplicate'; message: string; candidate: ReportDuplicateCandidate };

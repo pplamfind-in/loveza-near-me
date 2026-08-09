@@ -8,47 +8,140 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import {
-  MIN_RADIUS_M,
-  MAX_RADIUS_M,
-  RADIUS_OPTIONS_M,
-  formatDuplicateRadius,
+  formatRadiusM,
+  MAX_SEARCH_RADIUS_M,
+  MIN_SEARCH_RADIUS_M,
+  MAX_DUPLICATE_RADIUS_M,
+  MIN_DUPLICATE_RADIUS_M,
+  SEARCH_RADIUS_OPTIONS_M,
+  DUPLICATE_RADIUS_OPTIONS_M,
 } from 'src/lib/admin/duplicate-radius';
 
 import { Iconify } from 'src/components/iconify';
 
 type AdminSettingsPanelProps = {
-  initialRadiusM: number;
+  initialDuplicateRadiusM: number;
+  initialSearchRadiusM: number;
   updatedAt: string | null;
   hasError?: boolean;
 };
 
-function getClosestRadiusIndex(radiusM: number) {
-  return RADIUS_OPTIONS_M.reduce(
+function getClosestOptionIndex(options: readonly number[], value: number) {
+  return options.reduce(
     (closestIndex, option, index) =>
-      Math.abs(option - radiusM) < Math.abs(RADIUS_OPTIONS_M[closestIndex] - radiusM)
-        ? index
-        : closestIndex,
+      Math.abs(option - value) < Math.abs(options[closestIndex] - value) ? index : closestIndex,
     0
   );
 }
 
+type RadiusFieldProps = {
+  icon: string;
+  title: string;
+  description: string;
+  radiusM: number;
+  onChange: (value: number) => void;
+  min: number;
+  max: number;
+  options: readonly number[];
+  marks: { value: number; label: string }[];
+  textLabel: string;
+  helperText: string;
+};
+
+function RadiusField({
+  icon,
+  title,
+  description,
+  radiusM,
+  onChange,
+  min,
+  max,
+  options,
+  marks,
+  textLabel,
+  helperText,
+}: RadiusFieldProps) {
+  return (
+    <Stack spacing={3}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box
+          sx={{
+            width: 52,
+            height: 52,
+            color: '#E5007E',
+            display: 'grid',
+            flexShrink: 0,
+            borderRadius: 2.5,
+            placeItems: 'center',
+            bgcolor: 'rgba(239,35,130,.10)',
+          }}
+        >
+          <Iconify icon={icon} width={28} />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 900 }}>{title}</Typography>
+          <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
+            {description}
+          </Typography>
+        </Box>
+      </Stack>
+
+      <Box sx={{ px: { xs: 1, sm: 2 } }}>
+        <Slider
+          value={getClosestOptionIndex(options, radiusM)}
+          min={0}
+          max={options.length - 1}
+          step={1}
+          marks={marks}
+          valueLabelDisplay="on"
+          valueLabelFormat={(index) => formatRadiusM(options[index] ?? min)}
+          onChange={(_event, value) => onChange(options[value as number] ?? min)}
+          aria-label={textLabel}
+        />
+      </Box>
+
+      <TextField
+        fullWidth
+        type="number"
+        label={textLabel}
+        value={radiusM}
+        onChange={(event) => onChange(Number(event.target.value || min))}
+        slotProps={{ htmlInput: { min, max, step: 10 } }}
+        helperText={helperText}
+      />
+    </Stack>
+  );
+}
+
 export function AdminSettingsPanel({
-  initialRadiusM,
+  initialDuplicateRadiusM,
+  initialSearchRadiusM,
   updatedAt,
   hasError = false,
 }: AdminSettingsPanelProps) {
-  const [radiusM, setRadiusM] = useState(initialRadiusM);
+  const [duplicateRadiusM, setDuplicateRadiusM] = useState(initialDuplicateRadiusM);
+  const [searchRadiusM, setSearchRadiusM] = useState(initialSearchRadiusM);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(updatedAt);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleRadiusChange = (value: number) => {
-    setRadiusM(Math.min(MAX_RADIUS_M, Math.max(MIN_RADIUS_M, Math.round(value))));
+  const handleDuplicateRadiusChange = (value: number) => {
+    setDuplicateRadiusM(
+      Math.min(MAX_DUPLICATE_RADIUS_M, Math.max(MIN_DUPLICATE_RADIUS_M, Math.round(value)))
+    );
+    setMessage(null);
+  };
+
+  const handleSearchRadiusChange = (value: number) => {
+    setSearchRadiusM(
+      Math.min(MAX_SEARCH_RADIUS_M, Math.max(MIN_SEARCH_RADIUS_M, Math.round(value)))
+    );
     setMessage(null);
   };
 
@@ -60,20 +153,21 @@ export function AdminSettingsPanel({
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duplicateRadiusM: radiusM }),
+        body: JSON.stringify({ duplicateRadiusM, searchRadiusM }),
       });
       const payload = (await response.json()) as {
         error?: string;
-        settings?: { duplicateRadiusM: number; updatedAt: string };
+        settings?: { duplicateRadiusM: number; searchRadiusM: number; updatedAt: string };
       };
 
       if (!response.ok || !payload.settings) {
         throw new Error(payload.error || 'บันทึกการตั้งค่าไม่สำเร็จ');
       }
 
-      setRadiusM(payload.settings.duplicateRadiusM);
+      setDuplicateRadiusM(payload.settings.duplicateRadiusM);
+      setSearchRadiusM(payload.settings.searchRadiusM);
       setLastUpdatedAt(payload.settings.updatedAt);
-      setMessage({ type: 'success', text: 'บันทึกระยะตรวจพิกัดซ้ำเรียบร้อยแล้ว' });
+      setMessage({ type: 'success', text: 'บันทึกการตั้งค่าระยะเรียบร้อยแล้ว' });
     } catch (error) {
       setMessage({
         type: 'error',
@@ -102,64 +196,46 @@ export function AdminSettingsPanel({
       ) : null}
 
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
-        <Stack spacing={3}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Box
-              sx={{
-                width: 52,
-                height: 52,
-                color: '#E5007E',
-                display: 'grid',
-                flexShrink: 0,
-                borderRadius: 2.5,
-                placeItems: 'center',
-                bgcolor: 'rgba(239,35,130,.10)',
-              }}
-            >
-              <Iconify icon="ri:radar-fill" width={28} />
-            </Box>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
-                ระยะตรวจร้านซ้ำและค้นหาใกล้ฉัน
-              </Typography>
-              <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
-                ใช้ป้องกันการแจ้งพิกัดร้านซ้ำ และกำหนดระยะค้นหาร้านในหน้า Loveza ใกล้ฉัน
-              </Typography>
-            </Box>
-          </Stack>
-
-          <Box sx={{ px: { xs: 1, sm: 2 } }}>
-            <Slider
-              value={getClosestRadiusIndex(radiusM)}
-              min={0}
-              max={RADIUS_OPTIONS_M.length - 1}
-              step={1}
-              marks={[
-                { value: 0, label: '10 ม.' },
-                { value: 4, label: '100 ม.' },
-                { value: 7, label: '1 กม.' },
-                { value: 9, label: '5 กม.' },
-                { value: 11, label: '15 กม.' },
-              ]}
-              valueLabelDisplay="on"
-              valueLabelFormat={(index) =>
-                formatDuplicateRadius(RADIUS_OPTIONS_M[index] ?? MIN_RADIUS_M)
-              }
-              onChange={(_event, value) =>
-                handleRadiusChange(RADIUS_OPTIONS_M[value as number] ?? MIN_RADIUS_M)
-              }
-              aria-label="ระยะตรวจร้านซ้ำเป็นเมตร"
-            />
-          </Box>
-
-          <TextField
-            fullWidth
-            type="number"
-            label="ระยะตรวจซ้ำ (เมตร)"
-            value={radiusM}
-            onChange={(event) => handleRadiusChange(Number(event.target.value || MIN_RADIUS_M))}
-            slotProps={{ htmlInput: { min: MIN_RADIUS_M, max: MAX_RADIUS_M, step: 10 } }}
+        <Stack spacing={4}>
+          <RadiusField
+            icon="ri:radar-fill"
+            title="ระยะตรวจร้านซ้ำ"
+            description="ใช้ป้องกันการแจ้งพิกัดร้านซ้ำตอนส่งรายงาน"
+            radiusM={duplicateRadiusM}
+            onChange={handleDuplicateRadiusChange}
+            min={MIN_DUPLICATE_RADIUS_M}
+            max={MAX_DUPLICATE_RADIUS_M}
+            options={DUPLICATE_RADIUS_OPTIONS_M}
+            marks={[
+              { value: 0, label: '10 ม.' },
+              { value: 4, label: '100 ม.' },
+              { value: 7, label: '1 กม.' },
+              { value: 9, label: '5 กม.' },
+              { value: 11, label: '15 กม.' },
+            ]}
+            textLabel="ระยะตรวจซ้ำ (เมตร)"
             helperText="ปรับได้ตั้งแต่ 10 เมตร–15 กิโลเมตร (1,000 เมตร = 1 กม.) ค่าเริ่มต้นคือ 75 เมตร"
+          />
+
+          <Divider />
+
+          <RadiusField
+            icon="ri:map-pin-user-fill"
+            title="ระยะค้นหาร้านใกล้ฉัน"
+            description="กำหนดระยะค้นหาร้านในหน้า Loveza ใกล้ฉัน"
+            radiusM={searchRadiusM}
+            onChange={handleSearchRadiusChange}
+            min={MIN_SEARCH_RADIUS_M}
+            max={MAX_SEARCH_RADIUS_M}
+            options={SEARCH_RADIUS_OPTIONS_M}
+            marks={[
+              { value: 0, label: '500 ม.' },
+              { value: 4, label: '5 กม.' },
+              { value: 6, label: '20 กม.' },
+              { value: 8, label: '50 กม.' },
+            ]}
+            textLabel="ระยะค้นหา (เมตร)"
+            helperText="ปรับได้ตั้งแต่ 500 เมตร–50 กิโลเมตร ค่าเริ่มต้นคือ 5 กิโลเมตร"
           />
 
           {message ? <Alert severity={message.type}>{message.text}</Alert> : null}

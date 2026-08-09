@@ -51,33 +51,56 @@ export function useGeolocation(options?: PositionOptions): UseGeolocationReturn 
     setIsLoading(true);
     setError(null);
 
+    const handleSuccess = (position: GeolocationPosition) => {
+      setCoordinates({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+      setIsLoading(false);
+      setError(null);
+    };
+
+    const handleFinalError = (positionError: GeolocationPositionError) => {
+      setIsLoading(false);
+
+      switch (positionError.code) {
+        case positionError.PERMISSION_DENIED:
+          setError(ERROR_MESSAGE.permissionDenied);
+          break;
+        case positionError.TIMEOUT:
+          setError(ERROR_MESSAGE.timeout);
+          break;
+        case positionError.POSITION_UNAVAILABLE:
+          setError(ERROR_MESSAGE.positionUnavailable);
+          break;
+        default:
+          setError(ERROR_MESSAGE.unknown);
+      }
+    };
+
     try {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoordinates({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-          setIsLoading(false);
-        },
+        handleSuccess,
         (positionError) => {
-          setIsLoading(false);
-
-          switch (positionError.code) {
-            case positionError.PERMISSION_DENIED:
-              setError(ERROR_MESSAGE.permissionDenied);
-              break;
-            case positionError.TIMEOUT:
-              setError(ERROR_MESSAGE.timeout);
-              break;
-            case positionError.POSITION_UNAVAILABLE:
-              setError(ERROR_MESSAGE.positionUnavailable);
-              break;
-            default:
-              setError(ERROR_MESSAGE.unknown);
+          if (positionError.code === positionError.PERMISSION_DENIED) {
+            handleFinalError(positionError);
+            return;
           }
+
+          // GPS ความแม่นยำสูงอาจหาไม่เจอเมื่ออยู่ในอาคาร จึงลองตำแหน่งจากเครือข่ายอีกครั้ง
+          navigator.geolocation.getCurrentPosition(handleSuccess, handleFinalError, {
+            enableHighAccuracy: false,
+            timeout: 20_000,
+            maximumAge: 300_000,
+            ...optionsRef.current,
+          });
         },
-        { enableHighAccuracy: true, timeout: 12_000, maximumAge: 0, ...optionsRef.current }
+        {
+          enableHighAccuracy: true,
+          timeout: 15_000,
+          maximumAge: 60_000,
+          ...optionsRef.current,
+        }
       );
     } catch {
       setIsLoading(false);

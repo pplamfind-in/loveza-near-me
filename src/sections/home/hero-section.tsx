@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { getImageProps } from 'next/image';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -9,12 +9,28 @@ import Typography from '@mui/material/Typography';
 import { Iconify } from 'src/components/iconify';
 
 export function HeroSection() {
+  const imageAlt = 'Loveza Love Potion vitamin soda in Honey Lemon, Lychee and Kyoho Grape';
+  const { props: desktopImageProps } = getImageProps({
+    fill: true,
+    priority: true,
+    alt: imageAlt,
+    sizes: '(max-width: 768px) 100vw, 1440px',
+    src: '/assets/loveza/background-loveza.png',
+  });
+  const { props: mobileImageProps } = getImageProps({
+    fill: true,
+    priority: true,
+    alt: imageAlt,
+    sizes: '100vw',
+    src: '/assets/loveza/background-loveza-mobile.png',
+  });
+
   return (
     <Container maxWidth="xl">
       <Box component="section" id="home" sx={{ pt: '100px', pb: { xs: 0, md: 4 } }}>
         <Box
           sx={{
-            minHeight: { xs: 680, sm: 720, md: 720 },
+            minHeight: { xs: 780, sm: 820, md: 720 },
             display: 'flex',
             overflow: 'hidden',
             position: 'relative',
@@ -22,24 +38,25 @@ export function HeroSection() {
             borderRadius: { xs: '26px', md: '40px' },
             bgcolor: '#E5007E',
             boxShadow: { xs: '5px 6px 0 #351129', md: '10px 12px 0 #351129' },
-            '& img': { objectPosition: { xs: '69% center', sm: '66% center', md: 'center' } },
+            '& img': {
+              width: '100% !important',
+              height: { xs: '380px !important', sm: '430px !important', md: '100% !important' },
+              objectFit: 'cover',
+              objectPosition: { xs: '68% center', sm: '66% center', md: 'center' },
+            },
           }}
         >
-          <Image
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 1440px"
-            alt="Loveza Love Potion vitamin soda in Honey Lemon, Lychee and Kyoho Grape"
-            src="/assets/loveza/background-loveza.png"
-            style={{ objectFit: 'cover' }}
-          />
+          <picture>
+            <source media="(max-width: 899.95px)" srcSet={mobileImageProps.srcSet} />
+            <img {...desktopImageProps} alt={imageAlt} />
+          </picture>
 
           <Box
             sx={{
               inset: 0,
               position: 'absolute',
               background: {
-                xs: 'linear-gradient(180deg, rgba(229,0,126,0) 18%, rgba(229,0,126,.18) 38%, #E5007E 30%)',
+                xs: 'linear-gradient(180deg, rgba(229,0,126,0) 0%, rgba(229,0,126,0) 37%, rgba(229,0,126,.72) 44%, #E5007E 49%, #E5007E 100%)',
                 md: 'linear-gradient(90deg, #E5007E 0%, #E5007E 2%, rgba(229,0,126,.84) 5%, rgba(229,0,126,0) 66%)',
               },
             }}
@@ -51,10 +68,10 @@ export function HeroSection() {
               zIndex: 1,
               display: 'flex',
               alignItems: { xs: 'flex-end', md: 'center' },
-              py: { xs: 3.5, sm: 5, md: 7.5 },
+              py: { xs: 3, sm: 4, md: 7.5 },
             }}
           >
-            <Box sx={{ maxWidth: 650, color: '#fff' }}>
+            <Box sx={{ width: 1, maxWidth: 650, color: '#fff' }}>
               <Box
                 sx={{
                   mb: 2.5,

@@ -7,28 +7,28 @@ import { Iconify } from 'src/components/iconify';
 
 const benefits = [
   {
-    title: 'วิตามินบี',
-    body: 'ผสมวิตามิน B3, B6 และ B12',
+    title: 'ล่าใกล้ฉัน',
+    body: 'ใช้ GPS ค้นหาร้าน Loveza ที่อยู่ใกล้คุณ',
     color: '#ffdd3f',
-    icon: 'ri:capsule-fill',
+    icon: 'ri:map-pin-2-fill',
   },
   {
-    title: '330 ml',
-    body: 'กระป๋องสลิม ดื่มง่าย เย็นไว',
+    title: 'แก๊งช่วยกัน',
+    body: 'Community ช่วยแจ้งพิกัดร้านที่พบเจอ',
     color: '#82e4dd',
-    icon: 'ri:drinks-2-fill',
+    icon: 'ri:team-fill',
   },
   {
-    title: '3 รสชาติ',
-    body: 'เลือกความสดชื่นที่ใช่สำหรับคุณ',
+    title: 'เช็กของเหลือ',
+    body: 'ดูสถานะและจำนวนสินค้าก่อนไปถึงร้าน',
     color: '#ff9bc9',
-    icon: 'ri:contrast-drop-2-fill',
+    icon: 'ri:stock-fill',
   },
   {
-    title: 'พร้อมส่ง',
-    body: 'เปิดกระป๋อง พร้อมซ่าได้ทันที',
+    title: 'พิกัดไว้ใจได้',
+    body: 'ลดจุดซ้ำและมีระบบตรวจสอบข้อมูลร้าน',
     color: '#6940a5',
-    icon: 'ri:flashlight-fill',
+    icon: 'ri:shield-check-fill',
   },
 ];
 
@@ -60,7 +60,7 @@ export function StorySection() {
               <Typography
                 sx={{ color: '#FFD9ED', fontWeight: 900, letterSpacing: 2, fontSize: 12 }}
               >
-                WHY LOVE POTION
+                WHY LOVEZA HUNT
               </Typography>
               <Typography
                 component="h2"
@@ -73,19 +73,19 @@ export function StorySection() {
                   letterSpacing: '-.055em',
                 }}
               >
-                ซ่า สนุก
+                ล่าให้เจอ
                 <br />
-                สดใสในแบบคุณ
+                แล้วแชร์ต่อ
               </Typography>
               <Typography
                 sx={{ mt: 3, maxWidth: 480, color: '#FFEAF5', fontSize: 16, lineHeight: 1.8 }}
               >
-                สดชื่น ซ่า เต็มกระป๋อง 💗 Loveza โซดาผสมวิตามิน B3, B6 และ B12 ขนาด 330 มล.
-                มีให้เลือก 3 รสชาติ วันนี้เจอ Loveza ใกล้คุณหรือยัง?
+                LOVEZA HUNT คือพื้นที่รวมพิกัดความซ่าจากนักล่าทั่วประเทศ เปิด GPS เช็กร้านใกล้ตัว
+                ดูของที่เหลือ และช่วยกันแจ้งจุดใหม่ให้แก๊งตามไปล่าได้ง่ายกว่าเดิม
               </Typography>
 
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 4 }}>
-                {['วิตามิน B3', 'วิตามิน B6', 'วิตามิน B12'].map((item) => (
+                {['GPS ใกล้ฉัน', 'พิกัดจาก Community', 'อัปเดตจำนวนสินค้า'].map((item) => (
                   <Box
                     key={item}
                     sx={{

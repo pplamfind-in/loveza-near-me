@@ -68,6 +68,7 @@ export async function POST(request: Request) {
     p_estimated_quantity: values.estimatedQuantity,
     p_photo_url: photoUrl,
     p_note: values.note || null,
+    p_store_id: values.storeId ?? null,
   });
 
   if (error) {
@@ -86,6 +87,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (error.message.includes('Invalid store reference')) {
+      return NextResponse.json(
+        { status: 'error', message: 'ยืนยันร้านเดิมไม่สำเร็จ กรุณาลองส่งพิกัดใหม่อีกครั้ง' },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { status: 'error', message: 'บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง' },
       { status: 500 }
@@ -94,6 +101,8 @@ export async function POST(request: Request) {
 
   const result = data as {
     duplicate?: boolean;
+    resolvable?: boolean;
+    storeId?: string;
     duplicateName?: string;
     distanceM?: number;
     radiusM?: number;
@@ -110,6 +119,22 @@ export async function POST(request: Request) {
     }
 
     const distance = Math.max(0, Math.round(result.distanceM ?? 0));
+
+    if (result.resolvable && result.storeId) {
+      return NextResponse.json(
+        {
+          status: 'duplicate',
+          message: `พบร้าน "${result.duplicateName}" อยู่ใกล้กันประมาณ ${distance} เมตร ใช่ร้านเดียวกันไหม?`,
+          candidate: {
+            storeId: result.storeId,
+            storeName: result.duplicateName ?? '',
+            distanceM: distance,
+          },
+        },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       {
         status: 'error',

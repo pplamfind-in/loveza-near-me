@@ -1,3 +1,7 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
@@ -10,6 +14,7 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
+import TablePagination from '@mui/material/TablePagination';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -57,8 +62,14 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
 }
 
 export function UsersPanel({ users }: UsersPanelProps) {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const usersWithReports = users.filter((user) => Number(user.total_reports) > 0).length;
   const totalReports = users.reduce((total, user) => total + Number(user.total_reports), 0);
+  const paginatedUsers = useMemo(
+    () => users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [page, rowsPerPage, users]
+  );
 
   return (
     <Stack spacing={3}>
@@ -106,7 +117,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
+            {paginatedUsers.map((user) => (
               <TableRow key={user.user_id} hover>
                 <TableCell>
                   <Stack direction="row" spacing={1.5} alignItems="center">
@@ -161,6 +172,40 @@ export function UsersPanel({ users }: UsersPanelProps) {
             ) : null}
           </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          page={page}
+          count={users.length}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[10, 25, 50]}
+          onPageChange={(_, nextPage) => setPage(nextPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(Number(event.target.value));
+            setPage(0);
+          }}
+          labelRowsPerPage="แสดงต่อหน้า"
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}–${to} จาก ${count !== -1 ? count.toLocaleString('th-TH') : `มากกว่า ${to}`}`
+          }
+          getItemAriaLabel={(type) => {
+            if (type === 'first') return 'ไปหน้าแรก';
+            if (type === 'last') return 'ไปหน้าสุดท้าย';
+            if (type === 'next') return 'ไปหน้าถัดไป';
+            return 'ไปหน้าก่อนหน้า';
+          }}
+          showFirstButton
+          showLastButton
+          sx={{
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            '& .MuiTablePagination-toolbar': {
+              px: { xs: 1, sm: 2 },
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
+              justifyContent: { xs: 'center', sm: 'flex-end' },
+            },
+            '& .MuiTablePagination-spacer': { display: { xs: 'none', sm: 'block' } },
+          }}
+        />
       </TableContainer>
     </Stack>
   );

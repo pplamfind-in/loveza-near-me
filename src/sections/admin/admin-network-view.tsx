@@ -15,7 +15,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
 import { supabase } from 'src/lib/supabase';
-import { formatDuplicateRadius } from 'src/lib/admin/duplicate-radius';
+import { formatRadiusM } from 'src/lib/admin/duplicate-radius';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -243,7 +243,7 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
           </Typography>
           <Typography sx={{ mt: 0.75, color: '#806c87', fontSize: 12, lineHeight: 1.6 }}>
             รวมจุดที่แจ้งใหม่ทันทีโดยไม่ต้องรออนุมัติ · ตรวจซ้ำในระยะ{' '}
-            {formatDuplicateRadius(stats.duplicateRadiusM)}
+            {formatRadiusM(stats.duplicateRadiusM)}
           </Typography>
 
           {hasError ? (

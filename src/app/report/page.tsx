@@ -69,9 +69,10 @@ export default async function ReportPage() {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2.5, sm: 4 },
+            p: { xs: 1.5, sm: 2.5, md: 3 },
             border: '3px solid #351129',
             borderRadius: { xs: '24px', md: '32px' },
+            bgcolor: '#FFF8FC',
             boxShadow: '7px 8px 0 #351129',
           }}
         >
