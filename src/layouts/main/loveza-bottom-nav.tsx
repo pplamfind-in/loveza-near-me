@@ -16,14 +16,12 @@ type LovezaBottomNavProps = {
 
 const guestItems = [
   { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-fill' },
-  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-fill' },
   { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-fill' },
   { label: 'เข้าสู่ระบบ', path: '/auth/login', icon: 'ri:login-circle-line' },
 ];
 
 const userItems = [
   { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-fill' },
-  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-fill' },
   { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-fill' },
   { label: 'แจ้งพิกัด', path: '/report', icon: 'ri:edit-2-fill' },
   { label: 'บัญชี', path: '/account', icon: 'ri:user-3-fill' },
@@ -53,6 +51,7 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
   return (
     <Paper
       component="nav"
+      data-loveza-bottom-nav
       aria-label="เมนูหลักด้านล่าง"
       elevation={12}
       sx={(theme) => ({

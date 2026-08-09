@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { SITE_NAME, SITE_DESCRIPTION } from 'src/lib/seo';
+import { SITE_NAME, SITE_DESCRIPTION, BRAND_ASSET_VERSION } from 'src/lib/seo';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -12,6 +12,12 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#fffafd',
     theme_color: '#E5007E',
     lang: 'th',
-    icons: [{ src: '/favicon.ico', sizes: 'any', type: 'image/x-icon' }],
+    icons: [
+      {
+        src: `/favicon.ico?v=${BRAND_ASSET_VERSION}`,
+        sizes: '16x16 32x32 48x48',
+        type: 'image/x-icon',
+      },
+    ],
   };
 }

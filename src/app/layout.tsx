@@ -20,6 +20,7 @@ import {
   OG_IMAGE_URL,
   SITE_DESCRIPTION,
   createSeoMetadata,
+  BRAND_ASSET_VERSION,
 } from 'src/lib/seo';
 
 import { Snackbar } from 'src/components/snackbar';
@@ -74,12 +75,17 @@ export const metadata: Metadata = {
   publisher: SITE_NAME,
   category: 'food and drink',
   formatDetection: { email: false, address: false, telephone: false },
-  icons: [
-    {
-      rel: 'icon',
-      url: `${CONFIG.assetsDir}/favicon.ico`,
-    },
-  ],
+  icons: {
+    icon: [
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        sizes: '16x16 32x32 48x48',
+        url: `${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`,
+      },
+    ],
+    shortcut: `${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`,
+  },
 };
 
 const structuredData = {

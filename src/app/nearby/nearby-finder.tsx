@@ -38,6 +38,9 @@ type NearbySearchResult = { stores: SortedNearbyStore[]; radiusM: number };
 
 const EMPTY_STORES: SortedNearbyStore[] = [];
 const LOCATION_PERMISSION_KEY = 'loveza_location_allowed_v1';
+const LOCATION_RETRY_AFTER_RELOAD_KEY = 'loveza_location_retry_after_reload_v1';
+const LOCATION_SESSION_CACHE_KEY = 'loveza_location_session_v1';
+const LOCATION_SESSION_MAX_AGE_MS = 10 * 60 * 1000;
 
 const locateButtonSx = {
   minHeight: 52,
@@ -58,25 +61,44 @@ const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
   `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
 export function NearbyFinder() {
-  const { coordinates, isLoading: locating, error: gpsError, requestLocation } = useGeolocation();
+  const {
+    coordinates,
+    isLoading: locating,
+    error: gpsError,
+    requestLocation,
+    restoreLocation,
+  } = useGeolocation();
   const permissionCheckedRef = useRef(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-  const locationSettingsGuide = useMemo(() => {
-    if (typeof navigator === 'undefined') return '';
+  const locationSettingsSteps = useMemo(() => {
+    if (typeof navigator === 'undefined') return [];
 
     const userAgent = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(userAgent);
     const isChrome = /CriOS|Chrome/.test(userAgent);
 
     if (isIOS && isChrome) {
-      return 'iPhone: เปิด Settings → Apps → Chrome → Location → เลือก While Using the App แล้วกลับมากดใหม่';
+      return [
+        'เปิดการตั้งค่าของ iPhone → แอป → Chrome',
+        'แตะตำแหน่งที่ตั้ง → เลือกขณะใช้แอป และเปิดตำแหน่งที่ตั้งจริง',
+        'กลับมาหน้านี้ แล้วกดขอพิกัดอีกครั้ง',
+      ];
     }
 
     if (isIOS) {
-      return 'iPhone Safari: กด aA ที่แถบที่อยู่ → Website Settings → Location → Allow หรือเปิด Settings → Privacy & Security → Location Services → Safari Websites';
+      return [
+        'เปิดการตั้งค่า → ความเป็นส่วนตัวและความปลอดภัย → บริการหาตำแหน่งที่ตั้ง → เว็บไซต์ Safari → เลือกขณะใช้แอป และเปิดตำแหน่งที่ตั้งจริง',
+        'กลับมาที่ Safari กดไอคอนเมนูด้านซ้ายของ URL → ปุ่ม … → การตั้งค่าเว็บไซต์ → ตำแหน่งที่ตั้ง → เลือกอนุญาต',
+        'ถ้าเปิดทั้ง 2 จุดแล้วยังไม่ได้: ไปที่ การตั้งค่า → แอป → Safari → ขั้นสูง → ข้อมูลเว็บไซต์ → ค้นหา loveza-near-me.vercel.app แล้วลบเฉพาะเว็บไซต์นี้',
+        'กลับมาหน้านี้ แล้วกดรีโหลดเพื่อให้ Safari ขอสิทธิ์ใหม่',
+      ];
     }
 
-    return 'Android Chrome: กดไอคอนด้านซ้ายของ URL → Permissions → Location → Allow แล้วกลับมากดใหม่';
+    return [
+      'กดไอคอนด้านซ้ายของ URL → สิทธิ์ของเว็บไซต์',
+      'แตะตำแหน่งที่ตั้ง → เลือกอนุญาต',
+      'กลับมาหน้านี้ แล้วกดขอพิกัดอีกครั้ง',
+    ];
   }, []);
 
   useEffect(() => {
@@ -103,13 +125,40 @@ export function NearbyFinder() {
     };
 
     const checkPermission = async () => {
+      try {
+        const cachedValue = sessionStorage.getItem(LOCATION_SESSION_CACHE_KEY);
+        if (cachedValue) {
+          const cachedLocation = JSON.parse(cachedValue) as {
+            coordinates: { latitude: number; longitude: number };
+            savedAt: number;
+          };
+          const isFresh = Date.now() - cachedLocation.savedAt <= LOCATION_SESSION_MAX_AGE_MS;
+          const isValid =
+            Number.isFinite(cachedLocation.coordinates.latitude) &&
+            Number.isFinite(cachedLocation.coordinates.longitude);
+
+          if (isFresh && isValid) {
+            restoreLocation(cachedLocation.coordinates);
+            setLocationDialogOpen(false);
+            return;
+          }
+          sessionStorage.removeItem(LOCATION_SESSION_CACHE_KEY);
+        }
+      } catch {
+        sessionStorage.removeItem(LOCATION_SESSION_CACHE_KEY);
+      }
+
+      const shouldRetryAfterReload =
+        sessionStorage.getItem(LOCATION_RETRY_AFTER_RELOAD_KEY) === 'true';
+      sessionStorage.removeItem(LOCATION_RETRY_AFTER_RELOAD_KEY);
+
       if (!window.isSecureContext) {
         setLocationDialogOpen(true);
         return;
       }
 
       if (!navigator.permissions?.query) {
-        if (wasPreviouslyAllowed) requestLocation();
+        if (wasPreviouslyAllowed || shouldRetryAfterReload) requestLocation();
         else setLocationDialogOpen(true);
         return;
       }
@@ -118,9 +167,15 @@ export function NearbyFinder() {
         permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
         if (!active) return;
         permissionStatus.addEventListener('change', handlePermissionState);
+
+        // หลังรีเซ็ตข้อมูลเว็บไซต์ Safari จะกลับมาเป็น "ถาม" จึงต้องขอสิทธิ์ใหม่อีกครั้ง
+        if (permissionStatus.state === 'prompt' && shouldRetryAfterReload) {
+          requestLocation();
+          return;
+        }
         handlePermissionState();
       } catch {
-        if (wasPreviouslyAllowed) requestLocation();
+        if (wasPreviouslyAllowed || shouldRetryAfterReload) requestLocation();
         else setLocationDialogOpen(true);
       }
     };
@@ -131,21 +186,32 @@ export function NearbyFinder() {
       active = false;
       permissionStatus?.removeEventListener('change', handlePermissionState);
     };
-  }, [requestLocation]);
+  }, [requestLocation, restoreLocation]);
 
   useEffect(() => {
     if (!coordinates) return;
     localStorage.setItem(LOCATION_PERMISSION_KEY, 'true');
+    sessionStorage.setItem(
+      LOCATION_SESSION_CACHE_KEY,
+      JSON.stringify({ coordinates, savedAt: Date.now() })
+    );
     setLocationDialogOpen(false);
   }, [coordinates]);
 
   useEffect(() => {
     if (!gpsError) return;
     localStorage.removeItem(LOCATION_PERMISSION_KEY);
+    sessionStorage.removeItem(LOCATION_SESSION_CACHE_KEY);
     setLocationDialogOpen(true);
   }, [gpsError]);
 
   const handleRequestLocation = () => {
+    if (gpsError) {
+      sessionStorage.setItem(LOCATION_RETRY_AFTER_RELOAD_KEY, 'true');
+      window.location.reload();
+      return;
+    }
+
     setLocationDialogOpen(false);
     requestLocation();
   };
@@ -449,7 +515,7 @@ export function NearbyFinder() {
             fontWeight: 1000,
           }}
         >
-          เปิด Location ก่อนออกล่า
+          {gpsError ? 'เปิดสิทธิ์ตำแหน่งที่ตั้งก่อน' : 'เปิดตำแหน่งที่ตั้งก่อนออกล่า'}
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
           <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
@@ -473,13 +539,37 @@ export function NearbyFinder() {
             }}
           >
             <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>หากเคยกดไม่อนุญาต</Typography>
-            <Typography sx={{ mt: 0.75, color: '#5B3A50', fontSize: 12, lineHeight: 1.65 }}>
-              {locationSettingsGuide}
-            </Typography>
-            <Typography sx={{ mt: 1, color: '#7A5D72', fontSize: 11, lineHeight: 1.55 }}>
-              ต้องเปิดเว็บไซต์ผ่าน HTTPS เท่านั้น หากทดสอบจากมือถือด้วย IP เช่น http://192.168.x.x
-              เบราว์เซอร์จะไม่อนุญาตให้ใช้ตำแหน่ง
-            </Typography>
+            <Stack spacing={1.1} sx={{ mt: 1.25 }}>
+              {locationSettingsSteps.map((step, index) => (
+                <Stack key={step} direction="row" spacing={1} alignItems="flex-start">
+                  <Box
+                    sx={{
+                      width: 22,
+                      height: 22,
+                      display: 'grid',
+                      flexShrink: 0,
+                      borderRadius: '50%',
+                      placeItems: 'center',
+                      color: '#fff',
+                      bgcolor: '#E5007E',
+                      fontSize: 11,
+                      fontWeight: 1000,
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+                  <Typography sx={{ color: '#5B3A50', fontSize: 12, lineHeight: 1.6 }}>
+                    {step}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+            {gpsError?.includes('HTTPS') ? (
+              <Typography sx={{ mt: 1.25, color: '#7A5D72', fontSize: 11, lineHeight: 1.55 }}>
+                ต้องเปิดเว็บไซต์ผ่าน HTTPS การทดสอบด้วย IP แบบ http://192.168.x.x
+                จะไม่สามารถขอตำแหน่งได้
+              </Typography>
+            ) : null}
           </Box>
         </DialogContent>
         <DialogActions
@@ -495,7 +585,7 @@ export function NearbyFinder() {
             startIcon={<Iconify icon="ri:focus-3-line" />}
             sx={locateButtonSx}
           >
-            {gpsError ? 'ลองขอพิกัดอีกครั้ง' : 'เปิดตำแหน่ง'}
+            {gpsError ? 'รีโหลดหน้าและขอพิกัดใหม่' : 'เปิดตำแหน่ง'}
           </Button>
         </DialogActions>
       </Dialog>

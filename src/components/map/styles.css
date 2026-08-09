@@ -1,5 +1,16 @@
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
+/* iOS ใช้ pseudo fullscreen ซึ่งยังอยู่ใน stacking context ของหน้าเดิม
+ * จึงต้องซ่อน header และ bottom navigation ไม่ให้ทับ controls ของแผนที่ */
+body:has(.maplibregl-pseudo-fullscreen) {
+  overflow: hidden;
+
+  .layout__header,
+  [data-loveza-bottom-nav] {
+    display: none !important;
+  }
+}
+
 .maplibregl-map {
   /* Control groups (zoom, compass, etc.) */
   .maplibregl-ctrl.maplibregl-ctrl-group {
@@ -27,6 +38,27 @@
   .maplibregl-ctrl-fullscreen .maplibregl-ctrl-icon,
   .maplibregl-ctrl-shrink .maplibregl-ctrl-icon {
     transform: scale(0.75);
+  }
+
+  &.maplibregl-pseudo-fullscreen {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    .maplibregl-ctrl-top-left {
+      top: max(10px, env(safe-area-inset-top));
+      left: max(6px, env(safe-area-inset-left));
+    }
+
+    .maplibregl-ctrl-top-right {
+      top: max(10px, env(safe-area-inset-top));
+      right: max(6px, env(safe-area-inset-right));
+    }
+
+    .maplibregl-ctrl-bottom-left {
+      bottom: max(10px, env(safe-area-inset-bottom));
+      left: max(6px, env(safe-area-inset-left));
+    }
   }
 
   /* Popup content box */

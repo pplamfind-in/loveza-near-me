@@ -11,6 +11,7 @@ export type UseGeolocationReturn = {
   isLoading: boolean;
   error: string | null;
   requestLocation: () => void;
+  restoreLocation: (coordinates: Coordinates) => void;
 };
 
 const ERROR_MESSAGE = {
@@ -18,7 +19,7 @@ const ERROR_MESSAGE = {
   insecureContext:
     'เบราว์เซอร์อนุญาตให้ใช้ตำแหน่งผ่าน HTTPS เท่านั้น กรุณาเปิดเว็บไซต์จาก URL แบบ HTTPS',
   permissionDenied:
-    'ไม่สามารถเข้าถึงตำแหน่งของคุณได้ กรุณาอนุญาต Location ในการตั้งค่าเว็บไซต์ของเบราว์เซอร์ แล้วลองอีกครั้ง',
+    'สิทธิ์ตำแหน่งที่ตั้งของเว็บไซต์นี้ถูกปิดอยู่ กรุณาเปิดสิทธิ์ในการตั้งค่า Safari หรือ Chrome แล้วกลับมาลองอีกครั้ง',
   timeout: 'ค้นหาตำแหน่งใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง',
   positionUnavailable: 'ไม่สามารถระบุตำแหน่งของคุณได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง',
   unknown: 'เกิดข้อผิดพลาดในการค้นหาตำแหน่ง กรุณาลองใหม่อีกครั้ง',
@@ -36,6 +37,12 @@ export function useGeolocation(options?: PositionOptions): UseGeolocationReturn 
   const [error, setError] = useState<string | null>(null);
   const optionsRef = useRef(options);
   optionsRef.current = options;
+
+  const restoreLocation = useCallback((storedCoordinates: Coordinates) => {
+    setCoordinates(storedCoordinates);
+    setIsLoading(false);
+    setError(null);
+  }, []);
 
   const requestLocation = useCallback(() => {
     if (typeof window !== 'undefined' && !window.isSecureContext) {
@@ -108,5 +115,5 @@ export function useGeolocation(options?: PositionOptions): UseGeolocationReturn 
     }
   }, []);
 
-  return { coordinates, isLoading, error, requestLocation };
+  return { coordinates, isLoading, error, requestLocation, restoreLocation };
 }

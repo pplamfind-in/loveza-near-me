@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const SITE_NAME = 'Loveza Near Me';
+export const BRAND_ASSET_VERSION = 'loveza-hunt-20260809';
 export const SITE_DESCRIPTION =
   'ค้นหาร้านที่มี Loveza ใกล้คุณด้วย GPS ดูสถานะและจำนวนสินค้า พร้อมช่วยแจ้งพิกัดให้ Community ตามไปซื้อได้ง่ายขึ้น';
 export const OG_IMAGE_URL =
