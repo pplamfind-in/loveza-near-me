@@ -14,9 +14,16 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'th',
     icons: [
       {
-        src: `/favicon.ico?v=${BRAND_ASSET_VERSION}`,
-        sizes: '16x16 32x32 48x48',
-        type: 'image/x-icon',
+        src: `/icons/icon-192.png?v=${BRAND_ASSET_VERSION}`,
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: `/icons/icon-512.png?v=${BRAND_ASSET_VERSION}`,
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };

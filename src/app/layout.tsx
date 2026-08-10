@@ -111,8 +111,27 @@ export const metadata: Metadata = {
         sizes: '16x16 32x32 48x48',
         url: `${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`,
       },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '192x192',
+        url: `${CONFIG.assetsDir}/icons/icon-192.png?v=${BRAND_ASSET_VERSION}`,
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '512x512',
+        url: `${CONFIG.assetsDir}/icons/icon-512.png?v=${BRAND_ASSET_VERSION}`,
+      },
     ],
     shortcut: `${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`,
+    apple: [
+      {
+        type: 'image/png',
+        sizes: '180x180',
+        url: `${CONFIG.assetsDir}/apple-touch-icon.png?v=${BRAND_ASSET_VERSION}`,
+      },
+    ],
   },
 };
 
