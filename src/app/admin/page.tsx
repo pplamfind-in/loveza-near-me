@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
 import type { AdminOverviewStats } from 'src/sections/admin/admin-overview';
 
-import Box from '@mui/material/Box';
-
 import { createClient } from 'src/lib/supabase/server';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getReportsSummary, sumEstimatedQuantity } from 'src/lib/admin/stats';
 
 import { AdminOverview } from 'src/sections/admin/admin-overview';
-import { PendingReportsPanel } from 'src/sections/admin/pending-reports-panel';
 
-export const metadata: Metadata = { title: 'Admin Dashboard | Loveza Hunt' };
+export const metadata: Metadata = { title: 'ภาพรวม | Loveza Admin' };
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -38,9 +35,6 @@ export default async function AdminPage() {
   return (
     <DashboardContent maxWidth="xl">
       <AdminOverview stats={stats} hasError={hasError} />
-      <Box sx={{ mt: { xs: 6, md: 8 } }}>
-        <PendingReportsPanel />
-      </Box>
     </DashboardContent>
   );
 }

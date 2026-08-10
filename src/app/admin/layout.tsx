@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { NO_INDEX_ROBOTS } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
 import { DashboardLayout } from 'src/layouts/dashboard';
-import { adminNavData } from 'src/layouts/nav-config-admin';
+import { getAdminNavData } from 'src/layouts/nav-config-admin';
 import { AdminAccount } from 'src/layouts/dashboard/admin-account';
 
 type AdminLayoutProps = {
@@ -22,6 +22,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   if (!user || user.app_metadata.role !== 'admin') redirect('/auth/login');
 
+  const { count: pendingReportsCount } = await supabase
+    .from('reports')
+    .select('id', { count: 'exact', head: true })
+    .eq('approval_status', 'pending');
+
   const displayName =
     user.user_metadata.full_name ?? user.user_metadata.name ?? user.email ?? 'Loveza Admin';
   const photoURL = user.user_metadata.avatar_url ?? user.user_metadata.picture ?? '';
@@ -30,7 +35,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     <DashboardLayout
       slotProps={{
         nav: {
-          data: adminNavData,
+          data: getAdminNavData(pendingReportsCount ?? 0),
           hideWorkspace: true,
           slots: { bottomArea: null },
         },

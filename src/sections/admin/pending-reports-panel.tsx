@@ -13,7 +13,10 @@ import Typography from '@mui/material/Typography';
 import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { useAdminReportsQuery, useReportDecisionMutation } from 'src/app/admin/use-admin-reports';
+import {
+  useAdminReportsQuery,
+  useReportDecisionMutation,
+} from 'src/app/admin/reports/use-admin-reports';
 
 import { FLAVOR_OPTIONS } from 'src/types/report';
 import { STORE_STATUS_LABEL } from 'src/types/store';
@@ -58,14 +61,20 @@ export function PendingReportsPanel() {
     <Stack spacing={2}>
       <Stack
         id="pending-reports"
-        direction="row"
+        direction={{ xs: 'column', sm: 'row' }}
         justifyContent="space-between"
-        alignItems="center"
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        spacing={1.5}
         sx={{ scrollMarginTop: 24 }}
       >
-        <Typography component="h1" sx={{ fontSize: 30, fontWeight: 900 }}>
-          ข้อมูลรอตรวจสอบ
-        </Typography>
+        <Box>
+          <Typography component="h1" sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 900 }}>
+            ตรวจสอบพิกัด
+          </Typography>
+          <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
+            ตรวจสอบข้อมูลร้านและเลือกอนุมัติหรือปฏิเสธพิกัดที่ผู้ใช้ส่งเข้ามา
+          </Typography>
+        </Box>
         <Chip label={`${reports.length} รายการ`} color="secondary" />
       </Stack>
 

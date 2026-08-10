@@ -3,6 +3,7 @@ import type { LatestStorePreview } from 'src/types/store';
 
 import { createClient } from 'src/lib/supabase/server';
 import { SITE_DESCRIPTION, createSeoMetadata } from 'src/lib/seo';
+import { DEFAULT_BRAND_OWNER_ACKNOWLEDGED } from 'src/lib/brand-owner-notice';
 
 import { HomeView } from 'src/sections/home/view';
 
@@ -21,7 +22,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   const supabase = await createClient();
-  const [productsResult, bannersResult, storesResult] = await Promise.all([
+  const [productsResult, bannersResult, storesResult, acknowledgementResult] = await Promise.all([
     supabase
       .from('products')
       .select(
@@ -43,6 +44,7 @@ export default async function Page() {
       .eq('is_active', true)
       .order('last_reported_at', { ascending: false, nullsFirst: false })
       .limit(2),
+    supabase.rpc('get_brand_owner_acknowledged'),
   ]);
 
   const products = productsResult.error
@@ -54,6 +56,15 @@ export default async function Page() {
   const latestStores = storesResult.error
     ? []
     : ((storesResult.data ?? []) as LatestStorePreview[]);
+  const brandOwnerAcknowledged =
+    acknowledgementResult.data ?? DEFAULT_BRAND_OWNER_ACKNOWLEDGED;
 
-  return <HomeView products={products} banners={banners} latestStores={latestStores} />;
+  return (
+    <HomeView
+      products={products}
+      banners={banners}
+      latestStores={latestStores}
+      brandOwnerAcknowledged={brandOwnerAcknowledged}
+    />
+  );
 }

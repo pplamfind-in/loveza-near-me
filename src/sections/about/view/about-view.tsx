@@ -40,7 +40,7 @@ export function AboutView() {
           'radial-gradient(circle at 12px 12px, rgba(229,0,126,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
         <Box
           sx={{
             p: { xs: 3.5, sm: 5, md: 7 },

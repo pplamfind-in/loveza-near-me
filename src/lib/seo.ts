@@ -28,6 +28,10 @@ export const PUBLIC_SEO_ROUTES = [
   { path: '/mapza/', changeFrequency: 'hourly' as const, priority: 0.9 },
   { path: '/about-us/', changeFrequency: 'monthly' as const, priority: 0.6 },
   { path: '/contact-us/', changeFrequency: 'monthly' as const, priority: 0.5 },
+  { path: '/terms/', changeFrequency: 'yearly' as const, priority: 0.3 },
+  { path: '/privacy/', changeFrequency: 'yearly' as const, priority: 0.3 },
+  { path: '/cookies/', changeFrequency: 'yearly' as const, priority: 0.3 },
+  { path: '/community-guidelines/', changeFrequency: 'yearly' as const, priority: 0.3 },
 ];
 
 export function absoluteUrl(path: string) {

@@ -23,9 +23,7 @@ import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import {
-  MAX_LANDING_BANNER_IMAGE_SIZE,
-} from 'src/lib/supabase/landing-banner-image';
+import { MAX_LANDING_BANNER_IMAGE_SIZE } from 'src/lib/supabase/landing-banner-image';
 import {
   useAdminBannersQuery,
   useSaveBannerMutation,
@@ -75,10 +73,8 @@ export function BannersPanel() {
   const [mobileImage, setMobileImage] = useState<File | null>(null);
   const [formError, setFormError] = useState('');
 
-  const setField = <Key extends keyof BannerFormValue>(
-    key: Key,
-    value: BannerFormValue[Key]
-  ) => setForm((current) => ({ ...current, [key]: value }));
+  const setField = <Key extends keyof BannerFormValue>(key: Key, value: BannerFormValue[Key]) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   const openCreate = () => {
     setEditingBanner(null);
@@ -139,10 +135,10 @@ export function BannersPanel() {
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
         <Box>
           <Typography component="h1" sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 900 }}>
-            จัดการ Banner
+            จัดการแบนเนอร์
           </Typography>
           <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-            Banner ที่เปิดใช้งานจะแสดงและสลับอัตโนมัติบน Hero หน้า Landing ตามลำดับ
+            แบนเนอร์ ที่เปิดใช้งานจะแสดงและสลับอัตโนมัติบน Hero หน้า Landing ตามลำดับ
           </Typography>
         </Box>
         <Button
@@ -151,7 +147,7 @@ export function BannersPanel() {
           onClick={openCreate}
           sx={{ alignSelf: 'flex-start', borderRadius: 99 }}
         >
-          เพิ่ม Banner
+          เพิ่มแบนเนอร์
         </Button>
       </Stack>
 
@@ -197,7 +193,8 @@ export function BannersPanel() {
                     />
                   </Stack>
                   <Typography sx={{ mt: 0.5, color: 'text.secondary', fontSize: 13 }}>
-                    ลำดับ {banner.sort_order} · {banner.mobile_image_url ? 'มีภาพ Mobile' : 'ใช้ภาพเดียวทุกจอ'}
+                    ลำดับ {banner.sort_order} ·{' '}
+                    {banner.mobile_image_url ? 'มีภาพ Mobile' : 'ใช้ภาพเดียวทุกจอ'}
                   </Typography>
                 </Box>
                 <Stack direction="row">
@@ -224,7 +221,7 @@ export function BannersPanel() {
             >
               <Iconify icon="ri:image-line" width={46} sx={{ mb: 1, color: 'text.disabled' }} />
               <Typography color="text.secondary">
-                ยังไม่มี Banner กด “เพิ่ม Banner” เพื่อเริ่มต้น
+                ยังไม่มี แบนเนอร์ กด “เพิ่ม แบนเนอร์” เพื่อเริ่มต้น
               </Typography>
             </Paper>
           ) : null}
@@ -233,12 +230,14 @@ export function BannersPanel() {
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="md">
         <DialogTitle sx={{ fontWeight: 900 }}>
-          {editingBanner ? 'แก้ไข Banner' : 'เพิ่ม Banner'}
+          {editingBanner ? 'แก้ไขแบนเนอร์' : 'เพิ่มแบนเนอร์'}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2.25} sx={{ pt: 1 }}>
             {formError ? <Alert severity="error">{formError}</Alert> : null}
-            {saveMutation.isError ? <Alert severity="error">{saveMutation.error.message}</Alert> : null}
+            {saveMutation.isError ? (
+              <Alert severity="error">{saveMutation.error.message}</Alert>
+            ) : null}
 
             <TextField
               required
@@ -256,7 +255,10 @@ export function BannersPanel() {
             >
               <Box>
                 <Typography sx={{ mb: 1, fontSize: 13, fontWeight: 800 }}>
-                  ภาพ Desktop <Box component="span" sx={{ color: 'error.main' }}>*</Box>
+                  ภาพ Desktop{' '}
+                  <Box component="span" sx={{ color: 'error.main' }}>
+                    *
+                  </Box>
                 </Typography>
                 <Upload
                   value={desktopImage || form.image_url || null}

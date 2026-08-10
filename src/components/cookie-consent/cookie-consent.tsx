@@ -22,6 +22,7 @@ export function CookieConsent({ initialConsent }: CookieConsentProps) {
     const secure = window.location.protocol === 'https:' ? '; Secure' : '';
     document.cookie = `loveza_cookie_consent=${value}; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
     setConsent(value);
+    if (value === 'all') window.location.reload();
   };
 
   if (consent) return null;
@@ -59,14 +60,27 @@ export function CookieConsent({ initialConsent }: CookieConsentProps) {
             เราใช้คุกกี้เพื่อให้ระบบทำงาน
           </Typography>
           <Typography sx={{ mt: 0.75, color: '#68716f', fontSize: 13, lineHeight: 1.65 }}>
-            คุกกี้ที่จำเป็นใช้สำหรับ Login และรักษา Session อย่างปลอดภัย ส่วนคุกกี้เพิ่มเติมจะใช้เพื่อปรับปรุงประสบการณ์เมื่อคุณอนุญาตเท่านั้น
+            คุกกี้ที่จำเป็นใช้สำหรับ Login และรักษา Session อย่างปลอดภัย
+            ส่วนคุกกี้เพิ่มเติมจะใช้เพื่อปรับปรุงประสบการณ์เมื่อคุณอนุญาตเท่านั้น{' '}
+            อ่านรายละเอียดได้ใน{' '}
+            <Box component="a" href="/cookies" sx={{ color: '#008e84', fontWeight: 800 }}>
+              นโยบายคุกกี้
+            </Box>
           </Typography>
         </Box>
         <Stack direction={{ xs: 'column-reverse', sm: 'row' }} spacing={1}>
-          <Button color="inherit" onClick={() => saveConsent('necessary')} sx={{ borderRadius: 99 }}>
+          <Button
+            color="inherit"
+            onClick={() => saveConsent('necessary')}
+            sx={{ borderRadius: 99 }}
+          >
             เฉพาะที่จำเป็น
           </Button>
-          <Button variant="contained" onClick={() => saveConsent('all')} sx={{ borderRadius: 99, bgcolor: '#00a99d', '&:hover': { bgcolor: '#008e84' } }}>
+          <Button
+            variant="contained"
+            onClick={() => saveConsent('all')}
+            sx={{ borderRadius: 99, bgcolor: '#00a99d', '&:hover': { bgcolor: '#008e84' } }}
+          >
             ยอมรับทั้งหมด
           </Button>
         </Stack>

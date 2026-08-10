@@ -125,6 +125,14 @@ type ReferenceCard = {
 
 const REFERENCE_CARDS: ReferenceCard[] = [
   {
+    icon: 'ri:map-pin-user-fill',
+    color: '#d97706',
+    background: '#fff7e6',
+    title: 'ตรวจสอบพิกัด',
+    href: '/admin/reports',
+    description: 'ตรวจข้อมูลร้าน รูปภาพ ผู้แจ้ง และเลือกอนุมัติหรือปฏิเสธรายงานที่รอตรวจสอบ',
+  },
+  {
     icon: 'ri:radar-fill',
     color: '#e5007e',
     background: 'rgba(239,35,130,.10)',
@@ -139,8 +147,7 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     background: '#fff0f7',
     title: 'ประเภทร้าน',
     href: '/admin/store-types',
-    description:
-      'จัดการประเภทร้าน โลโก้ ลำดับการแสดง และสถานะเปิดใช้งานที่ใช้ในฟอร์มแจ้งพิกัด',
+    description: 'จัดการประเภทร้าน โลโก้ ลำดับการแสดง และสถานะเปิดใช้งานที่ใช้ในฟอร์มแจ้งพิกัด',
   },
   {
     icon: 'ri:drinks-2-fill',
@@ -154,7 +161,7 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     icon: 'ri:image-2-fill',
     color: '#e5007e',
     background: '#fff0f7',
-    title: 'จัดการ Banner',
+    title: 'จัดการแบนเนอร์',
     href: '/admin/banners',
     description:
       'CRUD ภาพ Hero บน Landing แยก Desktop/Mobile กำหนด Alt text ลำดับ และเปิดหรือซ่อนแต่ละ Banner ได้',
@@ -266,10 +273,7 @@ export function AdminGuide() {
           }}
         >
           {ROLE_CARDS.map((role) => (
-            <Box
-              key={role.title}
-              sx={{ p: 2, borderRadius: 2.5, bgcolor: role.background }}
-            >
+            <Box key={role.title} sx={{ p: 2, borderRadius: 2.5, bgcolor: role.background }}>
               <Box
                 sx={{
                   width: 40,
@@ -307,9 +311,7 @@ export function AdminGuide() {
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <Iconify icon="ri:map-pin-user-fill" width={22} sx={{ color: '#e5007e' }} />
-          <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
-            Flow การอนุมัติและเผยแพร่
-          </Typography>
+          <Typography sx={{ fontSize: 18, fontWeight: 900 }}>Flow การอนุมัติและเผยแพร่</Typography>
         </Stack>
         <Box sx={{ mt: 2.5 }}>
           <FlowList steps={APPROVAL_FLOW} />
@@ -387,21 +389,25 @@ export function AdminGuide() {
       >
         <Stack direction="row" spacing={1} alignItems="center">
           <Iconify icon="ri:alert-fill" width={22} sx={{ color: '#d97706' }} />
-          <Typography sx={{ fontSize: 16, fontWeight: 900 }}>ข้อควรระวังเรื่องสิทธิ์แอดมิน</Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 900 }}>
+            ข้อควรระวังเรื่องสิทธิ์แอดมิน
+          </Typography>
         </Stack>
         <Typography sx={{ mt: 1.5, fontSize: 13.5, lineHeight: 1.75 }}>
           หน้า /admin/* และ API ทั้งหมดใน /api/admin/* เช็คสิทธิ์แอดมินจาก{' '}
           <Chip label="user.app_metadata.role" size="small" sx={{ fontWeight: 800 }} /> เท่านั้น
           ส่วนฝั่งฐานข้อมูล (RLS และฟังก์ชัน is_admin()) ยอมรับทั้ง app_metadata.role และ{' '}
-          <Chip label="profiles.role" size="small" sx={{ fontWeight: 800 }} /> ปุ่มตั้งเป็น Admin ที่
-          /admin/users จะอัปเดตทั้งสองค่าให้ตรงกันอัตโนมัติ
+          <Chip label="profiles.role" size="small" sx={{ fontWeight: 800 }} /> ปุ่มตั้งเป็น Admin
+          ที่ /admin/users จะอัปเดตทั้งสองค่าให้ตรงกันอัตโนมัติ
         </Typography>
       </Paper>
 
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <Iconify icon="ri:rocket-2-fill" width={22} sx={{ color: '#00a99d' }} />
-          <Typography sx={{ fontSize: 18, fontWeight: 900 }}>เช็คลิสต์ก่อนขึ้น Production</Typography>
+          <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
+            เช็คลิสต์ก่อนขึ้น Production
+          </Typography>
         </Stack>
         <Divider sx={{ my: 2 }} />
         <Stack spacing={1.5}>

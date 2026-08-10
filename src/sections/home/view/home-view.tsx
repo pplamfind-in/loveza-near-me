@@ -15,15 +15,20 @@ type HomeViewProps = {
   products: LovezaProduct[];
   banners: LandingBanner[];
   latestStores: LatestStorePreview[];
+  brandOwnerAcknowledged: boolean;
 };
 
-export function HomeView({ products, banners, latestStores }: HomeViewProps) {
+export function HomeView({
+  products,
+  banners,
+  latestStores,
+  brandOwnerAcknowledged,
+}: HomeViewProps) {
   return (
     <Box
       sx={{
         overflow: 'hidden',
         color: '#351129',
-        fontFamily: "'DM Sans Variable', 'LINE Seed Sans TH', sans-serif",
         background:
           'radial-gradient(circle at 12px 12px, rgba(229,0,126,.09) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
@@ -33,7 +38,7 @@ export function HomeView({ products, banners, latestStores }: HomeViewProps) {
       <FlavorsSection products={products} />
       <FinderSection latestStores={latestStores} />
       <StorySection />
-      <FooterSection />
+      <FooterSection brandOwnerAcknowledged={brandOwnerAcknowledged} />
     </Box>
   );
 }

@@ -80,6 +80,7 @@ export function applySettingsToTheme(
     typography: {
       ...theme.typography,
       fontFamily: setFont(fontFamily),
+      fontSecondaryFamily: setFont(fontFamily),
     },
   };
 }

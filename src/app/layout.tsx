@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import type { CookieConsentValue } from 'src/components/cookie-consent';
 
 import { cookies } from 'next/headers';
+import { Prompt } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -13,7 +14,9 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { CONFIG } from 'src/global-config';
 import { LocalizationProvider } from 'src/locales';
 import { detectLanguage } from 'src/locales/server';
+import { createClient } from 'src/lib/supabase/server';
 import { I18nProvider } from 'src/locales/i18n-provider';
+import { isSiteFont, DEFAULT_SITE_FONT } from 'src/lib/site-font';
 import { QueryProvider } from 'src/lib/react-query/query-provider';
 import { themeConfig, ThemeProvider, primary as primaryColor } from 'src/theme';
 import {
@@ -51,6 +54,13 @@ const AuthProvider =
 
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
 const bingSiteVerification = process.env.BING_SITE_VERIFICATION;
+
+const promptFont = Prompt({
+  subsets: ['latin', 'thai'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+  variable: '--font-prompt',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -97,9 +107,7 @@ export const metadata: Metadata = {
     googleSiteVerification || bingSiteVerification
       ? {
           ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
-          ...(bingSiteVerification
-            ? { other: { 'msvalidate.01': bingSiteVerification } }
-            : {}),
+          ...(bingSiteVerification ? { other: { 'msvalidate.01': bingSiteVerification } } : {}),
         }
       : undefined,
   formatDetection: { email: false, address: false, telephone: false },
@@ -169,30 +177,59 @@ type RootLayoutProps = {
 
 async function getAppConfig() {
   if (CONFIG.isStaticExport) {
+    const siteFont = DEFAULT_SITE_FONT;
+    const fontFamily = themeConfig.fontFamily.primary;
+    const appDefaultSettings = {
+      ...defaultSettings,
+      fontFamily,
+      version: `${defaultSettings.version}-${siteFont}`,
+    };
+
     return {
       lang: 'en',
       i18nLang: undefined,
       cookieSettings: undefined,
       dir: defaultSettings.direction,
       cookieConsent: null,
+      siteFont,
+      fontFamily,
+      appDefaultSettings,
     };
   } else {
-    const [lang, settings, cookieStore] = await Promise.all([
+    const supabase = await createClient();
+    const [lang, settings, cookieStore, siteFontResult] = await Promise.all([
       detectLanguage(),
       detectSettings(),
       cookies(),
+      supabase.rpc('get_site_font'),
     ]);
 
     const consent = cookieStore.get('loveza_cookie_consent')?.value;
     const cookieConsent: CookieConsentValue | null =
       consent === 'all' || consent === 'necessary' ? consent : null;
+    const siteFont = isSiteFont(siteFontResult.data) ? siteFontResult.data : DEFAULT_SITE_FONT;
+    const fontFamily =
+      siteFont === 'prompt' ? promptFont.style.fontFamily : themeConfig.fontFamily.primary;
+    const appDefaultSettings = {
+      ...defaultSettings,
+      fontFamily,
+      version: `${defaultSettings.version}-${siteFont}`,
+    };
+    const cookieSettings = {
+      ...settings,
+      fontFamily,
+      version: appDefaultSettings.version,
+    };
 
     return {
       lang,
       i18nLang: lang,
-      cookieSettings: settings,
+      cookieSettings,
       dir: settings.direction,
       cookieConsent,
+      siteFont,
+      fontFamily,
+      appDefaultSettings,
     };
   }
 }
@@ -201,8 +238,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const appConfig = await getAppConfig();
 
   return (
-    <html lang={appConfig.lang} dir={appConfig.dir} suppressHydrationWarning>
-      <body>
+    <html
+      lang={appConfig.lang}
+      dir={appConfig.dir}
+      className={promptFont.variable}
+      suppressHydrationWarning
+    >
+      <body style={{ fontFamily: appConfig.fontFamily }}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -218,7 +260,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <I18nProvider lang={appConfig.i18nLang}>
           <AuthProvider>
             <SettingsProvider
-              defaultSettings={defaultSettings}
+              key={appConfig.siteFont}
+              defaultSettings={appConfig.appDefaultSettings}
               cookieSettings={appConfig.cookieSettings}
             >
               <LocalizationProvider>
@@ -231,7 +274,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       <LocatorJS />
                       <Snackbar />
                       <ProgressBar />
-                      <SettingsDrawer defaultSettings={defaultSettings} />
+                      <SettingsDrawer defaultSettings={appConfig.appDefaultSettings} />
                       <QueryProvider>{children}</QueryProvider>
                       <CookieConsent initialConsent={appConfig.cookieConsent ?? null} />
                     </MotionLazy>
@@ -241,8 +284,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             </SettingsProvider>
           </AuthProvider>
         </I18nProvider>
-        <Analytics />
-        <SpeedInsights />
+        {appConfig.cookieConsent === 'all' ? (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        ) : null}
       </body>
     </html>
   );

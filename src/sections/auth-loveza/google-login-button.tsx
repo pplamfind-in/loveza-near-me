@@ -5,9 +5,18 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import Checkbox from '@mui/material/Checkbox';
+import Typography from '@mui/material/Typography';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { supabase } from 'src/lib/supabase';
 
@@ -69,6 +78,8 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
   const [scriptReady, setScriptReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   const handleCredential = useCallback(
     async ({ credential }: GoogleCredentialResponse) => {
@@ -98,7 +109,9 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
   );
 
   useEffect(() => {
-    if (!scriptReady || !clientId || !buttonRef.current || !window.google) return undefined;
+    if (!scriptReady || !clientId || !buttonRef.current || !window.google) {
+      return undefined;
+    }
 
     let active = true;
 
@@ -122,7 +135,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
         text: 'continue_with',
         shape: 'pill',
         locale: 'th',
-        width: Math.min(buttonRef.current.clientWidth, 320),
+        width: Math.min(buttonRef.current.clientWidth, 340),
       });
     };
 
@@ -135,7 +148,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
   }, [clientId, handleCredential, scriptReady]);
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={1.5} sx={{ width: '100%', maxWidth: 340, mx: 'auto' }}>
       <Script
         src="https://accounts.google.com/gsi/client"
         strategy="afterInteractive"
@@ -148,12 +161,65 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
       )} */}
       {error && <Alert severity="error">{error}</Alert>}
 
-      <Box sx={{ minHeight: 44, display: 'grid', placeItems: 'center', position: 'relative' }}>
-        {loading && (
+      <FormControlLabel
+        sx={{
+          m: 0,
+          p: 1.25,
+          width: 1,
+          textAlign: 'left',
+          alignItems: 'flex-start',
+          border: '1px solid',
+          borderColor: consentAccepted ? 'success.main' : 'divider',
+          borderRadius: 2.5,
+          bgcolor: consentAccepted ? 'success.lighter' : 'background.neutral',
+          transition: 'background-color 160ms ease, border-color 160ms ease',
+          '& .MuiFormControlLabel-label': { minWidth: 0, flex: 1 },
+        }}
+        control={
+          <Checkbox
+            checked={consentAccepted}
+            onChange={(event) => setConsentAccepted(event.target.checked)}
+            inputProps={{ 'aria-describedby': 'login-consent-description' }}
+            sx={{ mt: -0.75, ml: -0.75 }}
+          />
+        }
+        label={
+          <Typography id="login-consent-description" sx={{ fontSize: 13, lineHeight: 1.65 }}>
+            ฉันได้อ่านและยอมรับ{' '}
+            <Link
+              component="button"
+              type="button"
+              fontWeight={900}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setConsentOpen(true);
+              }}
+            >
+              ข้อกำหนดและนโยบาย
+            </Link>
+            {' '}ของ LOVEZA HUNT
+          </Typography>
+        }
+      />
+
+      <Box
+        aria-disabled={!consentAccepted}
+        sx={{
+          minHeight: 44,
+          width: 1,
+          display: 'grid',
+          placeItems: 'center',
+          position: 'relative',
+          opacity: consentAccepted ? 1 : 0.45,
+          transition: 'opacity 160ms ease',
+        }}
+      >
+        {loading ? (
           <Box
             sx={{
               inset: 0,
-              zIndex: 1,
+              zIndex: 3,
               display: 'grid',
               position: 'absolute',
               placeItems: 'center',
@@ -163,10 +229,73 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
           >
             <CircularProgress size={24} />
           </Box>
-        )}
-        {!scriptReady && clientId && <CircularProgress size={24} />}
+        ) : null}
+        {!scriptReady && clientId ? <CircularProgress size={24} /> : null}
         <Box ref={buttonRef} sx={{ width: 1, display: 'flex', justifyContent: 'center' }} />
+        {!consentAccepted ? (
+          <Box
+            title="กรุณายอมรับข้อกำหนดก่อนเข้าสู่ระบบ"
+            sx={{ inset: 0, zIndex: 2, position: 'absolute', cursor: 'not-allowed' }}
+          />
+        ) : null}
       </Box>
+
+      <Dialog
+        open={consentOpen}
+        onClose={() => setConsentOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="login-consent-title"
+      >
+        <DialogTitle id="login-consent-title" sx={{ pb: 1, fontWeight: 1000 }}>
+          ข้อกำหนดก่อนเข้าสู่ระบบ
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.75 }}>
+            โปรดอ่านข้อมูลต่อไปนี้ก่อนใช้บัญชี Google เข้าสู่ LOVEZA HUNT
+          </Typography>
+
+          <Box component="ul" sx={{ my: 2.5, pl: 3 }}>
+            {[
+              'ให้ข้อมูลพิกัดและสถานะสินค้าโดยสุจริต และไม่จงใจส่งข้อมูลเท็จหรือข้อมูลซ้ำ',
+              'ไม่ส่งข้อความ รูปภาพ หรือเนื้อหาที่ผิดกฎหมาย ละเมิดสิทธิ หรือสร้างความเสียหายแก่ผู้อื่น',
+              'ข้อมูลร้านค้าและสต็อกมาจากชุมชน จึงอาจคลาดเคลื่อนหรือไม่เป็นปัจจุบัน',
+              'ข้อมูลบัญชีใช้เพื่อยืนยันตัวตน รักษาความปลอดภัย และจัดการประวัติการแจ้งข้อมูล',
+              'ทีมงานอาจตรวจสอบ แก้ไข หรือลบข้อมูลที่ไม่เป็นไปตามแนวทางของชุมชน',
+            ].map((item) => (
+              <Typography component="li" key={item} sx={{ mb: 1.25, pl: 0.5, lineHeight: 1.7 }}>
+                {item}
+              </Typography>
+            ))}
+          </Box>
+
+          <Typography sx={{ color: 'text.secondary', fontSize: 13, lineHeight: 1.7 }}>
+            อ่านรายละเอียดฉบับเต็มได้ที่{' '}
+            <Link href="/terms/" target="_blank" rel="noopener noreferrer" fontWeight={800}>
+              ข้อกำหนดการใช้งาน
+            </Link>
+            {' · '}
+            <Link href="/privacy/" target="_blank" rel="noopener noreferrer" fontWeight={800}>
+              นโยบายความเป็นส่วนตัว
+            </Link>
+            {' · '}
+            <Link
+              href="/community-guidelines/"
+              target="_blank"
+              rel="noopener noreferrer"
+              fontWeight={800}
+            >
+              แนวทางชุมชน
+            </Link>
+          </Typography>
+
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button variant="contained" onClick={() => setConsentOpen(false)}>
+            อ่านแล้ว ปิดหน้าต่าง
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* <Typography sx={{ color: '#8a9290', fontSize: 12, lineHeight: 1.65 }}>
         ใช้ Google Client ID เพื่อยืนยันตัวตน จากนั้น Supabase จะสร้าง Session สำหรับบันทึกผู้รายงาน

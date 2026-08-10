@@ -36,6 +36,7 @@ type LayoutBaseProps = Pick<LayoutSectionProps, 'sx' | 'children' | 'cssVars'>;
 export type MainLayoutProps = LayoutBaseProps & {
   layoutQuery?: Breakpoint;
   initialUser?: LovezaHeaderUser | null;
+  brandOwnerAcknowledged?: boolean;
   slotProps?: {
     header?: HeaderSectionProps;
     nav?: {
@@ -52,6 +53,7 @@ export function MainLayout({
   children,
   slotProps,
   initialUser,
+  brandOwnerAcknowledged = false,
   layoutQuery = 'md',
 }: MainLayoutProps) {
   const pathname = usePathname();
@@ -195,7 +197,13 @@ export function MainLayout({
   };
 
   const renderFooter = () =>
-    isHomePage ? null : <Footer sx={slotProps?.footer?.sx} layoutQuery={layoutQuery} />;
+    isHomePage ? null : (
+      <Footer
+        sx={slotProps?.footer?.sx}
+        layoutQuery={layoutQuery}
+        brandOwnerAcknowledged={brandOwnerAcknowledged}
+      />
+    );
 
   const renderMain = () => (
     <MainSection

@@ -1,8 +1,10 @@
 'use client';
 
+import type { SiteFont } from 'src/lib/site-font';
 import type { ProvinceColorSettings } from 'src/lib/mapza/province-color-scale';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -11,11 +13,14 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import ToggleButton from '@mui/material/ToggleButton';
 import CircularProgress from '@mui/material/CircularProgress';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { SITE_FONT_OPTIONS } from 'src/lib/site-font';
+import { getBrandOwnerNotice } from 'src/lib/brand-owner-notice';
 import {
   buildProvinceColorScale,
   isValidProvinceColorSettings,
@@ -34,11 +39,22 @@ import { Iconify } from 'src/components/iconify';
 
 type AdminSettingsPanelProps = {
   initialRequireReportApproval: boolean;
+  initialBrandOwnerAcknowledged: boolean;
+  initialSiteFont: SiteFont;
   initialDuplicateRadiusM: number;
   initialSearchRadiusM: number;
   initialProvinceColorSettings: ProvinceColorSettings;
   updatedAt: string | null;
   hasError?: boolean;
+};
+
+const SETTINGS_SECTION_SX = {
+  p: { xs: 2.25, md: 3 },
+  border: '1px solid',
+  borderColor: 'divider',
+  borderRadius: 3,
+  bgcolor: 'background.paper',
+  boxShadow: '0 10px 30px rgba(53,17,41,.06)',
 };
 
 function getClosestOptionIndex(options: readonly number[], value: number) {
@@ -77,7 +93,7 @@ function RadiusField({
   helperText,
 }: RadiusFieldProps) {
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={SETTINGS_SECTION_SX}>
       <Stack direction="row" spacing={2} alignItems="center">
         <Box
           sx={{
@@ -168,7 +184,7 @@ function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
   ] as const;
 
   return (
-    <Stack spacing={2.5}>
+    <Stack spacing={2.5} sx={SETTINGS_SECTION_SX}>
       <Stack direction="row" spacing={2} alignItems="center">
         <Box
           sx={{
@@ -263,20 +279,23 @@ function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
 
 export function AdminSettingsPanel({
   initialRequireReportApproval,
+  initialBrandOwnerAcknowledged,
+  initialSiteFont,
   initialDuplicateRadiusM,
   initialSearchRadiusM,
   initialProvinceColorSettings,
   updatedAt,
   hasError = false,
 }: AdminSettingsPanelProps) {
-  const [requireReportApproval, setRequireReportApproval] = useState(
-    initialRequireReportApproval
+  const router = useRouter();
+  const [requireReportApproval, setRequireReportApproval] = useState(initialRequireReportApproval);
+  const [brandOwnerAcknowledged, setBrandOwnerAcknowledged] = useState(
+    initialBrandOwnerAcknowledged
   );
+  const [siteFont, setSiteFont] = useState<SiteFont>(initialSiteFont);
   const [duplicateRadiusM, setDuplicateRadiusM] = useState(initialDuplicateRadiusM);
   const [searchRadiusM, setSearchRadiusM] = useState(initialSearchRadiusM);
-  const [provinceColorSettings, setProvinceColorSettings] = useState(
-    initialProvinceColorSettings
-  );
+  const [provinceColorSettings, setProvinceColorSettings] = useState(initialProvinceColorSettings);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(updatedAt);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -300,11 +319,13 @@ export function AdminSettingsPanel({
     setMessage(null);
 
     try {
-      const response = await fetch('/api/admin/settings', {
+      const response = await fetch('/api/admin/settings/', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           requireReportApproval,
+          brandOwnerAcknowledged,
+          siteFont,
           duplicateRadiusM,
           searchRadiusM,
           provinceColorSettings,
@@ -314,6 +335,8 @@ export function AdminSettingsPanel({
         error?: string;
         settings?: {
           requireReportApproval: boolean;
+          brandOwnerAcknowledged: boolean;
+          siteFont: SiteFont;
           duplicateRadiusM: number;
           searchRadiusM: number;
           provinceColorSettings: ProvinceColorSettings;
@@ -326,11 +349,14 @@ export function AdminSettingsPanel({
       }
 
       setRequireReportApproval(payload.settings.requireReportApproval);
+      setBrandOwnerAcknowledged(payload.settings.brandOwnerAcknowledged);
+      setSiteFont(payload.settings.siteFont);
       setDuplicateRadiusM(payload.settings.duplicateRadiusM);
       setSearchRadiusM(payload.settings.searchRadiusM);
       setProvinceColorSettings(payload.settings.provinceColorSettings);
       setLastUpdatedAt(payload.settings.updatedAt);
       setMessage({ type: 'success', text: 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว' });
+      router.refresh();
     } catch (error) {
       setMessage({
         type: 'error',
@@ -343,14 +369,54 @@ export function AdminSettingsPanel({
 
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography component="h1" sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 900 }}>
-          ตั้งค่าระบบ
-        </Typography>
-        <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-          กำหนดกติกาการรับพิกัดและรูปแบบการแสดงผลบนแผนที่
-        </Typography>
-      </Box>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2.5, md: 3.5 },
+          color: '#fff',
+          overflow: 'hidden',
+          position: 'relative',
+          borderRadius: 3.5,
+          background: 'linear-gradient(135deg, #4B2440 0%, #72003F 55%, #E5007E 140%)',
+          boxShadow: '0 14px 36px rgba(75,36,64,.18)',
+          '&::after': {
+            content: '""',
+            width: 180,
+            height: 180,
+            top: -95,
+            right: -45,
+            position: 'absolute',
+            borderRadius: '50%',
+            bgcolor: 'rgba(253,224,71,.16)',
+          },
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            sx={{
+              width: 54,
+              height: 54,
+              color: '#351129',
+              display: 'grid',
+              flexShrink: 0,
+              borderRadius: 2.5,
+              placeItems: 'center',
+              bgcolor: '#FDE047',
+              boxShadow: '3px 4px 0 rgba(53,17,41,.8)',
+            }}
+          >
+            <Iconify icon="ri:settings-4-fill" width={28} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography component="h1" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 900 }}>
+              ตั้งค่าระบบ
+            </Typography>
+            <Typography sx={{ mt: 0.5, color: '#FFD9ED', lineHeight: 1.6 }}>
+              จัดการกติกาการรับข้อมูล ภาพลักษณ์เว็บไซต์ และการแสดงผลบนแผนที่
+            </Typography>
+          </Box>
+        </Stack>
+      </Paper>
 
       {hasError ? (
         <Alert severity="error">
@@ -358,9 +424,9 @@ export function AdminSettingsPanel({
         </Alert>
       ) : null}
 
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
-        <Stack spacing={4}>
-          <Stack spacing={2}>
+      <Paper elevation={0} sx={{ bgcolor: 'transparent' }}>
+        <Stack spacing={3}>
+          <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -416,7 +482,131 @@ export function AdminSettingsPanel({
             </Box>
           </Stack>
 
-          <Divider />
+          <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
+                sx={{
+                  width: 52,
+                  height: 52,
+                  color: '#E5007E',
+                  display: 'grid',
+                  flexShrink: 0,
+                  borderRadius: 2.5,
+                  placeItems: 'center',
+                  bgcolor: 'rgba(239,35,130,.10)',
+                }}
+              >
+                <Iconify icon="ri:verified-badge-fill" width={28} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+                  การรับทราบจากเจ้าของแบรนด์ LOVEZA
+                </Typography>
+                <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
+                  เปิดเมื่อได้รับการยืนยันว่าเจ้าของแบรนด์รับทราบการดำเนินงานของเว็บไซต์แล้ว
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: brandOwnerAcknowledged ? 'success.main' : 'warning.main',
+                borderRadius: 2.5,
+                bgcolor: brandOwnerAcknowledged ? 'success.lighter' : 'warning.lighter',
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 900 }}>
+                    {brandOwnerAcknowledged
+                      ? 'เจ้าของแบรนด์รับทราบแล้ว'
+                      : 'ยังไม่มีการยืนยันการรับทราบ'}
+                  </Typography>
+                  <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 13 }}>
+                    ข้อความแจ้งผู้ใช้ใน Footer จะเปลี่ยนตามสถานะนี้
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={brandOwnerAcknowledged}
+                  onChange={(event) => {
+                    setBrandOwnerAcknowledged(event.target.checked);
+                    setMessage(null);
+                  }}
+                  slotProps={{ input: { 'aria-label': 'เจ้าของแบรนด์รับทราบแล้ว' } }}
+                />
+              </Stack>
+            </Box>
+
+            <Alert severity={brandOwnerAcknowledged ? 'success' : 'info'}>
+              <Typography sx={{ fontWeight: 900 }}>ตัวอย่างข้อความที่ผู้ใช้จะเห็น</Typography>
+              <Typography sx={{ mt: 0.5, fontSize: 13, lineHeight: 1.7 }}>
+                {getBrandOwnerNotice(brandOwnerAcknowledged)}
+              </Typography>
+            </Alert>
+          </Stack>
+
+          <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
+                sx={{
+                  width: 52,
+                  height: 52,
+                  color: '#E5007E',
+                  display: 'grid',
+                  flexShrink: 0,
+                  borderRadius: 2.5,
+                  placeItems: 'center',
+                  bgcolor: 'rgba(239,35,130,.10)',
+                }}
+              >
+                <Iconify icon="ri:font-size-2" width={28} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: 20, fontWeight: 900 }}>ฟอนต์ของเว็บไซต์</Typography>
+                <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
+                  เลือกฟอนต์หลักที่ผู้ใช้จะเห็นทั้งเว็บไซต์
+                </Typography>
+              </Box>
+            </Stack>
+
+            <ToggleButtonGroup
+              exclusive
+              fullWidth
+              value={siteFont}
+              onChange={(_event, value: SiteFont | null) => {
+                if (!value) return;
+                setSiteFont(value);
+                setMessage(null);
+              }}
+              aria-label="ฟอนต์ของเว็บไซต์"
+              sx={{ maxWidth: 620 }}
+            >
+              {SITE_FONT_OPTIONS.map((option) => (
+                <ToggleButton
+                  key={option.value}
+                  value={option.value}
+                  sx={{
+                    py: 2,
+                    fontSize: 16,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontFamily:
+                      option.value === 'prompt'
+                        ? 'var(--font-prompt), sans-serif'
+                        : "'LINE Seed Sans TH', sans-serif",
+                  }}
+                >
+                  {option.label}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+
+            <Alert severity="info">
+              ฟอนต์ที่เลือกจะมีผลกับหน้าสาธารณะและหน้า Admin หลังจากกดบันทึก
+            </Alert>
+          </Stack>
 
           <RadiusField
             icon="ri:radar-fill"
@@ -438,8 +628,6 @@ export function AdminSettingsPanel({
             helperText="ปรับได้ตั้งแต่ 10 เมตร–15 กิโลเมตร (1,000 เมตร = 1 กม.) ค่าเริ่มต้นคือ 75 เมตร"
           />
 
-          <Divider />
-
           <RadiusField
             icon="ri:map-pin-user-fill"
             title="ระยะค้นหาร้านใกล้ฉัน"
@@ -459,8 +647,6 @@ export function AdminSettingsPanel({
             helperText="ปรับได้ตั้งแต่ 500 เมตร–50 กิโลเมตร ค่าเริ่มต้นคือ 5 กิโลเมตร"
           />
 
-          <Divider />
-
           <ProvinceColorField
             settings={provinceColorSettings}
             onChange={(settings) => {
@@ -476,6 +662,18 @@ export function AdminSettingsPanel({
             spacing={2}
             justifyContent="space-between"
             alignItems={{ xs: 'stretch', sm: 'center' }}
+            sx={{
+              p: 2,
+              bottom: 16,
+              zIndex: 5,
+              position: 'sticky',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              bgcolor: 'rgba(255,255,255,.94)',
+              boxShadow: '0 14px 40px rgba(53,17,41,.14)',
+              backdropFilter: 'blur(12px)',
+            }}
           >
             <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
               {lastUpdatedAt

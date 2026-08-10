@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // ----------------------------------------------------------------------
@@ -38,6 +39,7 @@ export function useAdminReportsQuery() {
 }
 
 export function useReportDecisionMutation(decision: 'approve' | 'reject') {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -49,6 +51,7 @@ export function useReportDecisionMutation(decision: 'approve' | 'reject') {
       queryClient.setQueryData<PendingReport[]>(ADMIN_REPORTS_QUERY_KEY, (current) =>
         current?.filter((report) => report.id !== id)
       );
+      router.refresh();
     },
   });
 }

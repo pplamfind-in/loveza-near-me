@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { isSiteFont } from 'src/lib/site-font';
 import { requireAdminClient } from 'src/lib/supabase/require-admin';
 import {
   type ProvinceColorSettings,
@@ -20,6 +21,8 @@ export async function PUT(request: Request) {
 
   const payload = (await request.json().catch(() => null)) as {
     requireReportApproval?: unknown;
+    brandOwnerAcknowledged?: unknown;
+    siteFont?: unknown;
     duplicateRadiusM?: unknown;
     searchRadiusM?: unknown;
     provinceColorSettings?: {
@@ -34,6 +37,8 @@ export async function PUT(request: Request) {
     };
   } | null;
   const requireReportApproval = payload?.requireReportApproval;
+  const brandOwnerAcknowledged = payload?.brandOwnerAcknowledged;
+  const siteFont = payload?.siteFont;
   const duplicateRadiusM = Number(payload?.duplicateRadiusM);
   const searchRadiusM = Number(payload?.searchRadiusM);
   const provinceColorSettings: ProvinceColorSettings = {
@@ -49,6 +54,14 @@ export async function PUT(request: Request) {
 
   if (typeof requireReportApproval !== 'boolean') {
     return NextResponse.json({ error: 'รูปแบบการอนุมัติรายงานไม่ถูกต้อง' }, { status: 400 });
+  }
+
+  if (typeof brandOwnerAcknowledged !== 'boolean') {
+    return NextResponse.json({ error: 'สถานะการรับทราบของเจ้าของแบรนด์ไม่ถูกต้อง' }, { status: 400 });
+  }
+
+  if (!isSiteFont(siteFont)) {
+    return NextResponse.json({ error: 'รูปแบบฟอนต์ไม่ถูกต้อง' }, { status: 400 });
   }
 
   if (
@@ -91,6 +104,8 @@ export async function PUT(request: Request) {
     .from('admin_settings')
     .update({
       require_report_approval: requireReportApproval,
+      brand_owner_acknowledged: brandOwnerAcknowledged,
+      site_font: siteFont,
       duplicate_radius_m: duplicateRadiusM,
       search_radius_m: searchRadiusM,
       province_no_data_color: provinceColorSettings.noDataColor,
@@ -106,7 +121,7 @@ export async function PUT(request: Request) {
     })
     .eq('id', true)
     .select(
-      'require_report_approval, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
+      'require_report_approval, brand_owner_acknowledged, site_font, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
     )
     .single();
 
@@ -118,6 +133,8 @@ export async function PUT(request: Request) {
   return NextResponse.json({
     settings: {
       requireReportApproval: data.require_report_approval,
+      brandOwnerAcknowledged: data.brand_owner_acknowledged,
+      siteFont: data.site_font,
       duplicateRadiusM: data.duplicate_radius_m,
       searchRadiusM: data.search_radius_m,
       provinceColorSettings: {

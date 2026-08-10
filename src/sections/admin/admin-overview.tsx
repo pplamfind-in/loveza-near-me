@@ -34,7 +34,7 @@ const CARDS = [
     key: 'pendingReports',
     label: 'รอตรวจสอบ',
     icon: 'ri:time-fill',
-    href: '/admin#pending-reports',
+    href: '/admin/reports',
     color: '#d97706',
     background: '#fff7e6',
     suffix: 'รายการ',
