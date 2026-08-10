@@ -5,7 +5,7 @@ import { Iconify } from 'src/components/iconify';
 const commonNavData: NavMainProps['data'] = [
   {
     title: 'หน้าแรก',
-    path: '/#home',
+    path: '/',
     icon: <Iconify width={22} icon="ri:home-5-fill" />,
   },
 
