@@ -96,6 +96,24 @@ const APPROVAL_FLOW: FlowStep[] = [
   },
 ];
 
+const STOCK_UPDATE_FLOW: FlowStep[] = [
+  {
+    title: 'ผู้ใช้เปิดประวัติที่ /account',
+    description:
+      'ปุ่ม "อัปเดตสถานะสินค้า" จะแสดงเฉพาะรายงานของผู้ใช้ที่อนุมัติแล้วและเชื่อมกับร้านในระบบเรียบร้อย',
+  },
+  {
+    title: 'กรอกสถานะ เพิ่มหลักฐาน และตรวจ GPS',
+    description:
+      'ผู้ใช้เลือก มีสินค้า/เหลือน้อย/สินค้าหมด/ไม่แน่ใจ ระบุจำนวน หมายเหตุ และแนบรูปหลักฐานได้ แล้วต้องตรวจตำแหน่งปัจจุบันให้อยู่ในระยะร้าน',
+  },
+  {
+    title: 'สร้างรายงานใหม่สำหรับร้านเดิม',
+    description:
+      'ระบบไม่แก้ทับประวัติเก่า และนำรายงานใหม่เข้าสู่โหมดรออนุมัติหรืออนุมัติทันทีตามค่าที่ /admin/settings',
+  },
+];
+
 type ReferenceCard = {
   icon: string;
   color: string;
@@ -286,6 +304,18 @@ export function AdminGuide() {
         </Stack>
         <Box sx={{ mt: 2.5 }}>
           <FlowList steps={APPROVAL_FLOW} />
+        </Box>
+      </Paper>
+
+      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Iconify icon="ri:refresh-line" width={22} sx={{ color: '#00a99d' }} />
+          <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
+            Flow อัปเดตสถานะสินค้าจากประวัติ
+          </Typography>
+        </Stack>
+        <Box sx={{ mt: 2.5 }}>
+          <FlowList steps={STOCK_UPDATE_FLOW} />
         </Box>
       </Paper>
 

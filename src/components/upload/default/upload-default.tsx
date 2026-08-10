@@ -8,8 +8,6 @@ import Button from '@mui/material/Button';
 import FormHelperText from '@mui/material/FormHelperText';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { UploadIllustration } from 'src/assets/illustrations';
-
 import { Iconify } from '../../iconify';
 import { uploadClasses } from '../classes';
 import { RejectedFiles } from '../components/rejected-files';
@@ -50,13 +48,18 @@ export function Upload({
 
   const renderPlaceholder = () => (
     <PlaceholderContainer className={uploadClasses.placeholder.root}>
-      <UploadIllustration hideBackground sx={{ width: 200 }} />
+      <Iconify
+        icon="ri:image-add-line"
+        width={80}
+        sx={{ mb: 1, color: 'primary.main' }}
+      />
       <div className={uploadClasses.placeholder.content}>
         <div className={uploadClasses.placeholder.title}>
-          {multiple ? 'Drop or select files' : 'Drop or select a file'}
+          {multiple ? 'โยนไฟล์มาเลย หรือกดเลือกไฟล์' : 'โยนรูปมาเลย หรือกดเลือกรูป'}
         </div>
         <div className={uploadClasses.placeholder.description}>
-          {multiple ? 'Drag files here' : 'Drag a file here'}, or <span>browse</span> your device.
+          {multiple ? 'ลากไฟล์มาวางตรงนี้ หรือ ' : 'ลากรูปมาวางตรงนี้ หรือ '}
+          <span>เลือกจากเครื่อง</span> ได้เลย
         </div>
       </div>
     </PlaceholderContainer>
@@ -90,7 +93,7 @@ export function Upload({
           <Box sx={{ gap: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
             {onRemoveAll && (
               <Button size="small" variant="outlined" color="inherit" onClick={onRemoveAll}>
-                Remove All
+                ล้างทั้งหมด
               </Button>
             )}
             {onUpload && (
@@ -102,7 +105,7 @@ export function Upload({
                 loading={loading && multiple}
                 loadingPosition="start"
               >
-                {loading && multiple ? 'Uploading...' : 'Upload'}
+                {loading && multiple ? 'กำลังอัปโหลด...' : 'อัปโหลดเลย'}
               </Button>
             )}
           </Box>
