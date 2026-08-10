@@ -19,8 +19,8 @@ import ToggleButton from '@mui/material/ToggleButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { SITE_FONT_OPTIONS } from 'src/lib/site-font';
 import { getBrandOwnerNotice } from 'src/lib/brand-owner-notice';
+import { SITE_FONT_OPTIONS, SITE_FONT_PREVIEW_FAMILY } from 'src/lib/site-font';
 import {
   buildProvinceColorScale,
   isValidProvinceColorSettings,
@@ -356,7 +356,12 @@ export function AdminSettingsPanel({
       setProvinceColorSettings(payload.settings.provinceColorSettings);
       setLastUpdatedAt(payload.settings.updatedAt);
       setMessage({ type: 'success', text: 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว' });
-      router.refresh();
+
+      if (payload.settings.siteFont !== initialSiteFont) {
+        window.location.reload();
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       setMessage({
         type: 'error',
@@ -592,10 +597,7 @@ export function AdminSettingsPanel({
                     fontSize: 16,
                     fontWeight: 700,
                     textTransform: 'none',
-                    fontFamily:
-                      option.value === 'prompt'
-                        ? 'var(--font-prompt), sans-serif'
-                        : "'LINE Seed Sans TH', sans-serif",
+                    fontFamily: SITE_FONT_PREVIEW_FAMILY[option.value],
                   }}
                 >
                   {option.label}

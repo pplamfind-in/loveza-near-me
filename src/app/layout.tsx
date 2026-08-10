@@ -4,7 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import type { CookieConsentValue } from 'src/components/cookie-consent';
 
 import { cookies } from 'next/headers';
-import { Prompt } from 'next/font/google';
+import { Kanit, Prompt } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -60,6 +60,13 @@ const promptFont = Prompt({
   weight: ['400', '500', '600', '700', '800', '900'],
   display: 'swap',
   variable: '--font-prompt',
+});
+
+const kanitFont = Kanit({
+  subsets: ['latin', 'thai'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+  variable: '--font-kanit',
 });
 
 export const viewport: Viewport = {
@@ -209,7 +216,11 @@ async function getAppConfig() {
       consent === 'all' || consent === 'necessary' ? consent : null;
     const siteFont = isSiteFont(siteFontResult.data) ? siteFontResult.data : DEFAULT_SITE_FONT;
     const fontFamily =
-      siteFont === 'prompt' ? promptFont.style.fontFamily : themeConfig.fontFamily.primary;
+      siteFont === 'prompt'
+        ? promptFont.style.fontFamily
+        : siteFont === 'kanit'
+          ? kanitFont.style.fontFamily
+          : themeConfig.fontFamily.primary;
     const appDefaultSettings = {
       ...defaultSettings,
       fontFamily,
@@ -241,7 +252,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     <html
       lang={appConfig.lang}
       dir={appConfig.dir}
-      className={promptFont.variable}
+      className={`${promptFont.variable} ${kanitFont.variable}`}
+      style={{ '--site-font-family': appConfig.fontFamily } as React.CSSProperties}
       suppressHydrationWarning
     >
       <body style={{ fontFamily: appConfig.fontFamily }}>
@@ -269,6 +281,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                   <ThemeProvider
                     modeStorageKey={themeConfig.modeStorageKey}
                     defaultMode={themeConfig.defaultMode}
+                    forcedFontFamily={appConfig.fontFamily}
                   >
                     <MotionLazy>
                       <LocatorJS />

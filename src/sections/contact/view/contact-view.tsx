@@ -1,9 +1,6 @@
 'use client';
 
-import type {
-  ContactMessageInput,
-  ContactMessageFormValues,
-} from 'src/app/contact-us/schema';
+import type { ContactMessageInput, ContactMessageFormValues } from 'src/app/contact-us/schema';
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -73,7 +70,7 @@ export function ContactView() {
       component="main"
       sx={{
         minHeight: '100vh',
-        py: { xs: 5, md: 8 },
+        py: '100px',
         background:
           'radial-gradient(circle at 12px 12px, rgba(124,58,237,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
@@ -110,22 +107,6 @@ export function ContactView() {
           >
             แจ้งปัญหา ขอแก้ไขหรือลบข้อมูล เสนอไอเดีย หรือแจ้งเรื่องสิทธิในเนื้อหาได้ที่นี่
           </Typography>
-          <Button
-            component="a"
-            href="#contact-form"
-            variant="contained"
-            startIcon={<Iconify icon="ri:send-plane-fill" />}
-            sx={{
-              mt: 3,
-              color: '#351129',
-              bgcolor: '#FDE047',
-              border: '2px solid #351129',
-              boxShadow: '4px 5px 0 #351129',
-              '&:hover': { bgcolor: '#FFE96B' },
-            }}
-          >
-            ส่งข้อความผ่านแบบฟอร์ม
-          </Button>
         </Box>
 
         <Box
@@ -181,6 +162,7 @@ export function ContactView() {
             sx={{
               scrollMarginTop: 120,
               p: { xs: 3, md: 4.5 },
+              position: 'relative',
               border: '3px solid #351129',
               borderRadius: '30px',
               bgcolor: '#fff',
@@ -224,10 +206,13 @@ export function ContactView() {
                 <Box
                   aria-hidden="true"
                   sx={{
+                    top: 0,
+                    left: 0,
                     position: 'absolute',
                     width: 1,
                     height: 1,
                     overflow: 'hidden',
+                    pointerEvents: 'none',
                     clip: 'rect(0 0 0 0)',
                   }}
                 >

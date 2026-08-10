@@ -18,14 +18,23 @@ import { Rtl } from './with-settings/right-to-left';
 
 export type ThemeProviderProps = Partial<MuiThemeProviderProps<Theme>> & {
   themeOverrides?: ThemeOptions;
+  forcedFontFamily?: string;
 };
 
-export function ThemeProvider({ themeOverrides, children, ...other }: ThemeProviderProps) {
+export function ThemeProvider({
+  themeOverrides,
+  forcedFontFamily,
+  children,
+  ...other
+}: ThemeProviderProps) {
   const settings = useSettingsContext();
   const { currentLang } = useTranslate();
+  const settingsState = forcedFontFamily
+    ? { ...settings.state, fontFamily: forcedFontFamily }
+    : settings.state;
 
   const theme = createTheme({
-    settingsState: settings.state,
+    settingsState,
     localeComponents: currentLang?.systemValue,
     themeOverrides,
   });

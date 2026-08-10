@@ -1,4 +1,4 @@
-import type { ColorSystem } from '@mui/material/styles';
+import type { ColorSystem, TypographyVariantsOptions } from '@mui/material/styles';
 import type { SettingsState } from 'src/components/settings';
 import type { ThemeOptions, ThemeColorScheme, ColorSchemeOptionsExtended } from '../types';
 
@@ -29,6 +29,12 @@ export function applySettingsToTheme(
 
   const isDefaultContrast = contrast === 'default';
   const isDefaultPrimaryColor = primaryColor === 'default';
+  const resolvedFontFamily = fontFamily?.includes(',')
+    ? `${fontFamily}, sans-serif`
+    : setFont(fontFamily);
+  const currentTypography = (
+    typeof theme.typography === 'function' ? {} : (theme.typography ?? {})
+  ) as TypographyVariantsOptions;
 
   const lightPalette = theme.colorSchemes?.light?.palette as ColorSystem['palette'];
 
@@ -78,9 +84,22 @@ export function applySettingsToTheme(
       dark: updateColorScheme('dark'),
     },
     typography: {
-      ...theme.typography,
-      fontFamily: setFont(fontFamily),
-      fontSecondaryFamily: setFont(fontFamily),
+      ...currentTypography,
+      fontFamily: resolvedFontFamily,
+      fontSecondaryFamily: resolvedFontFamily,
+      h1: { ...currentTypography.h1, fontFamily: resolvedFontFamily },
+      h2: { ...currentTypography.h2, fontFamily: resolvedFontFamily },
+      h3: { ...currentTypography.h3, fontFamily: resolvedFontFamily },
+      h4: { ...currentTypography.h4, fontFamily: resolvedFontFamily },
+      h5: { ...currentTypography.h5, fontFamily: resolvedFontFamily },
+      h6: { ...currentTypography.h6, fontFamily: resolvedFontFamily },
+      subtitle1: { ...currentTypography.subtitle1, fontFamily: resolvedFontFamily },
+      subtitle2: { ...currentTypography.subtitle2, fontFamily: resolvedFontFamily },
+      body1: { ...currentTypography.body1, fontFamily: resolvedFontFamily },
+      body2: { ...currentTypography.body2, fontFamily: resolvedFontFamily },
+      caption: { ...currentTypography.caption, fontFamily: resolvedFontFamily },
+      overline: { ...currentTypography.overline, fontFamily: resolvedFontFamily },
+      button: { ...currentTypography.button, fontFamily: resolvedFontFamily },
     },
   };
 }
