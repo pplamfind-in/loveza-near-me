@@ -122,12 +122,13 @@ export default async function MapzaPage() {
                   sx={{
                     px: 2,
                     py: 1.25,
-                    minWidth: { xs: 104, sm: 150 },
+                    width: { xs: 'auto', sm: 150 },
                     color: '#351129',
                     border: '2px solid #351129',
-                    borderRadius: 3,
+                    borderRadius: 2,
                     bgcolor: '#FFFDF5',
                     boxShadow: '4px 4px 0 #351129',
+                    textAlign: 'center',
                   }}
                 >
                   <Typography
