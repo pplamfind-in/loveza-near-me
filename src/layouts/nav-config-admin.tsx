@@ -24,7 +24,7 @@ export const adminNavData: NavSectionProps['data'] = [
         icon: navIcon('ri:drinks-2-fill'),
       },
       {
-        title: 'Master ประเภทร้าน',
+        title: 'ร้านค้า',
         path: '/admin/store-types',
         icon: navIcon('ri:store-3-fill'),
       },
@@ -32,6 +32,11 @@ export const adminNavData: NavSectionProps['data'] = [
         title: 'ผู้ใช้งาน',
         path: '/admin/users',
         icon: navIcon('ri:group-fill'),
+      },
+      {
+        title: 'สถิติการเข้าใช้งาน',
+        path: '/admin/analytics',
+        icon: navIcon('ri:line-chart-fill'),
       },
       {
         title: 'ตั้งค่าระบบ',

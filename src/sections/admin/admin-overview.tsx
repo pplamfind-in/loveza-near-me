@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -18,6 +19,9 @@ export type AdminOverviewStats = {
   products: number;
   activeProducts: number;
   pendingReports: number;
+  totalReports: number;
+  approvedReports: number;
+  rejectedReports: number;
 };
 
 type AdminOverviewProps = {
@@ -73,7 +77,17 @@ const CARDS = [
   },
 ] as const;
 
+const REPORT_STATS = [
+  { key: 'totalReports', label: 'ส่งเข้ามาทั้งหมด', color: '#6d3b8c' },
+  { key: 'approvedReports', label: 'อนุมัติแล้ว', color: '#008f84' },
+  { key: 'pendingReports', label: 'รอตรวจสอบ', color: '#d97706' },
+  { key: 'rejectedReports', label: 'ไม่อนุมัติ', color: '#d92d6f' },
+] as const;
+
 export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
+  const approvalRate =
+    stats.totalReports > 0 ? Math.round((stats.approvedReports / stats.totalReports) * 100) : 0;
+
   return (
     <Stack spacing={3}>
       <Stack
@@ -194,6 +208,98 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
             </Paper>
           );
         })}
+      </Box>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.5fr) minmax(300px, 1fr)' },
+        }}
+      >
+        <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 3 }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            justifyContent="space-between"
+            spacing={1}
+          >
+            <Box>
+              <Typography sx={{ fontSize: 18, fontWeight: 900 }}>สรุปการแจ้งพิกัด</Typography>
+              <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 13 }}>
+                สถานะรายงานสะสมจากข้อมูลจริงในระบบ
+              </Typography>
+            </Box>
+            <Chip
+              color="success"
+              variant="soft"
+              label={`อัตราอนุมัติ ${approvalRate.toLocaleString('th-TH')}%`}
+            />
+          </Stack>
+
+          <Box
+            sx={{
+              mt: 2.5,
+              display: 'grid',
+              gap: 1.5,
+              gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(4, 1fr)' },
+            }}
+          >
+            {REPORT_STATS.map((item) => (
+              <Box
+                key={item.key}
+                sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+              >
+                <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{item.label}</Typography>
+                <Typography sx={{ mt: 0.5, color: item.color, fontSize: 25, fontWeight: 900 }}>
+                  {stats[item.key].toLocaleString('th-TH')}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
+
+        <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box
+              sx={{
+                width: 46,
+                height: 46,
+                color: '#2574a9',
+                display: 'grid',
+                flexShrink: 0,
+                borderRadius: 2,
+                placeItems: 'center',
+                bgcolor: '#edf7ff',
+              }}
+            >
+              <Iconify icon="ri:line-chart-fill" width={25} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 18, fontWeight: 900 }}>สถิติเข้าชมและความเร็ว</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
+                เปิดเก็บข้อมูลทั่วทั้งเว็บไซต์แล้ว
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2.5 }}>
+            <Chip color="success" variant="soft" label="Web Analytics ทำงาน" />
+            <Chip color="info" variant="soft" label="Speed Insights ทำงาน" />
+          </Stack>
+          <Typography sx={{ mt: 2, color: 'text.secondary', fontSize: 12, lineHeight: 1.7 }}>
+            จำนวนผู้เข้าชม หน้าเว็บยอดนิยม และ Core Web Vitals จะแสดงหลัง deploy บน Vercel
+          </Typography>
+          <Button
+            component={Link}
+            href="/admin/analytics"
+            variant="outlined"
+            endIcon={<Iconify icon="ri:arrow-right-line" />}
+            sx={{ mt: 2, borderRadius: 99 }}
+          >
+            ดูสถิติในระบบ
+          </Button>
+        </Paper>
       </Box>
     </Stack>
   );

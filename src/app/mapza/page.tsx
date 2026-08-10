@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 import { createSeoMetadata } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
+import { provinceColorSettingsFromRow } from 'src/lib/mapza/province-color-scale';
 
 import ThailandMap from './thailand-map';
 
@@ -26,16 +27,20 @@ export default async function MapzaPage() {
   preload('/assets/data/thailand-province-names.json', { as: 'fetch', crossOrigin: 'anonymous' });
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('stores')
-    .select(
-      'id, name, address, province, district, subdistrict, latitude, longitude, current_status, estimated_quantity, last_reported_at'
-    )
-    .eq('is_active', true)
-    .order('last_reported_at', { ascending: false, nullsFirst: false });
+  const [storesResult, mapSettingsResult] = await Promise.all([
+    supabase
+      .from('stores')
+      .select(
+        'id, name, address, province, district, subdistrict, latitude, longitude, current_status, estimated_quantity, last_reported_at'
+      )
+      .eq('is_active', true)
+      .order('last_reported_at', { ascending: false, nullsFirst: false }),
+    supabase.rpc('get_public_map_settings').maybeSingle(),
+  ]);
 
-  const stores = (data ?? []) as MapzaStore[];
-  const hasError = Boolean(error);
+  const stores = (storesResult.data ?? []) as MapzaStore[];
+  const hasError = Boolean(storesResult.error);
+  const provinceColorSettings = provinceColorSettingsFromRow(mapSettingsResult.data);
   const provinceCount = new Set(stores.map((store) => store.province).filter(Boolean)).size;
   const totalQuantity = stores.reduce(
     (total, store) => total + Math.max(store.estimated_quantity ?? 0, 0),
@@ -102,10 +107,11 @@ export default async function MapzaPage() {
             <Typography
               sx={{ mt: 2, maxWidth: 700, color: '#FFF0F8', fontSize: { xs: 15, md: 18 } }}
             >
-              รวมพิกัดร้าน Loveza ทั่วประเทศ เลือกจังหวัด ดูของเหลือ แล้วไปคว้าความซ่ากันเลย!
+              รวมพิกัด Loveza ทั่วประเทศ 💖 เลือกจังหวัด แล้วออกล่าเลิฟซ่าใกล้คุณ เจอพิกัดแล้ว
+              ไปคว้าความซ่ากันเลย! ⚡
             </Typography>
 
-            <Box sx={{ mt: 3, display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+            <Box sx={{ mt: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {[
                 { icon: 'ri:store-2-fill', value: stores.length, label: 'จุดขาย' },
                 { icon: 'ri:map-2-fill', value: provinceCount, label: 'จังหวัด' },
@@ -116,7 +122,7 @@ export default async function MapzaPage() {
                   sx={{
                     px: 2,
                     py: 1.25,
-                    minWidth: { xs: 120, sm: 150 },
+                    minWidth: { xs: 104, sm: 150 },
                     color: '#351129',
                     border: '2px solid #351129',
                     borderRadius: 3,
@@ -138,7 +144,11 @@ export default async function MapzaPage() {
           </Box>
         </Box>
 
-        <ThailandMap stores={stores} hasError={hasError} />
+        <ThailandMap
+          stores={stores}
+          hasError={hasError}
+          provinceColorSettings={provinceColorSettings}
+        />
       </Container>
     </Box>
   );

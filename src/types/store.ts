@@ -34,3 +34,14 @@ export type MapzaStore = Omit<NearbyStore, 'distance_km'> & {
   district: string | null;
   subdistrict: string | null;
 };
+
+export type LatestStorePreview = Pick<
+  NearbyStore,
+  | 'id'
+  | 'name'
+  | 'address'
+  | 'province'
+  | 'current_status'
+  | 'estimated_quantity'
+  | 'last_reported_at'
+>;

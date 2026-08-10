@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 
 import { createClient } from 'src/lib/supabase/server';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { sumEstimatedQuantity, getPendingReportsCount } from 'src/lib/admin/stats';
+import { getReportsSummary, sumEstimatedQuantity } from 'src/lib/admin/stats';
 
 import { AdminOverview } from 'src/sections/admin/admin-overview';
 import { PendingReportsPanel } from 'src/sections/admin/pending-reports-panel';
@@ -14,11 +14,11 @@ export const metadata: Metadata = { title: 'Admin Dashboard | Loveza Hunt' };
 
 export default async function AdminPage() {
   const supabase = await createClient();
-  const [usersResult, storesResult, productsResult, pendingReports] = await Promise.all([
+  const [usersResult, storesResult, productsResult, reportsSummary] = await Promise.all([
     supabase.rpc('admin_user_activity'),
     supabase.from('stores').select('estimated_quantity'),
     supabase.from('products').select('is_active'),
-    getPendingReportsCount(supabase),
+    getReportsSummary(supabase),
   ]);
 
   const stores = storesResult.data ?? [];
@@ -29,10 +29,10 @@ export default async function AdminPage() {
     totalStock: sumEstimatedQuantity(stores),
     products: products.length,
     activeProducts: products.filter((product) => product.is_active).length,
-    pendingReports: pendingReports.count,
+    ...reportsSummary.data,
   };
   const hasError = Boolean(
-    usersResult.error || storesResult.error || productsResult.error || pendingReports.error
+    usersResult.error || storesResult.error || productsResult.error || reportsSummary.error
   );
 
   return (

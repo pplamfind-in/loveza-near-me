@@ -85,6 +85,13 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
     fitMarkers();
   }, [fitMarkers]);
 
+  useEffect(() => {
+    setSelectedStore((current) => {
+      if (!current) return null;
+      return stores.find((store) => store.id === current.id) ?? null;
+    });
+  }, [stores]);
+
   return (
     <Map
       ref={mapRef}

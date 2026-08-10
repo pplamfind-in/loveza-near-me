@@ -1,5 +1,7 @@
 'use client';
 
+import type { ProvinceColorSettings } from 'src/lib/mapza/province-color-scale';
+
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -13,6 +15,10 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import {
+  buildProvinceColorScale,
+  isValidProvinceColorSettings,
+} from 'src/lib/mapza/province-color-scale';
 import {
   formatRadiusM,
   MAX_SEARCH_RADIUS_M,
@@ -28,6 +34,7 @@ import { Iconify } from 'src/components/iconify';
 type AdminSettingsPanelProps = {
   initialDuplicateRadiusM: number;
   initialSearchRadiusM: number;
+  initialProvinceColorSettings: ProvinceColorSettings;
   updatedAt: string | null;
   hasError?: boolean;
 };
@@ -119,14 +126,151 @@ function RadiusField({
   );
 }
 
+type ProvinceColorFieldProps = {
+  settings: ProvinceColorSettings;
+  onChange: (settings: ProvinceColorSettings) => void;
+};
+
+function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
+  const scale = buildProvinceColorScale(settings);
+  const rows = [
+    { ...scale[0], colorKey: 'noDataColor', countKey: null, countLabel: 'จำนวนคงที่', count: 0 },
+    {
+      ...scale[1],
+      colorKey: 'tier1Color',
+      countKey: 'tier1Max',
+      countLabel: 'จำนวนสูงสุด',
+      count: settings.tier1Max,
+    },
+    {
+      ...scale[2],
+      colorKey: 'tier2Color',
+      countKey: 'tier2Max',
+      countLabel: 'จำนวนสูงสุด',
+      count: settings.tier2Max,
+    },
+    {
+      ...scale[3],
+      colorKey: 'tier3Color',
+      countKey: 'tier3Max',
+      countLabel: 'จำนวนสูงสุด',
+      count: settings.tier3Max,
+    },
+    {
+      ...scale[4],
+      colorKey: 'tier4Color',
+      countKey: null,
+      countLabel: 'เริ่มต้นที่',
+      count: settings.tier3Max + 1,
+    },
+  ] as const;
+
+  return (
+    <Stack spacing={2.5}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box
+          sx={{
+            width: 52,
+            height: 52,
+            color: '#E5007E',
+            display: 'grid',
+            flexShrink: 0,
+            borderRadius: 2.5,
+            placeItems: 'center',
+            bgcolor: 'rgba(239,35,130,.10)',
+          }}
+        >
+          <Iconify icon="ri:palette-fill" width={28} />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 900 }}>สีสถานะจังหวัด</Typography>
+          <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
+            กำหนดช่วงจำนวนจุดขายและสีที่ใช้บนแผนที่ซ่าทั่วไทย
+          </Typography>
+        </Box>
+      </Stack>
+
+      <Stack spacing={1.5}>
+        {rows.map((row) => (
+          <Box
+            key={row.colorKey}
+            sx={{
+              p: 2,
+              gap: 2,
+              display: 'grid',
+              alignItems: 'center',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2.5,
+              gridTemplateColumns: { xs: '1fr', sm: 'minmax(180px, 1fr) 150px 150px' },
+            }}
+          >
+            <Stack direction="row" spacing={1.25} alignItems="center">
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  flexShrink: 0,
+                  borderRadius: '50%',
+                  bgcolor: row.color,
+                  border: '1px solid rgba(53,17,41,.18)',
+                }}
+              />
+              <Typography sx={{ fontWeight: 800 }}>{row.label}</Typography>
+            </Stack>
+
+            <TextField
+              type="number"
+              label={row.countLabel}
+              value={row.count}
+              disabled={!row.countKey}
+              onChange={(event) => {
+                if (!row.countKey) return;
+                onChange({
+                  ...settings,
+                  [row.countKey]: Number(event.target.value),
+                });
+              }}
+              slotProps={{ htmlInput: { min: 1, max: 999999, step: 1 } }}
+            />
+
+            <TextField
+              type="color"
+              label="สี"
+              value={settings[row.colorKey]}
+              onChange={(event) =>
+                onChange({
+                  ...settings,
+                  [row.colorKey]: event.target.value.toUpperCase(),
+                })
+              }
+              helperText={settings[row.colorKey]}
+            />
+          </Box>
+        ))}
+      </Stack>
+
+      {!isValidProvinceColorSettings(settings) ? (
+        <Alert severity="error">
+          ตัวเลขสูงสุดของแต่ละช่วงต้องเป็นจำนวนเต็มและเรียงจากน้อยไปมาก
+        </Alert>
+      ) : null}
+    </Stack>
+  );
+}
+
 export function AdminSettingsPanel({
   initialDuplicateRadiusM,
   initialSearchRadiusM,
+  initialProvinceColorSettings,
   updatedAt,
   hasError = false,
 }: AdminSettingsPanelProps) {
   const [duplicateRadiusM, setDuplicateRadiusM] = useState(initialDuplicateRadiusM);
   const [searchRadiusM, setSearchRadiusM] = useState(initialSearchRadiusM);
+  const [provinceColorSettings, setProvinceColorSettings] = useState(
+    initialProvinceColorSettings
+  );
   const [lastUpdatedAt, setLastUpdatedAt] = useState(updatedAt);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -153,11 +297,16 @@ export function AdminSettingsPanel({
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duplicateRadiusM, searchRadiusM }),
+        body: JSON.stringify({ duplicateRadiusM, searchRadiusM, provinceColorSettings }),
       });
       const payload = (await response.json()) as {
         error?: string;
-        settings?: { duplicateRadiusM: number; searchRadiusM: number; updatedAt: string };
+        settings?: {
+          duplicateRadiusM: number;
+          searchRadiusM: number;
+          provinceColorSettings: ProvinceColorSettings;
+          updatedAt: string;
+        };
       };
 
       if (!response.ok || !payload.settings) {
@@ -166,8 +315,9 @@ export function AdminSettingsPanel({
 
       setDuplicateRadiusM(payload.settings.duplicateRadiusM);
       setSearchRadiusM(payload.settings.searchRadiusM);
+      setProvinceColorSettings(payload.settings.provinceColorSettings);
       setLastUpdatedAt(payload.settings.updatedAt);
-      setMessage({ type: 'success', text: 'บันทึกการตั้งค่าระยะเรียบร้อยแล้ว' });
+      setMessage({ type: 'success', text: 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว' });
     } catch (error) {
       setMessage({
         type: 'error',
@@ -185,7 +335,7 @@ export function AdminSettingsPanel({
           ตั้งค่าระบบ
         </Typography>
         <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-          กำหนดกติกาการรับพิกัดจากผู้ใช้งานทุกคน
+          กำหนดกติกาการรับพิกัดและรูปแบบการแสดงผลบนแผนที่
         </Typography>
       </Box>
 
@@ -238,6 +388,16 @@ export function AdminSettingsPanel({
             helperText="ปรับได้ตั้งแต่ 500 เมตร–50 กิโลเมตร ค่าเริ่มต้นคือ 5 กิโลเมตร"
           />
 
+          <Divider />
+
+          <ProvinceColorField
+            settings={provinceColorSettings}
+            onChange={(settings) => {
+              setProvinceColorSettings(settings);
+              setMessage(null);
+            }}
+          />
+
           {message ? <Alert severity={message.type}>{message.text}</Alert> : null}
 
           <Stack
@@ -253,7 +413,7 @@ export function AdminSettingsPanel({
             </Typography>
             <Button
               variant="contained"
-              disabled={saving || hasError}
+              disabled={saving || hasError || !isValidProvinceColorSettings(provinceColorSettings)}
               onClick={handleSave}
               startIcon={
                 saving ? (

@@ -2,8 +2,8 @@
 
 import type { NearbyStore } from 'src/types/store';
 
-import { useQuery } from '@tanstack/react-query';
 import { useRef, useMemo, useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -24,9 +24,12 @@ import { useGeolocation } from 'src/hooks/use-geolocation';
 import { calculateDistanceKm } from 'src/utils/geo';
 import { formatRelativeTimeTh } from 'src/utils/relative-time-th';
 
+import { CONFIG } from 'src/global-config';
+import { supabase } from 'src/lib/supabase';
 import { formatRadiusM } from 'src/lib/admin/duplicate-radius';
 
 import { Iconify } from 'src/components/iconify';
+import { SvgColor } from 'src/components/svg-color';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
 
@@ -63,6 +66,7 @@ const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
   `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
 export function NearbyFinder() {
+  const queryClient = useQueryClient();
   const {
     coordinates,
     isLoading: locating,
@@ -75,6 +79,20 @@ export function NearbyFinder() {
   const [visibleStoreCount, setVisibleStoreCount] = useState(STORES_PAGE_SIZE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('nearby-stores-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stores' }, () => {
+        void queryClient.invalidateQueries({ queryKey: ['nearby-stores'] });
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const locationSettingsSteps = useMemo(() => {
     if (typeof navigator === 'undefined') return [];
 
@@ -368,7 +386,7 @@ export function NearbyFinder() {
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pt: 2 }}>
           <div>
             <Typography sx={{ color: '#572676', fontSize: { xs: 22, md: 28 }, fontWeight: 1000 }}>
-              ร้าน Loveza ใกล้คุณ
+              Loveza ใกล้คุณ
             </Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
               เรียงจากร้านที่อยู่ใกล้ที่สุด
@@ -488,7 +506,11 @@ export function NearbyFinder() {
                 {store.estimated_quantity !== null ? (
                   <Chip
                     size="small"
-                    icon={<Iconify icon="ri:drinks-2-fill" />}
+                    icon={
+                      <SvgColor
+                        src={`${CONFIG.assetsDir}/assets/icons/components/ic-soda-can.png`}
+                      />
+                    }
                     label={`ประมาณ ${store.estimated_quantity} กระป๋อง`}
                     sx={{ fontWeight: 800, bgcolor: '#fff' }}
                   />
@@ -569,7 +591,13 @@ export function NearbyFinder() {
       ) : stores.length > STORES_PAGE_SIZE ? (
         <Typography
           role="status"
-          sx={{ py: 2, color: 'text.secondary', textAlign: 'center', fontSize: 13, fontWeight: 800 }}
+          sx={{
+            py: 2,
+            color: 'text.secondary',
+            textAlign: 'center',
+            fontSize: 13,
+            fontWeight: 800,
+          }}
         >
           แสดงครบทั้งหมด {stores.length} ร้านแล้ว
         </Typography>

@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 export const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-const LOCATION_REQUIRED_MESSAGE = 'กรุณากดใช้ตำแหน่งปัจจุบันก่อนส่งพิกัด';
+export const LOCATION_REQUIRED_MESSAGE = 'กรุณากดใช้ตำแหน่งปัจจุบันก่อนส่งพิกัด';
 
 // province/district come from an Autocomplete bound to the bundled 77-province
 // dataset, so MUI needs `null` (not `''`) to represent "nothing picked yet" —

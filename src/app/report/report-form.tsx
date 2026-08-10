@@ -28,11 +28,16 @@ import { FLAVOR_OPTIONS, STORE_TYPE_OPTIONS } from 'src/types/report';
 import { useStoreTypesQuery } from './use-store-types';
 import { useSubmitReportMutation } from './use-submit-report';
 import {
+  type ReportStoreCandidate,
+  useReportStoreCandidates,
+} from './use-report-store-candidates';
+import {
   reportSchema,
   MAX_PHOTO_SIZE,
   ALLOWED_PHOTO_TYPES,
   type ReportFormState,
   type ReportFormValues,
+  LOCATION_REQUIRED_MESSAGE,
 } from './schema';
 
 const initialState: ReportFormState = { status: 'idle', message: '' };
@@ -52,6 +57,7 @@ const defaultValues: ReportFormInput = {
   flavors: [],
   photo: null,
   note: '',
+  storeId: undefined,
 };
 
 const FLAVOR_SELECT_OPTIONS = FLAVOR_OPTIONS.map((option) => ({
@@ -60,7 +66,7 @@ const FLAVOR_SELECT_OPTIONS = FLAVOR_OPTIONS.map((option) => ({
 }));
 const PROVINCE_OPTIONS = thailandProvinces.map((province) => province.nameTh);
 
-function buildFormData(data: ReportFormValues, storeId?: string) {
+function buildFormData(data: ReportFormValues, storeId = data.storeId) {
   const formData = new FormData();
   formData.set('storeName', data.storeName);
   formData.set('storeType', data.storeType);
@@ -166,10 +172,25 @@ export function ReportForm() {
     watch,
     setValue,
     handleSubmit,
+    formState: { errors },
   } = methods;
 
-  const [latitude, longitude, province] = watch(['latitude', 'longitude', 'province']);
+  const [latitude, longitude, province, selectedStoreId] = watch([
+    'latitude',
+    'longitude',
+    'province',
+    'storeId',
+  ]);
   const hasCoordinates = latitude !== undefined && longitude !== undefined;
+  const hasLocationError = Boolean(errors.latitude || errors.longitude);
+  const candidatesQuery = useReportStoreCandidates(
+    hasCoordinates ? Number(latitude) : undefined,
+    hasCoordinates ? Number(longitude) : undefined
+  );
+  const storeCandidates = candidatesQuery.data ?? [];
+  const selectedCandidate = storeCandidates.find(
+    (candidate) => candidate.storeId === selectedStoreId
+  );
 
   const districtOptions = useMemo(
     () =>
@@ -180,6 +201,7 @@ export function ReportForm() {
 
   useEffect(() => {
     if (!gps) return;
+    setValue('storeId', undefined, { shouldValidate: true });
     setValue('latitude', gps.latitude, { shouldValidate: true });
     setValue('longitude', gps.longitude, { shouldValidate: true });
   }, [gps, setValue]);
@@ -193,6 +215,22 @@ export function ReportForm() {
   }, [province, setValue]);
 
   const pendingValuesRef = useRef<ReportFormValues | null>(null);
+
+  const handleSelectStoreCandidate = (candidate: ReportStoreCandidate) => {
+    previousProvinceRef.current = candidate.province;
+    setValue('storeId', candidate.storeId, { shouldValidate: true });
+    setValue('storeName', candidate.storeName, { shouldValidate: true });
+    setValue('storeType', candidate.storeType, { shouldValidate: true });
+    setValue('address', candidate.address ?? '', { shouldValidate: true });
+    setValue('province', candidate.province, { shouldValidate: true });
+    setValue('district', candidate.district, { shouldValidate: true });
+    mutation.reset();
+  };
+
+  const handleClearStoreCandidate = () => {
+    setValue('storeId', undefined, { shouldValidate: true });
+    mutation.reset();
+  };
 
   useEffect(() => {
     if (state.status !== 'success') return;
@@ -223,51 +261,15 @@ export function ReportForm() {
           gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) minmax(0, 1fr)' },
         }}
       >
-        <Stack spacing={2.5}>
+        <Box sx={{ gridColumn: '1 / -1' }}>
           <FormSection
             step="01"
-            icon="ri:store-2-fill"
-            title="เจอที่ร้านไหน?"
-            description="เลือกประเภทร้าน พร้อมบอกชื่อหรือสาขาให้เพื่อนตามหาได้ง่าย"
-            color="#70E1F5"
-          >
-            <Stack spacing={2}>
-              <Field.Select name="storeType" label="ประเภทร้านค้า *">
-                {storeTypeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Field.Select>
-              <Field.Text name="storeName" label="ชื่อร้าน / ชื่อสาขา *" />
-            </Stack>
-          </FormSection>
-
-          <FormSection
-            step="02"
             icon="ri:map-pin-2-fill"
-            title="ปักพิกัดให้ตรงจุด"
-            description="เลือกพื้นที่และใช้ GPS ขณะอยู่บริเวณร้าน"
+            title="ปักพิกัดก่อน"
+            description="ใช้ GPS ขณะอยู่บริเวณร้าน เพื่อดูว่ามีร้านนี้ในระบบแล้วหรือยัง"
             color="#FDE047"
           >
             <Stack spacing={2}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Field.Autocomplete
-                  name="province"
-                  label="จังหวัด *"
-                  options={PROVINCE_OPTIONS}
-                  sx={{ flex: 1 }}
-                />
-                <Field.Autocomplete
-                  name="district"
-                  label="อำเภอ/เขต *"
-                  options={districtOptions}
-                  disabled={!province}
-                  helperText={!province ? 'เลือกจังหวัดก่อน' : undefined}
-                  sx={{ flex: 1 }}
-                />
-              </Stack>
-              <Field.Text name="address" label="ที่อยู่ จุดสังเกต หรือชื่อสาขา (ถ้ามี)" />
               <Box
                 sx={{
                   p: 1.5,
@@ -276,9 +278,15 @@ export function ReportForm() {
                   flexWrap: 'wrap',
                   alignItems: 'center',
                   borderRadius: 2.5,
-                  bgcolor: hasCoordinates ? '#EAFBF4' : '#FFF8D8',
-                  border: '2px dashed #351129',
+                  bgcolor: hasLocationError
+                    ? '#FFF1F3'
+                    : hasCoordinates
+                      ? '#EAFBF4'
+                      : '#FFF8D8',
+                  border: '2px dashed',
+                  borderColor: hasLocationError ? 'error.main' : '#351129',
                 }}
+                aria-invalid={hasLocationError}
               >
                 <Button
                   type="button"
@@ -321,17 +329,187 @@ export function ReportForm() {
                     </Typography>
                   </Box>
                 ) : (
-                  <Typography sx={{ color: '#796518', fontSize: 11, fontWeight: 800 }}>
+                  <Typography
+                    sx={{
+                      color: hasLocationError ? 'error.main' : '#796518',
+                      fontSize: 11,
+                      fontWeight: 800,
+                    }}
+                  >
                     ยังไม่ได้รับตำแหน่ง GPS
                   </Typography>
                 )}
+                {hasLocationError ? (
+                  <Typography
+                    role="alert"
+                    sx={{
+                      width: '100%',
+                      color: 'error.main',
+                      fontSize: 12,
+                      fontWeight: 900,
+                    }}
+                  >
+                    {LOCATION_REQUIRED_MESSAGE}
+                  </Typography>
+                ) : null}
               </Box>
-              {/* {gpsError ? (
-                <Alert severity="warning" sx={{ whiteSpace: 'pre-line' }}>
-                  {gpsError}
+
+              {candidatesQuery.isLoading ? (
+                <Alert severity="info" icon={<CircularProgress size={18} />}>
+                  กำลังตรวจหาร้านที่อยู่ใกล้พิกัดนี้...
                 </Alert>
-              ) : null} */}
-              {/* {locationError ? <Alert severity="warning">{locationError}</Alert> : null} */}
+              ) : null}
+              {candidatesQuery.isError ? (
+                <Alert severity="warning">
+                  ตรวจหาร้านใกล้เคียงไม่สำเร็จ คุณยังสามารถกรอกข้อมูลและส่งรายงานได้
+                </Alert>
+              ) : null}
+              {storeCandidates.length ? (
+                <Box
+                  sx={{
+                    p: 2,
+                    border: '2px solid #351129',
+                    borderRadius: 2.5,
+                    bgcolor: '#EEFDF8',
+                    boxShadow: '3px 3px 0 #351129',
+                  }}
+                >
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1}
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    justifyContent="space-between"
+                  >
+                    <Box>
+                      <Typography sx={{ color: '#28785B', fontSize: 14, fontWeight: 1000 }}>
+                        พิกัดนี้ใกล้ร้านที่มีอยู่แล้ว
+                      </Typography>
+                      <Typography sx={{ color: '#5D746B', fontSize: 11, fontWeight: 700 }}>
+                        เลือกร้านให้ตรง ระบบจะใช้ชื่อที่ตรวจสอบแล้วให้ทันที
+                      </Typography>
+                    </Box>
+                    {selectedCandidate ? (
+                      <Button size="small" type="button" onClick={handleClearStoreCandidate}>
+                        ไม่ใช่ร้านนี้
+                      </Button>
+                    ) : null}
+                  </Stack>
+
+                  <Stack spacing={1} sx={{ mt: 1.5 }}>
+                    {storeCandidates.map((candidate) => {
+                      const selected = candidate.storeId === selectedStoreId;
+                      const location = [candidate.address, candidate.district, candidate.province]
+                        .filter(Boolean)
+                        .join(', ');
+
+                      return (
+                        <Box
+                          key={candidate.storeId}
+                          sx={{
+                            p: 1.5,
+                            gap: 1.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            border: '1px solid',
+                            borderColor: selected ? '#00A99D' : 'divider',
+                            borderRadius: 2,
+                            bgcolor: '#fff',
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>
+                              {candidate.storeName}
+                            </Typography>
+                            <Typography sx={{ color: 'text.secondary', fontSize: 11 }}>
+                              {location || 'ไม่มีรายละเอียดที่อยู่'} · ห่างประมาณ{' '}
+                              {candidate.distanceM.toLocaleString('th-TH')} เมตร
+                            </Typography>
+                          </Box>
+                          <Button
+                            type="button"
+                            size="small"
+                            variant={selected ? 'contained' : 'outlined'}
+                            disabled={selected}
+                            onClick={() => handleSelectStoreCandidate(candidate)}
+                            sx={{ flexShrink: 0, borderRadius: 99 }}
+                          >
+                            {selected ? 'เลือกแล้ว' : 'ใช่ ฉันอยู่ที่นี่'}
+                          </Button>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              ) : null}
+            </Stack>
+          </FormSection>
+        </Box>
+
+        <Stack spacing={2.5}>
+          <FormSection
+            step="02"
+            icon="ri:store-2-fill"
+            title="เจอที่ร้านไหน?"
+            description="เลือกจากร้านใกล้พิกัด หรือกรอกข้อมูลร้านใหม่เมื่อยังไม่มีในระบบ"
+            color="#70E1F5"
+          >
+            <Stack spacing={2}>
+              {!hasCoordinates ? (
+                <Alert severity="info">ปักพิกัดใน Step 01 ก่อน เพื่อเปิดข้อมูลร้าน</Alert>
+              ) : null}
+
+              <Field.Select
+                name="storeType"
+                label="ประเภทร้านค้า *"
+                disabled={!hasCoordinates || Boolean(selectedStoreId)}
+                helperText={
+                  selectedStoreId ? 'ใช้ข้อมูลจากร้านที่เลือกตามพิกัด GPS' : undefined
+                }
+              >
+                {storeTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Field.Select>
+              <Field.Text
+                name="storeName"
+                label="ชื่อร้าน / ชื่อสาขา *"
+                disabled={!hasCoordinates || Boolean(selectedStoreId)}
+                helperText={selectedStoreId ? 'ล็อกชื่อร้านเพื่อป้องกันข้อมูลสะกดผิด' : undefined}
+              />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Field.Autocomplete
+                  name="province"
+                  label="จังหวัด *"
+                  options={PROVINCE_OPTIONS}
+                  disabled={!hasCoordinates || Boolean(selectedStoreId)}
+                  sx={{ flex: 1 }}
+                />
+                <Field.Autocomplete
+                  name="district"
+                  label="อำเภอ/เขต *"
+                  options={districtOptions}
+                  disabled={
+                    !hasCoordinates ||
+                    !province ||
+                    (Boolean(selectedStoreId) && Boolean(selectedCandidate?.district))
+                  }
+                  helperText={
+                    selectedStoreId && !selectedCandidate?.district
+                      ? 'ร้านนี้ยังไม่มีข้อมูลอำเภอ/เขต กรุณาเลือกให้ครบ'
+                      : hasCoordinates && !province
+                        ? 'เลือกจังหวัดก่อน'
+                        : undefined
+                  }
+                  sx={{ flex: 1 }}
+                />
+              </Stack>
+              <Field.Text
+                name="address"
+                label="ที่อยู่ จุดสังเกต หรือชื่อสาขา (ถ้ามี)"
+                disabled={!hasCoordinates || Boolean(selectedStoreId)}
+              />
             </Stack>
           </FormSection>
         </Stack>

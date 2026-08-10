@@ -1,3 +1,4 @@
+import type { LatestStorePreview } from 'src/types/store';
 import type { LovezaProduct } from 'src/types/loveza-product';
 
 import Box from '@mui/material/Box';
@@ -11,9 +12,10 @@ import { HighlightsSection } from '../highlights-section';
 
 type HomeViewProps = {
   products: LovezaProduct[];
+  latestStores: LatestStorePreview[];
 };
 
-export function HomeView({ products }: HomeViewProps) {
+export function HomeView({ products, latestStores }: HomeViewProps) {
   return (
     <Box
       sx={{
@@ -27,7 +29,7 @@ export function HomeView({ products }: HomeViewProps) {
       <HeroSection />
       <HighlightsSection />
       <FlavorsSection products={products} />
-      <FinderSection />
+      <FinderSection latestStores={latestStores} />
       <StorySection />
       <FooterSection />
     </Box>

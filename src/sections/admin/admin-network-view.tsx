@@ -24,8 +24,8 @@ type AdminNetworkViewProps = {
   hasError?: boolean;
 };
 
-const DIGIT_LABELS = ['หลักพัน', 'หลักร้อย', 'หลักสิบ', 'หลักหน่วย'];
-const DIGIT_COLORS = ['#00a9dc', '#E5007E', '#6d3b8c', '#f1a900'];
+const DIGIT_LABELS = ['หลักแสน', 'หลักหมื่น', 'หลักพัน', 'หลักร้อย', 'หลักสิบ', 'หลักหน่วย'];
+const DIGIT_COLORS = ['#00a99d', '#00a9dc', '#6d3b8c', '#E5007E', '#f1a900', '#ef5da8'];
 
 export function AdminNetworkView({ initialStats, hasError = false }: AdminNetworkViewProps) {
   const [stats, setStats] = useState(initialStats);
@@ -35,7 +35,7 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
   const locationsRef = useRef(initialStats.locations);
   const latestStoreNameRef = useRef<string | null>(null);
 
-  const locationDigits = Math.max(0, stats.locations).toString().padStart(4, '0').split('');
+  const locationDigits = Math.max(0, stats.locations).toString().padStart(6, '0').split('');
   const extraDigitCount = Math.max(0, locationDigits.length - DIGIT_LABELS.length);
   const digitLabels = [
     ...Array.from(
@@ -256,7 +256,7 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
             key={pulseKey}
             direction="row"
             justifyContent={{ xs: 'center', md: 'flex-start' }}
-            spacing={{ xs: 0.75, sm: 1.5, md: 2 }}
+            spacing={{ xs: 0.5, sm: 1, md: 1.5 }}
             sx={{
               mt: { xs: 4, md: 5 },
               animation: pulseKey ? 'counterPop .55s ease-out' : 'none',
@@ -267,8 +267,8 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
                 <Paper
                   elevation={0}
                   sx={{
-                    width: { xs: 76, sm: 108, md: 144 },
-                    height: { xs: 94, sm: 128, md: 166 },
+                    width: { xs: 42, sm: 72, md: 96 },
+                    height: { xs: 66, sm: 104, md: 132 },
                     color: DIGIT_COLORS[index % DIGIT_COLORS.length],
                     display: 'grid',
                     border: `1px solid ${DIGIT_COLORS[index % DIGIT_COLORS.length]}33`,
@@ -280,7 +280,7 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
                   }}
                 >
                   <Typography
-                    sx={{ fontSize: { xs: 40, sm: 56, md: 76 }, lineHeight: 1, fontWeight: 1000 }}
+                    sx={{ fontSize: { xs: 32, sm: 48, md: 64 }, lineHeight: 1, fontWeight: 1000 }}
                   >
                     {digit}
                   </Typography>
@@ -289,7 +289,7 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
                   sx={{
                     mt: 1.25,
                     color: '#806c87',
-                    fontSize: { xs: 9, sm: 11 },
+                    fontSize: { xs: 8, sm: 10, md: 11 },
                     fontWeight: 800,
                   }}
                 >

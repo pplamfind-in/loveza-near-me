@@ -2,7 +2,9 @@
 
 import type { Feature, Geometry, FeatureCollection, GeoJsonProperties } from 'geojson';
 import type { MapzaStore } from 'src/types/store';
+import type { ProvinceColorSettings } from 'src/lib/mapza/province-color-scale';
 
+import { useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -16,12 +18,16 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
 
+import { supabase } from 'src/lib/supabase';
+import { buildProvinceColorScale } from 'src/lib/mapza/province-color-scale';
+
 import { Iconify } from 'src/components/iconify';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
 
 type ThailandMapProps = {
   stores: MapzaStore[];
+  provinceColorSettings: ProvinceColorSettings;
   hasError?: boolean;
 };
 
@@ -91,17 +97,9 @@ function geometryToPath(geometry: Geometry) {
   return '';
 }
 
-const PROVINCE_COLOR_SCALE = [
-  { maxCount: 0, color: '#b1bfbf', label: 'ยังไม่มีข้อมูล' },
-  { maxCount: 2, color: '#70E1F5', label: '1-2 จุดขาย' },
-  { maxCount: 6, color: '#FDE047', label: '3-6 จุดขาย' },
-  { maxCount: 14, color: '#FF78B8', label: '7-14 จุดขาย' },
-  { maxCount: Infinity, color: '#E5007E', label: '15 จุดขายขึ้นไป' },
-] as const;
-
-function getProvinceColor(storeCount: number) {
-  const tier = PROVINCE_COLOR_SCALE.find((scale) => storeCount <= scale.maxCount);
-  return (tier ?? PROVINCE_COLOR_SCALE[PROVINCE_COLOR_SCALE.length - 1]).color;
+function getProvinceColor(storeCount: number, colorScale: { maxCount: number; color: string }[]) {
+  const tier = colorScale.find((scale) => storeCount <= scale.maxCount);
+  return (tier ?? colorScale[colorScale.length - 1]).color;
 }
 
 function getProvinceName(
@@ -114,12 +112,37 @@ function getProvinceName(
   );
 }
 
-export default function ThailandMap({ stores, hasError = false }: ThailandMapProps) {
+export default function ThailandMap({
+  stores,
+  provinceColorSettings,
+  hasError = false,
+}: ThailandMapProps) {
+  const router = useRouter();
   const [geoJson, setGeoJson] = useState<FeatureCollection<Geometry> | null>(null);
   const [provinceNames, setProvinceNames] = useState<ProvinceNameRecord[]>([]);
   const [mapError, setMapError] = useState(false);
   const [provinceSearch, setProvinceSearch] = useState('');
   const [selectedProvince, setSelectedProvince] = useState<ProvinceSummary | null>(null);
+  const provinceColorScale = useMemo(
+    () => buildProvinceColorScale(provinceColorSettings),
+    [provinceColorSettings]
+  );
+
+  useEffect(() => {
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+    const channel = supabase
+      .channel('mapza-stores-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stores' }, () => {
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => router.refresh(), 250);
+      })
+      .subscribe();
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      void supabase.removeChannel(channel);
+    };
+  }, [router]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -245,9 +268,7 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
           autoHighlight
           options={activeProvinces}
           inputValue={provinceSearch}
-          value={
-            activeProvinces.find((province) => province.id === selectedProvince?.id) ?? null
-          }
+          value={activeProvinces.find((province) => province.id === selectedProvince?.id) ?? null}
           getOptionLabel={(province) => province.name}
           isOptionEqualToValue={(option, value) => option.id === value.id}
           noOptionsText="ไม่พบจังหวัดที่มีจุดขาย"
@@ -272,7 +293,12 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
             );
           }}
           renderInput={(params) => (
-            <TextField {...params} size="small" label="ค้นหาจังหวัด" placeholder="พิมพ์ชื่อจังหวัด" />
+            <TextField
+              {...params}
+              size="small"
+              label="ค้นหาจังหวัด"
+              placeholder="พิมพ์ชื่อจังหวัด"
+            />
           )}
           sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { bgcolor: '#fff', borderRadius: 2.5 } }}
         />
@@ -313,11 +339,11 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
                 alignItems: 'center',
                 borderRadius: 2.5,
                 bgcolor: index % 3 === 0 ? '#FFF0F7' : index % 3 === 1 ? '#dee3e4' : '#FFF8D8',
-                border: '2px solid #351129',
-                boxShadow: '3px 3px 0 #351129',
+                border: '2px solid #bebcbd',
+                boxShadow: '3px 3px 0 #bebcbd',
                 ...(selectedProvince?.id === province.id && {
                   bgcolor: '#FDE047',
-                  boxShadow: '1px 2px 0 #351129',
+                  boxShadow: '1px 2px 0 #bebcbd',
                   transform: 'translateY(1px)',
                 }),
                 '&:hover, &:focus-visible': { outline: 'none', transform: 'translateY(-1px)' },
@@ -366,82 +392,80 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
           boxShadow: '7px 8px 0 #351129',
         }}
       >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          sx={{
-            zIndex: 2,
-            top: { sm: 14 },
-            left: { sm: 14 },
-            right: { sm: 14 },
-            m: { xs: 1.5, sm: 0 },
-            mb: { xs: 0, sm: 0 },
-            position: { xs: 'relative', sm: 'absolute' },
-            pointerEvents: 'none',
-          }}
-        >
-          <Box
-            sx={{
-              p: 1.2,
-              px: 3,
-              gap: 0.8,
-              display: 'flex',
-              flexDirection: 'column',
-              borderRadius: 2.5,
-              bgcolor: 'rgba(255,255,255,.94)',
-              border: '2px solid #351129',
-              boxShadow: '3px 3px 0 #351129',
-            }}
-          >
-            <Typography sx={{ fontSize: 11, fontWeight: 1000 }}>สถานะจังหวัด</Typography>
-            {PROVINCE_COLOR_SCALE.map((item) => (
-              <Typography
-                key={item.label}
-                sx={{
-                  display: 'flex',
-                  gap: 0.7,
-                  alignItems: 'center',
-                  fontSize: 10,
-                  fontWeight: 800,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: item.color }}
-                />
-                {item.label}
-              </Typography>
-            ))}
-          </Box>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => setSelectedProvince(null)}
-            startIcon={<Iconify icon="ri:focus-3-line" />}
-            sx={{
-              height: 38,
-              color: '#351129',
-              pointerEvents: 'auto',
-              border: '2px solid #351129',
-              borderRadius: 99,
-              bgcolor: '#FDE047',
-              boxShadow: '3px 3px 0 #351129',
-              '&:hover': { bgcolor: '#FFE96B' },
-            }}
-          >
-            ดูทั้งประเทศ
-          </Button>
-        </Stack>
-
         <Box
           sx={{
             px: { xs: 1.5, sm: 3 },
             pt: { xs: 1.5, sm: 4 },
             pb: 2,
             display: 'grid',
+            position: 'relative',
             placeItems: 'center',
           }}
         >
+          <Stack
+            direction="column"
+            justifyContent="space-between"
+            alignItems="flex-end"
+            sx={{
+              zIndex: 2,
+              inset: { xs: 12, sm: 14 },
+              position: 'absolute',
+              pointerEvents: 'none',
+            }}
+          >
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => setSelectedProvince(null)}
+              startIcon={<Iconify icon="ri:focus-3-line" />}
+              sx={{
+                height: 38,
+                color: '#f9f5f8',
+                pointerEvents: 'auto',
+                border: '2px solid #351129',
+                borderRadius: 99,
+                bgcolor: '#FDE047',
+                boxShadow: '3px 3px 0 #351129',
+                '&:hover': { bgcolor: '#FFE96B' },
+              }}
+            >
+              ดูทั้งประเทศ
+            </Button>
+            <Box
+              sx={{
+                p: 1.2,
+                px: 3,
+                gap: 0.8,
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 2.5,
+                bgcolor: 'rgba(255,255,255,.94)',
+                border: '2px solid #351129',
+                boxShadow: '3px 3px 0 #351129',
+              }}
+            >
+              <Typography sx={{ fontSize: 11, fontWeight: 1000 }}>สถานะจังหวัด</Typography>
+              {provinceColorScale.map((item) => (
+                <Typography
+                  key={item.label}
+                  sx={{
+                    display: 'flex',
+                    gap: 0.7,
+                    alignItems: 'center',
+                    fontSize: 10,
+                    fontWeight: 800,
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{ width: 11, height: 11, borderRadius: '50%', bgcolor: item.color }}
+                  />
+                  {item.label}
+                </Typography>
+              ))}
+            </Box>
+          </Stack>
+
           <Box
             component="svg"
             viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
@@ -453,7 +477,7 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
               maxWidth: { xs: 440, md: 620 },
               aspectRatio: `${SVG_WIDTH} / ${SVG_HEIGHT}`,
               overflow: 'visible',
-              filter: 'drop-shadow(0 10px 12px rgba(53,17,41,.18))',
+              filter: 'drop-shadow(0 4px 6px rgba(53,17,41,.09))',
             }}
           >
             <title>แผนที่ซ่าทั่วไทย</title>
@@ -463,10 +487,10 @@ export default function ThailandMap({ stores, hasError = false }: ThailandMapPro
                 <path
                   key={province.id}
                   d={geometryToPath(province.geometry)}
-                  fill={getProvinceColor(province.stores.length)}
+                  fill={getProvinceColor(province.stores.length, provinceColorScale)}
                   fillRule="evenodd"
-                  stroke={selected ? '#351129' : '#FFFFFF'}
-                  strokeWidth={selected ? 4 : 1.8}
+                  stroke={selected ? '#ef9dd3' : '#FFFFFF'}
+                  strokeWidth={selected ? 2 : 1.8}
                   vectorEffect="non-scaling-stroke"
                   role="button"
                   tabIndex={0}

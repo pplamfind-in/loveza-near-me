@@ -32,7 +32,33 @@ export async function POST(request: Request) {
     );
   }
 
-  const values = parsed.data;
+  let values = parsed.data;
+
+  if (values.storeId) {
+    const { data: canonicalStore, error: canonicalStoreError } = await supabase
+      .from('stores')
+      .select('name, store_type, address, province, district')
+      .eq('id', values.storeId)
+      .eq('is_active', true)
+      .single();
+
+    if (canonicalStoreError || !canonicalStore) {
+      return NextResponse.json(
+        { status: 'error', message: 'ไม่พบร้านที่เลือก กรุณาขอพิกัดและเลือกใหม่อีกครั้ง' },
+        { status: 409 }
+      );
+    }
+
+    values = {
+      ...values,
+      storeName: canonicalStore.name,
+      storeType: canonicalStore.store_type,
+      address: canonicalStore.address ?? '',
+      province: canonicalStore.province,
+      district: canonicalStore.district ?? values.district,
+    };
+  }
+
   const hasPhoto = values.photo instanceof File && values.photo.size > 0;
 
   let photoUrl: string | null = null;

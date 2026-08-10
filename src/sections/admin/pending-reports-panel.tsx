@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -10,6 +10,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
+import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useAdminReportsQuery, useReportDecisionMutation } from 'src/app/admin/use-admin-reports';
@@ -24,6 +25,18 @@ export function PendingReportsPanel() {
   const approveMutation = useReportDecisionMutation('approve');
   const rejectMutation = useReportDecisionMutation('reject');
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const maxPage = Math.max(0, Math.ceil(reports.length / rowsPerPage) - 1);
+  const currentPage = Math.min(page, maxPage);
+  const paginatedReports = useMemo(
+    () => reports.slice(currentPage * rowsPerPage, currentPage * rowsPerPage + rowsPerPage),
+    [currentPage, reports, rowsPerPage]
+  );
+
+  useEffect(() => {
+    if (page > maxPage) setPage(maxPage);
+  }, [maxPage, page]);
 
   const pendingRowId = approveMutation.isPending
     ? approveMutation.variables
@@ -64,7 +77,7 @@ export function PendingReportsPanel() {
         <Alert severity="error">โหลดข้อมูลรอตรวจสอบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</Alert>
       ) : (
         <>
-          {reports.map((report) => {
+          {paginatedReports.map((report) => {
             const profile = Array.isArray(report.profiles) ? report.profiles[0] : report.profiles;
             const isRowPending = pendingRowId === report.id;
 
@@ -134,7 +147,42 @@ export function PendingReportsPanel() {
             <Paper elevation={0} sx={{ p: 5, borderRadius: 3, textAlign: 'center' }}>
               <Typography color="text.secondary">ไม่มีข้อมูลรอตรวจสอบ</Typography>
             </Paper>
-          ) : null}
+          ) : (
+            <Paper elevation={0} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+              <TablePagination
+                component="div"
+                page={currentPage}
+                count={reports.length}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[10, 25, 50]}
+                onPageChange={(_, nextPage) => setPage(nextPage)}
+                onRowsPerPageChange={(event) => {
+                  setRowsPerPage(Number(event.target.value));
+                  setPage(0);
+                }}
+                labelRowsPerPage="แสดงต่อหน้า"
+                labelDisplayedRows={({ from, to, count }) =>
+                  `${from}–${to} จาก ${count !== -1 ? count.toLocaleString('th-TH') : `มากกว่า ${to}`}`
+                }
+                getItemAriaLabel={(type) => {
+                  if (type === 'first') return 'ไปหน้าแรก';
+                  if (type === 'last') return 'ไปหน้าสุดท้าย';
+                  if (type === 'next') return 'ไปหน้าถัดไป';
+                  return 'ไปหน้าก่อนหน้า';
+                }}
+                showFirstButton
+                showLastButton
+                sx={{
+                  '& .MuiTablePagination-toolbar': {
+                    px: { xs: 1, sm: 2 },
+                    flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                    justifyContent: { xs: 'center', sm: 'flex-end' },
+                  },
+                  '& .MuiTablePagination-spacer': { display: { xs: 'none', sm: 'block' } },
+                }}
+              />
+            </Paper>
+          )}
         </>
       )}
     </Stack>

@@ -168,7 +168,7 @@ export function StoreTypesPanel() {
                     borderRadius: '50%',
                     placeItems: 'center',
                     bgcolor: '#FFF0F8',
-                    border: '2px solid #351129',
+                    border: '2px solid #a0006b',
                   }}
                 >
                   {item.logo_url ? (
@@ -179,7 +179,7 @@ export function StoreTypesPanel() {
                       sx={{ width: 1, height: 1, objectFit: 'contain' }}
                     />
                   ) : (
-                    <Iconify icon="ri:store-2-fill" width={28} />
+                    <Iconify icon="ri:store-2-fill" width={28} color="#a0006b" />
                   )}
                 </Box>
                 <Box sx={{ minWidth: 0, flex: 1 }}>

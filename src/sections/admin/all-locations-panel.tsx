@@ -1,4 +1,8 @@
+'use client';
+
 import type { StoreStatus } from 'src/types/store';
+
+import { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -12,6 +16,7 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
+import TablePagination from '@mui/material/TablePagination';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -70,6 +75,8 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
 }
 
 export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const knownQuantityStores = stores.filter((store) => store.estimated_quantity !== null);
   const totalQuantity = knownQuantityStores.reduce(
     (total, store) => total + (store.estimated_quantity ?? 0),
@@ -78,6 +85,10 @@ export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
   const lowOrEmptyCount = stores.filter(
     (store) => store.current_status === 'low_stock' || store.current_status === 'out_of_stock'
   ).length;
+  const paginatedStores = useMemo(
+    () => stores.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [page, rowsPerPage, stores]
+  );
 
   return (
     <Stack spacing={3}>
@@ -125,7 +136,7 @@ export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {stores.map((store) => {
+            {paginatedStores.map((store) => {
               const location = [store.address, store.subdistrict, store.district, store.province]
                 .filter(Boolean)
                 .join(', ');
@@ -188,6 +199,40 @@ export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
             ) : null}
           </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          page={page}
+          count={stores.length}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[10, 25, 50]}
+          onPageChange={(_, nextPage) => setPage(nextPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(Number(event.target.value));
+            setPage(0);
+          }}
+          labelRowsPerPage="แสดงต่อหน้า"
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}–${to} จาก ${count !== -1 ? count.toLocaleString('th-TH') : `มากกว่า ${to}`}`
+          }
+          getItemAriaLabel={(type) => {
+            if (type === 'first') return 'ไปหน้าแรก';
+            if (type === 'last') return 'ไปหน้าสุดท้าย';
+            if (type === 'next') return 'ไปหน้าถัดไป';
+            return 'ไปหน้าก่อนหน้า';
+          }}
+          showFirstButton
+          showLastButton
+          sx={{
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            '& .MuiTablePagination-toolbar': {
+              px: { xs: 1, sm: 2 },
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
+              justifyContent: { xs: 'center', sm: 'flex-end' },
+            },
+            '& .MuiTablePagination-spacer': { display: { xs: 'none', sm: 'block' } },
+          }}
+        />
       </TableContainer>
     </Stack>
   );

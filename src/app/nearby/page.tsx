@@ -93,7 +93,8 @@ export default function NearbyPage() {
             Loveza อยู่ไหน?
           </Typography>
           <Typography sx={{ mt: 2, maxWidth: 680, color: '#FFF0F8', fontSize: { xs: 15, md: 18 } }}>
-            เปิด GPS แล้วออกล่า ดูร้านใกล้ตัว สถานะสินค้า และกดนำทางไปคว้าความซ่าได้ทันที
+            เปิด GPS แล้วออกล่า! 📍 หาร้าน Loveza ใกล้ตัว เช็กสถานะ แล้วกดนำทางไปคว้าความซ่าได้เลย
+            ⚡💖
           </Typography>
         </Box>
         <NearbyFinder />

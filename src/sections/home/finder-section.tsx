@@ -1,10 +1,16 @@
+import type { LatestStorePreview, StoreStatus } from 'src/types/store';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { formatRelativeTimeTh } from 'src/utils/relative-time-th';
+
 import { Iconify } from 'src/components/iconify';
+
+import { STORE_STATUS_LABEL } from 'src/types/store';
 
 const finderSteps = [
   {
@@ -27,12 +33,14 @@ const finderSteps = [
   },
 ];
 
-const stores = [
-  { name: 'Mini Mart — อโศก', distance: '350 ม.', stock: 'เหลือเยอะ', color: '#00a99d' },
-  { name: 'Fresh Shop — พร้อมพงษ์', distance: '1.2 กม.', stock: 'เหลือปานกลาง', color: '#f2a900' },
-];
+const STATUS_COLOR: Record<StoreStatus, string> = {
+  available: '#00A99D',
+  low_stock: '#F2A900',
+  out_of_stock: '#E64B55',
+  unknown: '#8A9898',
+};
 
-function MapPreview() {
+function MapPreview({ stores }: { stores: LatestStorePreview[] }) {
   return (
     <Box
       sx={{
@@ -73,7 +81,7 @@ function MapPreview() {
         }}
       >
         <Iconify icon="ri:map-2-fill" width={16} sx={{ color: '#00a99d' }} />
-        <Typography sx={{ fontSize: 11, fontWeight: 900 }}>ตัวอย่างหน้าค้นหา</Typography>
+        <Typography sx={{ fontSize: 11, fontWeight: 900 }}>ข้อมูลร้านล่าสุด</Typography>
       </Box>
       {[
         { top: '15%', left: '23%', color: '#E5007E' },
@@ -118,44 +126,69 @@ function MapPreview() {
       />
 
       <Stack spacing={1.25} sx={{ zIndex: 1 }}>
-        {stores.map((store) => (
-          <Stack
-            key={store.name}
-            direction="row"
-            alignItems="center"
+        {stores.map((store) => {
+          const color = STATUS_COLOR[store.current_status];
+          const updatedAt = formatRelativeTimeTh(store.last_reported_at);
+          const quantityOrProvince =
+            store.estimated_quantity !== null
+              ? `${store.estimated_quantity.toLocaleString('th-TH')} กระป๋อง`
+              : store.province;
+
+          return (
+            <Stack
+              key={store.id}
+              direction="row"
+              alignItems="center"
+              sx={{
+                p: 1.6,
+                border: '2px solid #351129',
+                borderRadius: '18px',
+                bgcolor: 'rgba(255,255,255,.94)',
+                boxShadow: '3px 4px 0 #351129',
+              }}
+            >
+              <Box sx={{ width: 10, height: 10, mr: 1.5, borderRadius: '50%', bgcolor: color }} />
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography noWrap sx={{ fontSize: 14, fontWeight: 800 }}>
+                  {store.name}
+                </Typography>
+                <Typography sx={{ mt: 0.25, color: '#718078', fontSize: 12 }}>
+                  {updatedAt ? `อัปเดตล่าสุด ${updatedAt}` : 'ยังไม่มีเวลาอัปเดตล่าสุด'}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography sx={{ color: '#55296f', fontSize: 12, fontWeight: 900 }}>
+                  {quantityOrProvince}
+                </Typography>
+                <Typography sx={{ color, fontSize: 11, fontWeight: 800 }}>
+                  {STORE_STATUS_LABEL[store.current_status]}
+                </Typography>
+              </Box>
+            </Stack>
+          );
+        })}
+        {stores.length === 0 ? (
+          <Box
             sx={{
-              p: 1.6,
+              p: 2.5,
+              textAlign: 'center',
               border: '2px solid #351129',
               borderRadius: '18px',
               bgcolor: 'rgba(255,255,255,.94)',
               boxShadow: '3px 4px 0 #351129',
             }}
           >
-            <Box
-              sx={{ width: 10, height: 10, mr: 1.5, borderRadius: '50%', bgcolor: store.color }}
-            />
-            <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 800 }}>{store.name}</Typography>
-              <Typography sx={{ mt: 0.25, color: '#718078', fontSize: 12 }}>
-                อัปเดตล่าสุด 12 นาทีที่แล้ว
-              </Typography>
-            </Box>
-            <Box sx={{ textAlign: 'right' }}>
-              <Typography sx={{ color: '#55296f', fontSize: 12, fontWeight: 900 }}>
-                {store.distance}
-              </Typography>
-              <Typography sx={{ color: store.color, fontSize: 11, fontWeight: 800 }}>
-                {store.stock}
-              </Typography>
-            </Box>
-          </Stack>
-        ))}
+            <Typography sx={{ color: '#718078', fontSize: 13, fontWeight: 800 }}>
+              ยังไม่มีข้อมูลร้านที่ได้รับการอนุมัติ
+            </Typography>
+          </Box>
+        ) : null}
       </Stack>
     </Box>
   );
 }
 
-export function FinderSection() {
+export function FinderSection({ latestStores }: { latestStores: LatestStorePreview[] }) {
   return (
     <Container maxWidth="xl">
       <Box component="section" id="finder" sx={{ pt: { xs: 4, md: 0 }, pb: { xs: 4, md: 6 } }}>
@@ -256,7 +289,7 @@ export function FinderSection() {
               </Stack>
             </Box>
 
-            <MapPreview />
+            <MapPreview stores={latestStores} />
           </Box>
 
           <Box id="how-it-works" sx={{ pt: { xs: 8, md: 10 } }}>

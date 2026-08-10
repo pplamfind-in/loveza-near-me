@@ -80,7 +80,7 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
             </Typography>
           </Box>
         </Stack>
-        <Chip label={isAdmin ? 'ADMIN' : 'พร้อมใช้งาน'} color={isAdmin ? 'secondary' : 'success'} />
+        <Chip label={isAdmin ? 'ADMIN' : 'พร้อมออกล่า'} color={isAdmin ? 'secondary' : 'success'} />
       </Stack>
 
       <Typography
