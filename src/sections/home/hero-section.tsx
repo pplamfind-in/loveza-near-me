@@ -1,4 +1,4 @@
-import { getImageProps } from 'next/image';
+import type { LandingBanner } from 'src/types/landing-banner';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -8,23 +8,13 @@ import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
 
-export function HeroSection() {
-  const imageAlt = 'Loveza Love Potion vitamin soda in Honey Lemon, Lychee and Kyoho Grape';
-  const { props: desktopImageProps } = getImageProps({
-    fill: true,
-    priority: true,
-    alt: imageAlt,
-    sizes: '(max-width: 768px) 100vw, 1440px',
-    src: '/assets/loveza/background-loveza.png',
-  });
-  const { props: mobileImageProps } = getImageProps({
-    fill: true,
-    priority: true,
-    alt: imageAlt,
-    sizes: '100vw',
-    src: '/assets/loveza/background-loveza-mobile.png',
-  });
+import { HeroBannerMedia } from './hero-banner-media';
 
+type HeroSectionProps = {
+  banners: LandingBanner[];
+};
+
+export function HeroSection({ banners }: HeroSectionProps) {
   return (
     <Container maxWidth="xl">
       <Box component="section" id="home" sx={{ pt: '100px', pb: { xs: 0, md: 4 } }}>
@@ -46,10 +36,7 @@ export function HeroSection() {
             },
           }}
         >
-          <picture>
-            <source media="(max-width: 899.95px)" srcSet={mobileImageProps.srcSet} />
-            <img {...desktopImageProps} alt={imageAlt} />
-          </picture>
+          <HeroBannerMedia banners={banners} />
 
           <Box
             sx={{

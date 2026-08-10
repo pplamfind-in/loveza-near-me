@@ -6,6 +6,7 @@ import { SITE_DESCRIPTION, createSeoMetadata } from 'src/lib/seo';
 
 import { HomeView } from 'src/sections/home/view';
 
+import { type LandingBanner, DEFAULT_LANDING_BANNERS } from 'src/types/landing-banner';
 import { type LovezaProduct, DEFAULT_LOVEZA_PRODUCTS } from 'src/types/loveza-product';
 
 // ----------------------------------------------------------------------
@@ -20,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   const supabase = await createClient();
-  const [productsResult, storesResult] = await Promise.all([
+  const [productsResult, bannersResult, storesResult] = await Promise.all([
     supabase
       .from('products')
       .select(
@@ -28,6 +29,12 @@ export default async function Page() {
       )
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
+    supabase
+      .from('landing_banners')
+      .select('id, title, image_url, mobile_image_url, alt_text, sort_order, is_active')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true }),
     supabase
       .from('stores')
       .select(
@@ -41,9 +48,12 @@ export default async function Page() {
   const products = productsResult.error
     ? DEFAULT_LOVEZA_PRODUCTS
     : ((productsResult.data ?? []) as LovezaProduct[]);
+  const banners = bannersResult.error
+    ? DEFAULT_LANDING_BANNERS
+    : ((bannersResult.data ?? []) as LandingBanner[]);
   const latestStores = storesResult.error
     ? []
     : ((storesResult.data ?? []) as LatestStorePreview[]);
 
-  return <HomeView products={products} latestStores={latestStores} />;
+  return <HomeView products={products} banners={banners} latestStores={latestStores} />;
 }

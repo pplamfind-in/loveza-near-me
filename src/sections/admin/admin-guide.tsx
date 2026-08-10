@@ -151,6 +151,15 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     description: 'CRUD รสชาติ Loveza (ชื่อ สี ไอคอนผลไม้ คำอธิบาย รูปภาพ) ที่แสดงบน Landing page',
   },
   {
+    icon: 'ri:image-2-fill',
+    color: '#e5007e',
+    background: '#fff0f7',
+    title: 'จัดการ Banner',
+    href: '/admin/banners',
+    description:
+      'CRUD ภาพ Hero บน Landing แยก Desktop/Mobile กำหนด Alt text ลำดับ และเปิดหรือซ่อนแต่ละ Banner ได้',
+  },
+  {
     icon: 'ri:bar-chart-box-fill',
     color: '#6d3b8c',
     background: '#f6effa',
@@ -166,7 +175,7 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     title: 'ผู้ใช้งาน',
     href: '/admin/users',
     description:
-      'แสดงสถิติผู้ใช้แต่ละคน (รายงานอนุมัติ/รออนุมัติ/ปฏิเสธ) เป็นหน้าดูข้อมูลอย่างเดียว ไม่มีปุ่มเปลี่ยนสิทธิ์',
+      'แสดงสถิติผู้ใช้แต่ละคน (รายงานอนุมัติ/รออนุมัติ/ปฏิเสธ) และตั้งผู้ใช้ทั่วไปให้เป็น Admin ได้จากปุ่มจัดการสิทธิ์',
   },
   {
     icon: 'ri:map-2-fill',
@@ -188,11 +197,11 @@ const REFERENCE_CARDS: ReferenceCard[] = [
 ];
 
 const CHECKLIST_ITEMS = [
-  'รัน Supabase migration ทั้งหมดตามลำดับ (0001–0017) บนโปรเจกต์ production',
+  'รัน Supabase migration ทั้งหมดตามลำดับ (0001–0019) บนโปรเจกต์ production',
   'ตั้งค่า Environment Variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, GOOGLE_CLIENT_ID, NEXT_PUBLIC_SITE_URL',
   'ถ้าต้องการหน้า Web Analytics ให้ตั้งค่า VERCEL_TOKEN, VERCEL_ANALYTICS_PROJECT_ID และ VERCEL_ANALYTICS_TEAM_ID',
   'เพิ่มโดเมน production ใน Authorized origins/redirect ของ Google OAuth client',
-  'ตั้งผู้ใช้อย่างน้อย 1 คนให้เป็นแอดมิน — ต้องตั้งทั้ง profiles.role และ Auth user app_metadata.role เป็น "admin" ผ่าน Supabase Dashboard โดยตรง (ไม่มีปุ่ม promote ในระบบ)',
+  'แอดมินคนแรกยังต้องตั้งผ่าน Supabase Dashboard จากนั้นสามารถตั้งผู้ใช้คนอื่นเป็น Admin ได้ที่ /admin/users',
   'ตรวจสอบ Storage bucket "report-images" เปิด public read และจำกัดชนิด/ขนาดไฟล์ตามที่ migration กำหนด',
   'เลือกโหมดอนุมัติรายงาน และปรับ "ระยะตรวจร้านซ้ำ" กับ "ระยะค้นหาร้านใกล้ฉัน" ที่ /admin/settings ให้เหมาะกับการใช้งานจริง',
 ];
@@ -384,8 +393,8 @@ export function AdminGuide() {
           หน้า /admin/* และ API ทั้งหมดใน /api/admin/* เช็คสิทธิ์แอดมินจาก{' '}
           <Chip label="user.app_metadata.role" size="small" sx={{ fontWeight: 800 }} /> เท่านั้น
           ส่วนฝั่งฐานข้อมูล (RLS และฟังก์ชัน is_admin()) ยอมรับทั้ง app_metadata.role และ{' '}
-          <Chip label="profiles.role" size="small" sx={{ fontWeight: 800 }} /> — ถ้าตั้งแค่
-          profiles.role เป็น admin จะเข้าหน้า /admin ไม่ได้ ต้องตั้งทั้งสองที่ผ่าน Supabase Dashboard
+          <Chip label="profiles.role" size="small" sx={{ fontWeight: 800 }} /> ปุ่มตั้งเป็น Admin ที่
+          /admin/users จะอัปเดตทั้งสองค่าให้ตรงกันอัตโนมัติ
         </Typography>
       </Paper>
 

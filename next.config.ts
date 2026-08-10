@@ -15,11 +15,31 @@ import type { NextConfig } from 'next';
  */
 const isStaticExport = false;
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseImagePattern = (() => {
+  if (!supabaseUrl) return null;
+
+  try {
+    const url = new URL(supabaseUrl);
+    return {
+      protocol: url.protocol.replace(':', '') as 'http' | 'https',
+      hostname: url.hostname,
+      port: url.port,
+      pathname: '/storage/v1/object/public/landing-banner-images/**',
+    };
+  } catch {
+    return null;
+  }
+})();
+
 // ----------------------------------------------------------------------
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
   output: isStaticExport ? 'export' : undefined,
+  images: {
+    remotePatterns: supabaseImagePattern ? [supabaseImagePattern] : [],
+  },
   async headers() {
     return [
       {

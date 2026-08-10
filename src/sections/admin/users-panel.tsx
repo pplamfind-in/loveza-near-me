@@ -1,21 +1,30 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
+import Dialog from '@mui/material/Dialog';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+import CircularProgress from '@mui/material/CircularProgress';
 
+import { promoteUserToAdmin } from 'src/app/admin/users/actions';
+
+import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 
 export type AdminUserActivity = {
@@ -64,12 +73,29 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
 export function UsersPanel({ users }: UsersPanelProps) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedUser, setSelectedUser] = useState<AdminUserActivity | null>(null);
+  const [isPromoting, startPromoting] = useTransition();
   const usersWithReports = users.filter((user) => Number(user.total_reports) > 0).length;
   const totalReports = users.reduce((total, user) => total + Number(user.total_reports), 0);
   const paginatedUsers = useMemo(
     () => users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [page, rowsPerPage, users]
   );
+
+  const handlePromote = () => {
+    if (!selectedUser) return;
+
+    startPromoting(async () => {
+      const result = await promoteUserToAdmin(selectedUser.user_id);
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(result.message);
+      setSelectedUser(null);
+    });
+  };
 
   return (
     <Stack spacing={3}>
@@ -106,7 +132,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
       </Box>
 
       <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 3 }}>
-        <Table sx={{ minWidth: 940 }}>
+        <Table sx={{ minWidth: 1080 }}>
           <TableHead>
             <TableRow>
               <TableCell>ผู้ใช้งาน</TableCell>
@@ -114,6 +140,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
               <TableCell>เริ่มใช้งาน</TableCell>
               <TableCell align="right">พิกัดที่แจ้ง</TableCell>
               <TableCell>สถานะรายงาน</TableCell>
+              <TableCell align="right">จัดการสิทธิ์</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -160,12 +187,24 @@ export function UsersPanel({ users }: UsersPanelProps) {
                     <Chip size="small" color="error" label={`ปฏิเสธ ${user.rejected_reports}`} />
                   </Stack>
                 </TableCell>
+                <TableCell align="right">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<Iconify icon="ri:shield-user-line" />}
+                    onClick={() => setSelectedUser(user)}
+                    sx={{ borderRadius: 99, whiteSpace: 'nowrap' }}
+                  >
+                    ตั้งเป็น Admin
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
 
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 8, color: 'text.secondary' }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 8, color: 'text.secondary' }}>
                   ยังไม่มีผู้ใช้งานทั่วไปในระบบ
                 </TableCell>
               </TableRow>
@@ -207,6 +246,42 @@ export function UsersPanel({ users }: UsersPanelProps) {
           }}
         />
       </TableContainer>
+
+      <Dialog
+        open={!!selectedUser}
+        onClose={isPromoting ? undefined : () => setSelectedUser(null)}
+        fullWidth
+        maxWidth="xs"
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900 }}>ยืนยันการตั้งเป็น Admin</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+            ต้องการให้ <strong>{selectedUser?.display_name}</strong> เป็น Admin ใช่ไหม?
+            ผู้ใช้นี้จะเข้าถึงและจัดการข้อมูลในหน้า Admin ได้ทั้งหมดหลังเข้าสู่ระบบครั้งถัดไป
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button color="inherit" disabled={isPromoting} onClick={() => setSelectedUser(null)}>
+            ยังไม่ใช่
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            disabled={isPromoting}
+            onClick={handlePromote}
+            startIcon={
+              isPromoting ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <Iconify icon="ri:shield-check-line" />
+              )
+            }
+          >
+            {isPromoting ? 'กำลังเปลี่ยนสิทธิ์' : 'ยืนยันเป็น Admin'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

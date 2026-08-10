@@ -45,7 +45,7 @@ export function DashboardContent({
           pb: 'var(--layout-dashboard-content-pb)',
 
           [theme.breakpoints.up(layoutQuery)]: {
-            px: 0,
+            px: 3,
             ...(isNavHorizontal && { '--layout-dashboard-content-pt': '40px' }),
           },
           ...(disablePadding && {

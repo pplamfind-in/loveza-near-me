@@ -1,4 +1,5 @@
 import type { LatestStorePreview } from 'src/types/store';
+import type { LandingBanner } from 'src/types/landing-banner';
 import type { LovezaProduct } from 'src/types/loveza-product';
 
 import Box from '@mui/material/Box';
@@ -12,10 +13,11 @@ import { HighlightsSection } from '../highlights-section';
 
 type HomeViewProps = {
   products: LovezaProduct[];
+  banners: LandingBanner[];
   latestStores: LatestStorePreview[];
 };
 
-export function HomeView({ products, latestStores }: HomeViewProps) {
+export function HomeView({ products, banners, latestStores }: HomeViewProps) {
   return (
     <Box
       sx={{
@@ -26,7 +28,7 @@ export function HomeView({ products, latestStores }: HomeViewProps) {
           'radial-gradient(circle at 12px 12px, rgba(229,0,126,.09) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
     >
-      <HeroSection />
+      <HeroSection banners={banners} />
       <HighlightsSection />
       <FlavorsSection products={products} />
       <FinderSection latestStores={latestStores} />

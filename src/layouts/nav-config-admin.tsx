@@ -24,6 +24,11 @@ export const adminNavData: NavSectionProps['data'] = [
         icon: navIcon('ri:drinks-2-fill'),
       },
       {
+        title: 'จัดการ Banner',
+        path: '/admin/banners',
+        icon: navIcon('ri:image-2-fill'),
+      },
+      {
         title: 'ร้านค้า',
         path: '/admin/store-types',
         icon: navIcon('ri:store-3-fill'),
