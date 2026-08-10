@@ -8,6 +8,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
 import Slider from '@mui/material/Slider';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -32,6 +33,7 @@ import {
 import { Iconify } from 'src/components/iconify';
 
 type AdminSettingsPanelProps = {
+  initialRequireReportApproval: boolean;
   initialDuplicateRadiusM: number;
   initialSearchRadiusM: number;
   initialProvinceColorSettings: ProvinceColorSettings;
@@ -260,12 +262,16 @@ function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
 }
 
 export function AdminSettingsPanel({
+  initialRequireReportApproval,
   initialDuplicateRadiusM,
   initialSearchRadiusM,
   initialProvinceColorSettings,
   updatedAt,
   hasError = false,
 }: AdminSettingsPanelProps) {
+  const [requireReportApproval, setRequireReportApproval] = useState(
+    initialRequireReportApproval
+  );
   const [duplicateRadiusM, setDuplicateRadiusM] = useState(initialDuplicateRadiusM);
   const [searchRadiusM, setSearchRadiusM] = useState(initialSearchRadiusM);
   const [provinceColorSettings, setProvinceColorSettings] = useState(
@@ -297,11 +303,17 @@ export function AdminSettingsPanel({
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duplicateRadiusM, searchRadiusM, provinceColorSettings }),
+        body: JSON.stringify({
+          requireReportApproval,
+          duplicateRadiusM,
+          searchRadiusM,
+          provinceColorSettings,
+        }),
       });
       const payload = (await response.json()) as {
         error?: string;
         settings?: {
+          requireReportApproval: boolean;
           duplicateRadiusM: number;
           searchRadiusM: number;
           provinceColorSettings: ProvinceColorSettings;
@@ -313,6 +325,7 @@ export function AdminSettingsPanel({
         throw new Error(payload.error || 'บันทึกการตั้งค่าไม่สำเร็จ');
       }
 
+      setRequireReportApproval(payload.settings.requireReportApproval);
       setDuplicateRadiusM(payload.settings.duplicateRadiusM);
       setSearchRadiusM(payload.settings.searchRadiusM);
       setProvinceColorSettings(payload.settings.provinceColorSettings);
@@ -347,6 +360,64 @@ export function AdminSettingsPanel({
 
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={4}>
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
+                sx={{
+                  width: 52,
+                  height: 52,
+                  color: '#E5007E',
+                  display: 'grid',
+                  flexShrink: 0,
+                  borderRadius: 2.5,
+                  placeItems: 'center',
+                  bgcolor: 'rgba(239,35,130,.10)',
+                }}
+              >
+                <Iconify icon="ri:shield-check-fill" width={28} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: 20, fontWeight: 900 }}>การอนุมัติพิกัดใหม่</Typography>
+                <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
+                  เลือกว่าจะตรวจสอบรายงานก่อน หรือเผยแพร่ขึ้นแผนที่ทันที
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: requireReportApproval ? 'warning.main' : 'success.main',
+                borderRadius: 2.5,
+                bgcolor: requireReportApproval ? 'warning.lighter' : 'success.lighter',
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography sx={{ fontWeight: 900 }}>
+                    {requireReportApproval ? 'รอแอดมินอนุมัติก่อนแสดง' : 'อนุมัติและแสดงทันที'}
+                  </Typography>
+                  <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 13 }}>
+                    {requireReportApproval
+                      ? 'รายงานใหม่จะอยู่ในรายการรอตรวจสอบจนกว่าแอดมินจะอนุมัติ'
+                      : 'รายงานใหม่จะถูกเพิ่มเป็นจุดขายบนแผนที่ทันทีโดยไม่ผ่านการตรวจสอบ'}
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={!requireReportApproval}
+                  onChange={(event) => {
+                    setRequireReportApproval(!event.target.checked);
+                    setMessage(null);
+                  }}
+                  slotProps={{ input: { 'aria-label': 'อนุมัติรายงานอัตโนมัติ' } }}
+                />
+              </Stack>
+            </Box>
+          </Stack>
+
+          <Divider />
+
           <RadiusField
             icon="ri:radar-fill"
             title="ระยะตรวจร้านซ้ำ"

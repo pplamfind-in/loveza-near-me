@@ -26,10 +26,6 @@ export type VercelAnalyticsData = {
   error: string | null;
 };
 
-type VercelCountResponse = {
-  data?: { pageviews?: number; visitors?: number };
-};
-
 type VercelAggregateResponse = {
   data?: Record<string, unknown>[];
 };
@@ -119,8 +115,7 @@ export async function getVercelAnalytics(period: AnalyticsPeriod): Promise<Verce
   };
 
   try {
-    const [count, timeline, pages, referrers, devices] = await Promise.all([
-      fetchAnalytics<VercelCountResponse>('count', baseParams, token),
+    const [timeline, pages, referrers, devices] = await Promise.all([
       fetchAnalytics<VercelAggregateResponse>('aggregate', aggregateParams('day', period), token),
       fetchAnalytics<VercelAggregateResponse>('aggregate', aggregateParams('requestPath'), token),
       fetchAnalytics<VercelAggregateResponse>(
@@ -131,18 +126,20 @@ export async function getVercelAnalytics(period: AnalyticsPeriod): Promise<Verce
       fetchAnalytics<VercelAggregateResponse>('aggregate', aggregateParams('deviceType'), token),
     ]);
 
+    const timelineRows = (timeline.data ?? []).map((row) => ({
+      date: typeof row.timestamp === 'string' ? row.timestamp : '',
+      pageviews: getNumber(row.pageviews),
+      visitors: getNumber(row.visitors),
+    }));
+
     return {
       configured: true,
       period,
       since: since.toISOString(),
       until: until.toISOString(),
-      pageviews: getNumber(count.data?.pageviews),
-      visitors: getNumber(count.data?.visitors),
-      timeline: (timeline.data ?? []).map((row) => ({
-        date: typeof row.timestamp === 'string' ? row.timestamp : '',
-        pageviews: getNumber(row.pageviews),
-        visitors: getNumber(row.visitors),
-      })),
+      pageviews: timelineRows.reduce((total, row) => total + row.pageviews, 0),
+      visitors: timelineRows.reduce((total, row) => total + row.visitors, 0),
+      timeline: timelineRows,
       topPages: mapDimensionRows(pages.data ?? [], 'requestPath'),
       referrers: mapDimensionRows(referrers.data ?? [], 'referrerHostname'),
       devices: mapDimensionRows(devices.data ?? [], 'deviceType'),

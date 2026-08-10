@@ -23,6 +23,7 @@ import { signOut } from 'src/auth/context/supabase/action';
 type LovezaSignOutButtonProps = {
   iconOnly?: boolean;
   confirm?: boolean;
+  confirmDescription?: string;
   label?: string;
   buttonProps?: ButtonProps;
   iconButtonProps?: IconButtonProps;
@@ -31,6 +32,7 @@ type LovezaSignOutButtonProps = {
 export function LovezaSignOutButton({
   iconOnly = false,
   confirm = false,
+  confirmDescription = 'คุณจะต้องเข้าสู่ระบบด้วย Google อีกครั้ง เมื่อต้องการแจ้งพิกัดหรือตรวจสอบประวัติ',
   label = 'ออกจากระบบ',
   buttonProps,
   iconButtonProps,
@@ -104,7 +106,7 @@ export function LovezaSignOutButton({
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
         <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
-          คุณจะต้องเข้าสู่ระบบด้วย Google อีกครั้ง เมื่อต้องการแจ้งพิกัดหรือตรวจสอบประวัติ
+          {confirmDescription}
         </Typography>
       </DialogContent>
       <DialogActions

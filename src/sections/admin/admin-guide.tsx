@@ -25,7 +25,8 @@ const ROLE_CARDS: RoleCard[] = [
     color: '#5c6b73',
     background: '#f1f4f5',
     title: 'ผู้เยี่ยมชม',
-    description: 'ดูหน้าแรกและค้นหาร้านใกล้ฉัน (/nearby) ได้โดยไม่ต้องล็อกอิน',
+    description:
+      'ดูหน้าแรก ค้นหาร้านใกล้ฉัน (/nearby) และดูแผนที่ซ่าทั่วไทย (/mapza) ได้โดยไม่ต้องล็อกอิน',
   },
   {
     icon: 'ri:google-fill',
@@ -33,7 +34,7 @@ const ROLE_CARDS: RoleCard[] = [
     background: '#edf7ff',
     title: 'ผู้ใช้ทั่วไป',
     description:
-      'ล็อกอินด้วย Google เท่านั้น (ไม่มีอีเมล/รหัสผ่าน) ปลดล็อกหน้าแจ้งพิกัด (/report)',
+      'ล็อกอินด้วย Google เท่านั้น (ไม่มีอีเมล/รหัสผ่าน) เพื่อแจ้งพิกัด (/report) และดูประวัติรายงานของตนเอง (/account)',
   },
   {
     icon: 'ri:shield-check-fill',
@@ -49,7 +50,8 @@ type FlowStep = { title: string; description: string };
 const REPORT_FLOW: FlowStep[] = [
   {
     title: 'ผู้ใช้กรอกฟอร์มที่ /report',
-    description: 'ชื่อร้าน จังหวัด/อำเภอ พิกัด GPS สถานะสินค้า รสชาติ รูปถ่าย และหมายเหตุ',
+    description:
+      'ชื่อร้าน ประเภทร้าน จังหวัด/อำเภอ พิกัด GPS สถานะสินค้า รสชาติ รูปถ่าย และหมายเหตุ',
   },
   {
     title: 'ระบบตรวจสอบพิกัดซ้ำภายใน "ระยะตรวจร้านซ้ำ"',
@@ -66,20 +68,31 @@ const REPORT_FLOW: FlowStep[] = [
     description: 'ยังไม่มีร้านที่อนุมัติแล้วให้ผูก จึงกันการส่งซ้ำไว้ก่อนจนกว่าแอดมินจะตัดสินใจ',
   },
   {
-    title: 'ผ่านการตรวจสอบ → บันทึกเป็นรายงานสถานะ "pending"',
-    description: 'รอแอดมินตรวจสอบที่หน้า /admin (ตรวจสอบพิกัด)',
+    title: 'ผ่านการตรวจสอบ → ทำงานตามโหมดอนุมัติที่แอดมินเลือก',
+    description:
+      'ถ้าเลือก "รอแอดมินอนุมัติก่อนแสดง" รายงานจะเป็น pending ถ้าเลือก "อนุมัติและแสดงทันที" ระบบจะอนุมัติและเพิ่ม/อัปเดตร้านบนแผนที่ใน transaction เดียวกัน',
   },
 ];
 
 const APPROVAL_FLOW: FlowStep[] = [
   {
-    title: 'อนุมัติ (Approve)',
+    title: 'เลือกโหมดที่ /admin/settings',
+    description:
+      'ค่าเริ่มต้นคือ "รอแอดมินอนุมัติก่อนแสดง" หรือเปิดเป็น "อนุมัติและแสดงทันที" ได้ การเปลี่ยนโหมดมีผลกับรายงานใหม่เท่านั้น',
+  },
+  {
+    title: 'โหมดรอตรวจ → อนุมัติ (Approve)',
     description:
       'ถ้ารายงานผูกกับร้านเดิมอยู่แล้ว (มาจากขั้นตอนยืนยันร้านซ้ำ) ระบบจะอัปเดตข้อมูลร้านเดิม ถ้าไม่ได้ผูก จะสร้างร้านใหม่ในระบบ',
   },
   {
-    title: 'ปฏิเสธ (Reject)',
+    title: 'โหมดรอตรวจ → ปฏิเสธ (Reject)',
     description: 'เปลี่ยนสถานะรายงานเป็น "rejected" เท่านั้น ไม่กระทบข้อมูลร้านใดๆ',
+  },
+  {
+    title: 'โหมดแสดงทันที → อนุมัติอัตโนมัติ',
+    description:
+      'รายงานใหม่จะเป็น approved และแสดงเป็นจุดขายทันที โดยยังผ่านการตรวจพิกัดซ้ำเหมือนเดิม รายงาน pending ที่มีอยู่ก่อนเปลี่ยนโหมดจะยังรอแอดมินตรวจต่อไป',
   },
 ];
 
@@ -100,7 +113,16 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     title: 'ตั้งค่าระบบ',
     href: '/admin/settings',
     description:
-      'ปรับ "ระยะตรวจร้านซ้ำ" (กันแจ้งซ้ำ) และ "ระยะค้นหาร้านใกล้ฉัน" (หน้า /nearby) แยกจากกันอิสระ',
+      'เลือกโหมดอนุมัติรายงาน ปรับระยะตรวจร้านซ้ำ ระยะค้นหาร้านใกล้ฉัน และช่วงสีจำนวนจุดขายบนแผนที่จังหวัด',
+  },
+  {
+    icon: 'ri:store-2-fill',
+    color: '#e5007e',
+    background: '#fff0f7',
+    title: 'ประเภทร้าน',
+    href: '/admin/store-types',
+    description:
+      'จัดการประเภทร้าน โลโก้ ลำดับการแสดง และสถานะเปิดใช้งานที่ใช้ในฟอร์มแจ้งพิกัด',
   },
   {
     icon: 'ri:drinks-2-fill',
@@ -109,6 +131,15 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     title: 'จัดการสินค้า',
     href: '/admin/products',
     description: 'CRUD รสชาติ Loveza (ชื่อ สี ไอคอนผลไม้ คำอธิบาย รูปภาพ) ที่แสดงบน Landing page',
+  },
+  {
+    icon: 'ri:bar-chart-box-fill',
+    color: '#6d3b8c',
+    background: '#f6effa',
+    title: 'สถิติการเข้าใช้งาน',
+    href: '/admin/analytics',
+    description:
+      'ดูจำนวนเปิดหน้า ผู้เข้าชม แนวโน้มรายวัน หน้ายอดนิยม แหล่งที่มา และอุปกรณ์จาก Vercel Web Analytics',
   },
   {
     icon: 'ri:group-fill',
@@ -139,12 +170,13 @@ const REFERENCE_CARDS: ReferenceCard[] = [
 ];
 
 const CHECKLIST_ITEMS = [
-  'รัน Supabase migration ทั้งหมดตามลำดับ (0001–0010) บนโปรเจกต์ production',
+  'รัน Supabase migration ทั้งหมดตามลำดับ (0001–0017) บนโปรเจกต์ production',
   'ตั้งค่า Environment Variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, GOOGLE_CLIENT_ID, NEXT_PUBLIC_SITE_URL',
+  'ถ้าต้องการหน้า Web Analytics ให้ตั้งค่า VERCEL_TOKEN, VERCEL_ANALYTICS_PROJECT_ID และ VERCEL_ANALYTICS_TEAM_ID',
   'เพิ่มโดเมน production ใน Authorized origins/redirect ของ Google OAuth client',
   'ตั้งผู้ใช้อย่างน้อย 1 คนให้เป็นแอดมิน — ต้องตั้งทั้ง profiles.role และ Auth user app_metadata.role เป็น "admin" ผ่าน Supabase Dashboard โดยตรง (ไม่มีปุ่ม promote ในระบบ)',
   'ตรวจสอบ Storage bucket "report-images" เปิด public read และจำกัดชนิด/ขนาดไฟล์ตามที่ migration กำหนด',
-  'ปรับ "ระยะตรวจร้านซ้ำ" และ "ระยะค้นหาร้านใกล้ฉัน" ที่ /admin/settings ให้เหมาะกับพื้นที่ให้บริการจริง',
+  'เลือกโหมดอนุมัติรายงาน และปรับ "ระยะตรวจร้านซ้ำ" กับ "ระยะค้นหาร้านใกล้ฉัน" ที่ /admin/settings ให้เหมาะกับการใช้งานจริง',
 ];
 
 function FlowList({ steps }: { steps: FlowStep[] }) {
@@ -249,7 +281,7 @@ export function AdminGuide() {
         <Stack direction="row" spacing={1} alignItems="center">
           <Iconify icon="ri:map-pin-user-fill" width={22} sx={{ color: '#e5007e' }} />
           <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
-            Flow การอนุมัติ (/admin)
+            Flow การอนุมัติและเผยแพร่
           </Typography>
         </Stack>
         <Box sx={{ mt: 2.5 }}>

@@ -13,7 +13,7 @@ export default async function AdminSettingsPage() {
   const { data, error } = await supabase
     .from('admin_settings')
     .select(
-      'duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
+      'require_report_approval, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
     )
     .eq('id', true)
     .single();
@@ -21,6 +21,7 @@ export default async function AdminSettingsPage() {
   return (
     <DashboardContent maxWidth="xl">
       <AdminSettingsPanel
+        initialRequireReportApproval={data?.require_report_approval ?? true}
         initialDuplicateRadiusM={data?.duplicate_radius_m ?? 75}
         initialSearchRadiusM={data?.search_radius_m ?? 5000}
         initialProvinceColorSettings={provinceColorSettingsFromRow(data)}

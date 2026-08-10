@@ -129,6 +129,7 @@ export async function POST(request: Request) {
   const result = data as {
     duplicate?: boolean;
     resolvable?: boolean;
+    autoApproved?: boolean;
     storeId?: string;
     duplicateName?: string;
     distanceM?: number;
@@ -175,9 +176,15 @@ export async function POST(request: Request) {
   revalidatePath('/admin/network');
   revalidatePath('/admin/users');
   revalidatePath('/account');
+  if (result?.autoApproved) {
+    revalidatePath('/nearby');
+    revalidatePath('/mapza');
+  }
 
   return NextResponse.json({
     status: 'success',
-    message: 'เพิ่มจุดขายแล้ว ระบบกำลังแสดงผลแบบเรียลไทม์ ขอบคุณที่ช่วยชุมชน Loveza!',
+    message: result?.autoApproved
+      ? 'เพิ่มจุดขายและแสดงบนแผนที่แล้ว ขอบคุณที่ช่วยชุมชน Loveza!'
+      : 'ส่งพิกัดเรียบร้อยแล้ว ระบบจะแสดงผลหลังแอดมินตรวจสอบและอนุมัติ',
   });
 }

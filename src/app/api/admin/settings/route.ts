@@ -19,6 +19,7 @@ export async function PUT(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
   const payload = (await request.json().catch(() => null)) as {
+    requireReportApproval?: unknown;
     duplicateRadiusM?: unknown;
     searchRadiusM?: unknown;
     provinceColorSettings?: {
@@ -32,6 +33,7 @@ export async function PUT(request: Request) {
       tier4Color?: unknown;
     };
   } | null;
+  const requireReportApproval = payload?.requireReportApproval;
   const duplicateRadiusM = Number(payload?.duplicateRadiusM);
   const searchRadiusM = Number(payload?.searchRadiusM);
   const provinceColorSettings: ProvinceColorSettings = {
@@ -44,6 +46,10 @@ export async function PUT(request: Request) {
     tier3Color: String(payload?.provinceColorSettings?.tier3Color).toUpperCase(),
     tier4Color: String(payload?.provinceColorSettings?.tier4Color).toUpperCase(),
   };
+
+  if (typeof requireReportApproval !== 'boolean') {
+    return NextResponse.json({ error: 'รูปแบบการอนุมัติรายงานไม่ถูกต้อง' }, { status: 400 });
+  }
 
   if (
     !Number.isInteger(duplicateRadiusM) ||
@@ -84,6 +90,7 @@ export async function PUT(request: Request) {
   const { data, error } = await supabase
     .from('admin_settings')
     .update({
+      require_report_approval: requireReportApproval,
       duplicate_radius_m: duplicateRadiusM,
       search_radius_m: searchRadiusM,
       province_no_data_color: provinceColorSettings.noDataColor,
@@ -99,7 +106,7 @@ export async function PUT(request: Request) {
     })
     .eq('id', true)
     .select(
-      'duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
+      'require_report_approval, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
     )
     .single();
 
@@ -110,6 +117,7 @@ export async function PUT(request: Request) {
 
   return NextResponse.json({
     settings: {
+      requireReportApproval: data.require_report_approval,
       duplicateRadiusM: data.duplicate_radius_m,
       searchRadiusM: data.search_radius_m,
       provinceColorSettings: {

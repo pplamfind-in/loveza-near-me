@@ -43,8 +43,10 @@ export function AdminAccount({ displayName, email, photoURL }: AdminAccountProps
       <Tooltip title="ออกจากระบบ">
         <span>
           <LovezaSignOutButton
+            confirm
             iconOnly
             label="ออกจากระบบ Admin"
+            confirmDescription="คุณจะต้องเข้าสู่ระบบ Admin อีกครั้งเพื่อจัดการข้อมูลและตั้งค่าระบบ"
             iconButtonProps={{ color: 'inherit' }}
           />
         </span>
