@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const SITE_NAME = 'Loveza Hunt';
+export const SITE_ALTERNATE_NAME = 'LovezaHunt';
 export const BRAND_ASSET_VERSION = 'loveza-hunt-20260809';
 export const SITE_DESCRIPTION =
   'ค้นหาร้านที่มี Loveza ใกล้คุณด้วย GPS ดูสถานะและจำนวนสินค้า พร้อมช่วยแจ้งพิกัดให้ Community ตามไปซื้อได้ง่ายขึ้น';
@@ -49,7 +50,7 @@ export function createSeoMetadata({
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: { 'th-TH': path } },
     robots: noIndex ? NO_INDEX_ROBOTS : undefined,
     openGraph: {
       type: 'website',

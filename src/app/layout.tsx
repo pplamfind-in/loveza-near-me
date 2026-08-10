@@ -23,6 +23,7 @@ import {
   SITE_DESCRIPTION,
   createSeoMetadata,
   BRAND_ASSET_VERSION,
+  SITE_ALTERNATE_NAME,
 } from 'src/lib/seo';
 
 import { Snackbar } from 'src/components/snackbar';
@@ -48,6 +49,9 @@ const AuthProvider =
   (CONFIG.auth.method === 'auth0' && Auth0AuthProvider) ||
   JwtAuthProvider;
 
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
+const bingSiteVerification = process.env.BING_SITE_VERIFICATION;
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -66,6 +70,8 @@ export const metadata: Metadata = {
   keywords: [
     'Loveza',
     'Loveza Hunt',
+    'LovezaHunt',
+    'lovezahunt',
     'Loveza ใกล้ฉัน',
     'ร้านขาย Loveza',
     'พิกัด Loveza',
@@ -76,6 +82,26 @@ export const metadata: Metadata = {
   creator: SITE_NAME,
   publisher: SITE_NAME,
   category: 'food and drink',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
+    },
+  },
+  verification:
+    googleSiteVerification || bingSiteVerification
+      ? {
+          ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
+          ...(bingSiteVerification
+            ? { other: { 'msvalidate.01': bingSiteVerification } }
+            : {}),
+        }
+      : undefined,
   formatDetection: { email: false, address: false, telephone: false },
   icons: {
     icon: [
@@ -98,6 +124,7 @@ const structuredData = {
       '@id': `${SITE_URL}/#website`,
       url: `${SITE_URL}/`,
       name: SITE_NAME,
+      alternateName: SITE_ALTERNATE_NAME,
       description: SITE_DESCRIPTION,
       inLanguage: 'th-TH',
     },
