@@ -15,16 +15,21 @@ export default async function AdminLocationsPage() {
   const { data, error } = await supabase
     .from('stores')
     .select(
-      'id, name, address, province, district, subdistrict, latitude, longitude, current_status, estimated_quantity, last_reported_at, is_active'
+      'id, name, address, province, district, subdistrict, latitude, longitude, current_status, estimated_quantity, last_reported_at, is_active, reports(count)'
     )
     .order('last_reported_at', { ascending: false, nullsFirst: false });
+
+  const stores = (data ?? []).map(({ reports, ...store }) => ({
+    ...store,
+    report_count: reports?.[0]?.count ?? 0,
+  }));
 
   return (
     <DashboardContent maxWidth="xl">
       {error ? (
         <Alert severity="error">โหลดข้อมูลพิกัดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</Alert>
       ) : (
-        <AllLocationsPanel stores={(data ?? []) as AdminStoreLocation[]} />
+        <AllLocationsPanel stores={stores as AdminStoreLocation[]} />
       )}
     </DashboardContent>
   );
