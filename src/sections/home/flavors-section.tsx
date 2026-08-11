@@ -116,6 +116,19 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                   imageUrl={product.image_url}
                 />
                 <Box sx={{ textAlign: 'center' }}>
+                  <Typography
+                    component="p"
+                    sx={{
+                      px: 2,
+                      mb: 1.25,
+                      color: '#6F616B',
+                      fontSize: 11,
+                      fontWeight: 500,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    * ภาพสินค้าเป็นเพียงภาพตัวอย่าง ไม่ใช่สินค้าจริง
+                  </Typography>
                   <Button
                     href="/nearby"
                     sx={{
