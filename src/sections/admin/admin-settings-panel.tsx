@@ -595,7 +595,7 @@ export function AdminSettingsPanel({
                   sx={{
                     py: 2,
                     fontSize: 16,
-                    fontWeight: 700,
+                    fontWeight: option.value === 'kanit' ? 600 : 700,
                     textTransform: 'none',
                     fontFamily: SITE_FONT_PREVIEW_FAMILY[option.value],
                   }}

@@ -29,12 +29,21 @@ export function applySettingsToTheme(
 
   const isDefaultContrast = contrast === 'default';
   const isDefaultPrimaryColor = primaryColor === 'default';
+  const isKanit = fontFamily?.includes('Kanit') ?? false;
   const resolvedFontFamily = fontFamily?.includes(',')
     ? `${fontFamily}, sans-serif`
     : setFont(fontFamily);
   const currentTypography = (
     typeof theme.typography === 'function' ? {} : (theme.typography ?? {})
   ) as TypographyVariantsOptions;
+  const clampFontWeight = (fontWeight: React.CSSProperties['fontWeight']) => {
+    if (!isKanit || fontWeight === undefined) return fontWeight;
+    if (typeof fontWeight === 'number') return Math.min(fontWeight, 600);
+    if (fontWeight === 'bold' || fontWeight === 'bolder') return 600;
+
+    const numericWeight = Number(fontWeight);
+    return Number.isFinite(numericWeight) ? Math.min(numericWeight, 600) : fontWeight;
+  };
 
   const lightPalette = theme.colorSchemes?.light?.palette as ColorSystem['palette'];
 
@@ -87,19 +96,73 @@ export function applySettingsToTheme(
       ...currentTypography,
       fontFamily: resolvedFontFamily,
       fontSecondaryFamily: resolvedFontFamily,
-      h1: { ...currentTypography.h1, fontFamily: resolvedFontFamily },
-      h2: { ...currentTypography.h2, fontFamily: resolvedFontFamily },
-      h3: { ...currentTypography.h3, fontFamily: resolvedFontFamily },
-      h4: { ...currentTypography.h4, fontFamily: resolvedFontFamily },
-      h5: { ...currentTypography.h5, fontFamily: resolvedFontFamily },
-      h6: { ...currentTypography.h6, fontFamily: resolvedFontFamily },
-      subtitle1: { ...currentTypography.subtitle1, fontFamily: resolvedFontFamily },
-      subtitle2: { ...currentTypography.subtitle2, fontFamily: resolvedFontFamily },
-      body1: { ...currentTypography.body1, fontFamily: resolvedFontFamily },
-      body2: { ...currentTypography.body2, fontFamily: resolvedFontFamily },
-      caption: { ...currentTypography.caption, fontFamily: resolvedFontFamily },
-      overline: { ...currentTypography.overline, fontFamily: resolvedFontFamily },
-      button: { ...currentTypography.button, fontFamily: resolvedFontFamily },
+      fontWeightBold: clampFontWeight(currentTypography.fontWeightBold),
+      fontWeightExtraBold: clampFontWeight(currentTypography.fontWeightExtraBold),
+      h1: {
+        ...currentTypography.h1,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.h1?.fontWeight),
+      },
+      h2: {
+        ...currentTypography.h2,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.h2?.fontWeight),
+      },
+      h3: {
+        ...currentTypography.h3,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.h3?.fontWeight),
+      },
+      h4: {
+        ...currentTypography.h4,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.h4?.fontWeight),
+      },
+      h5: {
+        ...currentTypography.h5,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.h5?.fontWeight),
+      },
+      h6: {
+        ...currentTypography.h6,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.h6?.fontWeight),
+      },
+      subtitle1: {
+        ...currentTypography.subtitle1,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.subtitle1?.fontWeight),
+      },
+      subtitle2: {
+        ...currentTypography.subtitle2,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.subtitle2?.fontWeight),
+      },
+      body1: {
+        ...currentTypography.body1,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.body1?.fontWeight),
+      },
+      body2: {
+        ...currentTypography.body2,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.body2?.fontWeight),
+      },
+      caption: {
+        ...currentTypography.caption,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.caption?.fontWeight),
+      },
+      overline: {
+        ...currentTypography.overline,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.overline?.fontWeight),
+      },
+      button: {
+        ...currentTypography.button,
+        fontFamily: resolvedFontFamily,
+        fontWeight: clampFontWeight(currentTypography.button?.fontWeight),
+      },
     },
   };
 }

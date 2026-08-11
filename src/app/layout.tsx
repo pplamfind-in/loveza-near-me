@@ -64,7 +64,7 @@ const promptFont = Prompt({
 
 const kanitFont = Kanit({
   subsets: ['latin', 'thai'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+  weight: ['400', '500', '600'],
   display: 'swap',
   variable: '--font-kanit',
 });
@@ -252,6 +252,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     <html
       lang={appConfig.lang}
       dir={appConfig.dir}
+      data-site-font={appConfig.siteFont}
       className={`${promptFont.variable} ${kanitFont.variable}`}
       style={{ '--site-font-family': appConfig.fontFamily } as React.CSSProperties}
       suppressHydrationWarning

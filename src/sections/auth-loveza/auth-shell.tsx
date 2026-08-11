@@ -169,7 +169,7 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
                 color: '#351129',
                 fontSize: { xs: 34, sm: 40, md: 46 },
                 lineHeight: 1.08,
-                fontWeight: 1000,
+                fontWeight: 600,
                 letterSpacing: '-.05em',
                 overflowWrap: 'anywhere',
               }}

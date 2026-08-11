@@ -46,6 +46,9 @@ html {
   font-family: var(--site-font-family, 'LINE Seed Sans TH', sans-serif);
   background-color: 'pink';
 }
+html[data-site-font='kanit'] {
+  font-synthesis: none;
+}
 body,
 #root,
 #root__layout {
