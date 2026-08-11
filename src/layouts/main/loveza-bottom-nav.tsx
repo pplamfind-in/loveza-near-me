@@ -64,8 +64,10 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
         zIndex: theme.zIndex.appBar + 1,
         display: { xs: 'block', md: 'none' },
         position: 'fixed',
+        overflow: 'hidden',
+        bgcolor: '#FFF7FB',
         borderRadius: '22px 22px 0 0',
-        pb: 'env(safe-area-inset-bottom)',
+        pb: 'max(12px, env(safe-area-inset-bottom))',
         borderTop: '3px solid #351129',
       })}
     >

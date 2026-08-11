@@ -72,6 +72,7 @@ const kanitFont = Kanit({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
   themeColor: primaryColor.main,
 };
 

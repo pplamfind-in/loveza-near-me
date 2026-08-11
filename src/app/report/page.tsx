@@ -29,8 +29,9 @@ export default async function ReportPage() {
     <Box
       component="main"
       sx={{
-        minHeight: '100vh',
-        py: '100px',
+        minHeight: '100dvh',
+        pt: '100px',
+        pb: { xs: 'calc(140px + env(safe-area-inset-bottom))', md: '100px' },
         background:
           'radial-gradient(circle at 12px 12px, rgba(124,58,237,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
