@@ -258,6 +258,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       style={{ '--site-font-family': appConfig.fontFamily } as React.CSSProperties}
       suppressHydrationWarning
     >
+      <head>
+        <link
+          rel="icon"
+          href={`${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`}
+          sizes="any"
+        />
+      </head>
       <body style={{ fontFamily: appConfig.fontFamily }}>
         <script
           type="application/ld+json"
