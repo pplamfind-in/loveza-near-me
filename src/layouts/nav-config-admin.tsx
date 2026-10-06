@@ -59,6 +59,12 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           icon: navIcon('ri:group-fill'),
         },
         {
+          title: 'จัดการกระทู้',
+          path: '/admin/forum',
+          deepMatch: true,
+          icon: navIcon('ri:chat-3-fill'),
+        },
+        {
           title: 'ข้อความติดต่อ',
           path: '/admin/messages',
           icon: navIcon('ri:mail-unread-fill'),

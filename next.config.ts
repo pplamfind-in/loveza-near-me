@@ -36,6 +36,7 @@ const supabaseImagePattern = (() => {
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
+  experimental: { serverActions: { bodySizeLimit: '6mb' } },
   output: isStaticExport ? 'export' : undefined,
   images: {
     remotePatterns: supabaseImagePattern ? [supabaseImagePattern] : [],
@@ -52,8 +53,9 @@ const nextConfig: NextConfig = {
     BUILD_STATIC_EXPORT: JSON.stringify(isStaticExport),
   },
   // Without --turbopack (next dev)
-  webpack(config, { isServer }) {
-    if (!isServer) {
+  webpack(config, { dev }) {
+    // Locator attributes must match in the server and client HTML during hydration.
+    if (dev) {
       config.module.rules.push({
         test: /\.(tsx|ts|jsx|js)$/,
         exclude: /node_modules/,

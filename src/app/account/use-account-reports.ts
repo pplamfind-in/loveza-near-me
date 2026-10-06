@@ -37,7 +37,7 @@ type StoreStockUpdateResponse = {
 };
 
 async function fetchAccountReports(): Promise<UserReport[]> {
-  const response = await fetch('/api/account/reports');
+  const response = await fetch('/api/account/reports', { cache: 'no-store' });
   if (!response.ok) throw new Error('request failed');
 
   const payload = (await response.json()) as { reports: UserReport[] };
@@ -45,7 +45,12 @@ async function fetchAccountReports(): Promise<UserReport[]> {
 }
 
 export function useAccountReportsQuery() {
-  return useQuery({ queryKey: ['account-reports'], queryFn: fetchAccountReports });
+  return useQuery({
+    queryKey: ['account-reports'],
+    queryFn: fetchAccountReports,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+  });
 }
 
 async function updateStoreStock({ reportId, ...body }: StoreStockUpdateInput) {

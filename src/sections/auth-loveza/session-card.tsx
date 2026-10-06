@@ -6,7 +6,11 @@ import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 
+import { getUserDisplayName } from 'src/lib/user-display-name';
+
 import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
+
+import { DisplayNameForm } from 'src/sections/account/display-name-form';
 
 type SessionCardProps = {
   user: User;
@@ -15,7 +19,7 @@ type SessionCardProps = {
 };
 
 export function SessionCard({ user, role, compact = false }: SessionCardProps) {
-  const displayName = user.user_metadata.full_name ?? user.user_metadata.name ?? user.email;
+  const displayName = getUserDisplayName(user);
   const avatarUrl = user.user_metadata.avatar_url ?? user.user_metadata.picture;
   const avatarLabel = String(displayName ?? user.email ?? 'L')
     .charAt(0)
@@ -82,6 +86,8 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
         </Stack>
         <Chip label={isAdmin ? 'ADMIN' : 'พร้อมออกล่า'} color={isAdmin ? 'secondary' : 'success'} />
       </Stack>
+
+      {compact && <DisplayNameForm currentName={displayName} />}
 
       <Typography
         sx={{

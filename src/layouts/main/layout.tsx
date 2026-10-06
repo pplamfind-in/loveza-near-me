@@ -15,6 +15,8 @@ import Typography from '@mui/material/Typography';
 
 import { usePathname } from 'src/routes/hooks';
 
+import { getUserDisplayName } from 'src/lib/user-display-name';
+
 import { Logo } from 'src/components/logo';
 import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
 
@@ -65,11 +67,7 @@ export function MainLayout({
 
   const contextUser: LovezaHeaderUser | null = authUser
     ? {
-        displayName:
-          authUser.user_metadata?.full_name ??
-          authUser.user_metadata?.name ??
-          authUser.email ??
-          'Loveza User',
+        displayName: getUserDisplayName(authUser),
         email: authUser.email ?? '',
         photoURL: authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '',
         role: authUser.app_metadata?.role ?? 'user',

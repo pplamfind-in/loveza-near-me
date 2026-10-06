@@ -36,7 +36,7 @@ export default async function ReportPage() {
           'radial-gradient(circle at 12px 12px, rgba(124,58,237,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
       }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth="lg">
         <Box
           sx={{
             mb: 3,

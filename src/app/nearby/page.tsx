@@ -50,7 +50,7 @@ export default function NearbyPage() {
         },
       }}
     >
-      <Container maxWidth="xl" sx={{ zIndex: 1, position: 'relative' }}>
+      <Container maxWidth="lg" sx={{ zIndex: 1, position: 'relative' }}>
         <Box
           sx={{
             mb: 4,

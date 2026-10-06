@@ -7,6 +7,7 @@ import { useMemo, useEffect, useCallback } from 'react';
 
 import axios from 'src/lib/axios';
 import { supabase } from 'src/lib/supabase';
+import { getUserDisplayName } from 'src/lib/user-display-name';
 
 import { AuthContext } from '../auth-context';
 
@@ -41,7 +42,10 @@ export function AuthProvider({ children }: Props) {
       if (session) {
         const accessToken = session?.access_token;
 
-        setState({ user: { ...session, ...session?.user }, loading: false });
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setState({ user: { ...session, ...(user ?? session.user) }, loading: false });
         axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
       } else {
         setState({ user: null, loading: false });
@@ -71,8 +75,7 @@ export function AuthProvider({ children }: Props) {
             ...state.user,
             id: state.user?.id,
             accessToken: state.user?.access_token,
-            displayName:
-              state.user?.user_metadata.full_name ?? state.user?.user_metadata.display_name,
+            displayName: getUserDisplayName(state.user),
             role: state.user?.app_metadata.role ?? 'user',
           }
         : null,

@@ -97,6 +97,8 @@ export async function PATCH(request: Request, { params }: LocationRouteContext) 
   }
 
   revalidatePath('/admin/locations');
+  revalidatePath('/account');
+  revalidatePath('/history');
   revalidatePath('/nearby');
   revalidatePath('/mapza');
   revalidatePath('/');

@@ -57,7 +57,7 @@ export default async function MapzaPage() {
           'radial-gradient(circle at 12px 12px, rgba(229,0,126,.11) 2px, transparent 2.5px) 0 0 / 28px 28px, linear-gradient(145deg, #FFF1F8 0%, #FFFBE8 55%, #EAFBFF 100%)',
       }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth="lg">
         <Box
           sx={{
             mb: 4,

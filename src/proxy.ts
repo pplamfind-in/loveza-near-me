@@ -70,6 +70,7 @@ export const config = {
     '/report/:path*',
     '/history/:path*',
     '/nearby/:path*',
+    '/forum/:path*',
     '/auth/login',
     '/admin/:path*',
   ],

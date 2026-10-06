@@ -19,6 +19,12 @@ const commonNavData: NavMainProps['data'] = [
     path: '/mapza',
     icon: <Iconify width={22} icon="ri:map-2-fill" />,
   },
+  {
+    title: 'กระทู้สนทนา',
+    path: '/forum',
+    deepMatch: true,
+    icon: <Iconify width={22} icon="ri:chat-3-fill" />,
+  },
 ];
 
 const guestNavData: NavMainProps['data'] = [
