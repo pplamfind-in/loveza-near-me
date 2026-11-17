@@ -208,11 +208,11 @@ const MuiButton: Components<Theme>['MuiButton'] = {
         {
           props: (props) => props.variant === 'contained' && props.color === 'primary',
           style: {
-            backgroundImage: `linear-gradient(135deg, ${theme.vars.palette.primary.main}, ${theme.vars.palette.secondary.main})`,
+            backgroundImage: 'none',
             boxShadow: theme.vars.customShadows.primary,
             '&:hover': {
               transform: 'translateY(-1px)',
-              backgroundImage: `linear-gradient(135deg, ${theme.vars.palette.primary.dark}, ${theme.vars.palette.secondary.dark})`,
+              backgroundImage: 'none',
               boxShadow: `0 12px 28px ${varAlpha(theme.vars.palette.primary.mainChannel, 0.3)}`,
             },
             '&:active': { transform: 'translateY(0)' },

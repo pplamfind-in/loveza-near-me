@@ -31,41 +31,62 @@ export default async function AccountPage() {
       sx={{
         minHeight: '100vh',
         py: '100px',
-        background:
-          'radial-gradient(circle at 12px 12px, rgba(229,0,126,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
+        background: 'var(--palette-background-default)',
       }}
     >
       <Container maxWidth="lg">
         <Box
           sx={{
-            mb: { xs: 4, md: 5 },
-            p: { xs: 3, md: 4.5 },
-            color: '#fff',
-            border: '3px solid #351129',
-            borderRadius: { xs: '26px', md: '36px' },
-            background: 'linear-gradient(135deg, #7C3AED, #E5007E)',
-            boxShadow: '8px 9px 0 #351129',
+            mb: { xs: 3, md: 4 },
+            p: { xs: 3, md: 5 },
+            border: '5px solid var(--palette-background-paper)',
+            borderRadius: '18px',
+            background:
+              'linear-gradient(90deg, #FBF6ED 20%, rgba(251,246,237,.96) 45%, rgba(251,246,237,.12) 100%), url(/assets/loveza/nearby-explorer-v1.webp) right center / cover',
+            boxShadow: '0 4px 0 var(--palette-grey-200)',
           }}
         >
-          <Typography sx={{ color: '#FDE047', fontSize: 12, fontWeight: 1000, letterSpacing: 2 }}>
-            MY LOVEZA SPACE
+          <Box
+            component="img"
+            src="/assets/icons/loveza/voxel-store.svg"
+            alt=""
+            sx={{ width: 56, height: 56, mb: 2 }}
+          />
+          <Typography
+            sx={{ color: 'primary.dark', fontSize: 11, fontWeight: 800, letterSpacing: 2 }}
+          >
+            MY EXPLORER SPACE
           </Typography>
           <Typography
             component="h1"
-            sx={{ mt: 1, fontSize: { xs: 42, md: 60 }, lineHeight: 1, fontWeight: 1000 }}
+            sx={{
+              mt: 1,
+              maxWidth: 650,
+              fontSize: { xs: 32, md: 48 },
+              lineHeight: 1.35,
+              fontWeight: 900,
+            }}
           >
-            โปรไฟล์สายซ่า ✦
+            พื้นที่ของนักล่า Loveza
           </Typography>
-          <Typography sx={{ mt: 1.5, color: '#FFF0F8', fontSize: 17 }}>
-            ดูโปรไฟล์และภารกิจปักหมุด Loveza ของคุณ
+          <Typography
+            sx={{
+              mt: 1.5,
+              maxWidth: 540,
+              color: 'text.secondary',
+              fontSize: { xs: 15, md: 17 },
+              lineHeight: 1.8,
+            }}
+          >
+            จัดการโปรไฟล์ ติดตามพิกัดที่คุณแจ้ง และร่วมเติมแผนที่ไปด้วยกัน
           </Typography>
         </Box>
         <Box
           sx={{
             display: 'grid',
-            gap: { xs: 6, md: 4, lg: 5 },
+            gap: { xs: 3, md: 3 },
             alignItems: 'start',
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(200px, 0.82fr) minmax(0, 1.8fr)' },
+            gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 0.72fr) minmax(0, 1.8fr)' },
           }}
         >
           <Box sx={{ position: { md: 'sticky' }, top: { md: 100 } }}>

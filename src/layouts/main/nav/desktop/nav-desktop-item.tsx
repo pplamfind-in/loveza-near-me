@@ -114,7 +114,7 @@ const ItemTitle = styled('span', { shouldForwardProp })<StyledState>(({ theme })
   ...navItemStyles.title(theme),
   ...theme.typography.body2,
   fontWeight: theme.typography.fontWeightMedium,
-  color: '#55296f',
+  color: 'var(--palette-primary-main)',
   variants: [
     { props: { variant: 'subItem' }, style: { fontSize: theme.typography.pxToRem(13) } },
     { props: { active: true }, style: { fontWeight: theme.typography.fontWeightSemiBold } },

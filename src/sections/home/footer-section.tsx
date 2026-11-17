@@ -4,8 +4,9 @@ import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
-import { Logo } from 'src/components/logo';
 import { getBrandOwnerNotice, getBrandOwnerStatusLabel } from 'src/lib/brand-owner-notice';
+
+import { Logo } from 'src/components/logo';
 
 const links = [
   { label: 'เกี่ยวกับเรา', href: '/about-us' },
@@ -24,22 +25,24 @@ export function FooterSection({ brandOwnerAcknowledged }: FooterSectionProps) {
     <Box
       component="footer"
       id="contact"
-      sx={{ px: 0, pb: { xs: 'calc(100px + env(safe-area-inset-bottom))', md: 3 } }}
+      sx={{
+        display: { xs: 'none', md: 'block' },
+        px: 0,
+        pb: { xs: 'calc(100px + env(safe-area-inset-bottom))', md: 3 },
+      }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth="lg">
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={3}
           alignItems="center"
           justifyContent="space-between"
           sx={{
-            px: { xs: 2.5, md: 4 },
+            px: 0,
             py: { xs: 4, md: 3 },
-            color: '#fff',
-            border: '3px solid #351129',
-            borderRadius: { xs: '28px', md: '34px' },
-            background: 'linear-gradient(135deg, #4B2440, #72003F)',
-            boxShadow: '7px 8px 0 #E5007E',
+            color: 'var(--palette-text-primary)',
+            borderTop: '1px solid var(--palette-grey-300)',
+            background: 'var(--palette-background-default)',
           }}
         >
           <Logo sx={{ width: 68, height: 64 }} />
@@ -58,7 +61,9 @@ export function FooterSection({ brandOwnerAcknowledged }: FooterSectionProps) {
                 </Link>
               ))}
             </Box>
-            <Typography sx={{ color: '#FFD9ED', fontSize: 11, fontWeight: 800 }}>
+            <Typography
+              sx={{ color: 'var(--palette-text-secondary)', fontSize: 11, fontWeight: 800 }}
+            >
               {getBrandOwnerStatusLabel(brandOwnerAcknowledged)}
             </Typography>
           </Stack>
@@ -67,7 +72,7 @@ export function FooterSection({ brandOwnerAcknowledged }: FooterSectionProps) {
           sx={{
             mt: 3,
             px: 2,
-            color: '#6F4A61',
+            color: 'var(--palette-text-secondary)',
             fontSize: 11,
             lineHeight: 1.7,
             textAlign: 'center',

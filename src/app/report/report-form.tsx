@@ -27,10 +27,7 @@ import { FLAVOR_OPTIONS, STORE_TYPE_OPTIONS } from 'src/types/report';
 
 import { useStoreTypesQuery } from './use-store-types';
 import { useSubmitReportMutation } from './use-submit-report';
-import {
-  type ReportStoreCandidate,
-  useReportStoreCandidates,
-} from './use-report-store-candidates';
+import { useReportStoreCandidates, type ReportStoreCandidate } from './use-report-store-candidates';
 import {
   reportSchema,
   MAX_PHOTO_SIZE,
@@ -100,38 +97,59 @@ function FormSection({ step, icon, title, description, color, children }: FormSe
     <Box
       component="section"
       sx={{
-        p: { xs: 2, sm: 2.5 },
-        border: '2px solid #351129',
-        borderRadius: 3.5,
-        bgcolor: '#fff',
-        boxShadow: '4px 5px 0 #351129',
+        p: { xs: 2, sm: 2.5, md: 3 },
+        display: step === '01' ? 'grid' : 'block',
+        gridTemplateColumns:
+          step === '01' ? { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' } : undefined,
+        alignItems: 'center',
+        gap: step === '01' ? { xs: 2, md: 3 } : undefined,
+        border: '5px solid var(--palette-background-paper)',
+        borderRadius: '18px',
+        bgcolor: 'var(--palette-background-paper)',
+        boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
       }}
     >
-      <Box sx={{ mb: 2.25, display: 'flex', gap: 1.25, alignItems: 'center' }}>
+      <Box sx={{ mb: step === '01' ? 0 : 2.5, display: 'flex', gap: 1.5, alignItems: 'center' }}>
         <Box
           sx={{
             width: 46,
             height: 46,
             display: 'grid',
             flexShrink: 0,
-            color: '#351129',
-            borderRadius: '50%',
+            color: 'var(--palette-text-primary)',
+            borderRadius: '12px',
             placeItems: 'center',
             bgcolor: color,
-            border: '2px solid #351129',
-            boxShadow: '2px 2px 0 #351129',
+            border: '1px solid var(--palette-grey-300)',
+            boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
           }}
         >
           <Iconify icon={icon} width={23} />
         </Box>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ color: '#E5007E', fontSize: 10, fontWeight: 1000, letterSpacing: 1.5 }}>
+          <Typography
+            sx={{
+              color: 'var(--palette-primary-main)',
+              fontSize: 10,
+              fontWeight: 1000,
+              letterSpacing: 1.5,
+            }}
+          >
             STEP {step}
           </Typography>
-          <Typography component="h2" sx={{ color: '#351129', fontSize: 19, fontWeight: 1000 }}>
+          <Typography
+            component="h2"
+            sx={{
+              color: 'var(--palette-text-primary)',
+              fontSize: { xs: 18, md: 20 },
+              fontWeight: 900,
+            }}
+          >
             {title}
           </Typography>
-          <Typography sx={{ mt: 0.15, color: '#786B7C', fontSize: 12, fontWeight: 700 }}>
+          <Typography
+            sx={{ mt: 0.15, color: 'var(--palette-text-secondary)', fontSize: 12, fontWeight: 700 }}
+          >
             {description}
           </Typography>
         </Box>
@@ -156,11 +174,7 @@ export function ReportForm() {
       ? { status: 'error', message: 'ส่งข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง' }
       : initialState);
   const pending = mutation.isPending;
-  const {
-    coordinates: gps,
-    isLoading: locating,
-    requestLocation,
-  } = useGeolocation();
+  const { coordinates: gps, isLoading: locating, requestLocation } = useGeolocation();
 
   const methods = useForm({
     mode: 'onSubmit',
@@ -255,10 +269,11 @@ export function ReportForm() {
     <Form methods={methods} onSubmit={onSubmit}>
       <Box
         sx={{
-          gap: 2.5,
+          gap: { xs: 2, md: 3 },
+          '& .MuiInputBase-root': { borderRadius: '12px' },
           display: 'grid',
-          alignItems: 'start',
-          gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) minmax(0, 1fr)' },
+          alignItems: 'stretch',
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
         }}
       >
         <Box sx={{ gridColumn: '1 / -1' }}>
@@ -267,7 +282,7 @@ export function ReportForm() {
             icon="ri:map-pin-2-fill"
             title="ปักพิกัดก่อน"
             description="ใช้ GPS ขณะอยู่บริเวณร้าน เพื่อดูว่ามีร้านนี้ในระบบแล้วหรือยัง"
-            color="#FDE047"
+            color="var(--palette-secondary-lighter)"
           >
             <Stack spacing={2}>
               <Box
@@ -277,14 +292,10 @@ export function ReportForm() {
                   display: 'flex',
                   flexWrap: 'wrap',
                   alignItems: 'center',
-                  borderRadius: 2.5,
-                  bgcolor: hasLocationError
-                    ? '#FFF1F3'
-                    : hasCoordinates
-                      ? '#EAFBF4'
-                      : '#FFF8D8',
-                  border: '2px dashed',
-                  borderColor: hasLocationError ? 'error.main' : '#351129',
+                  borderRadius: '12px',
+                  bgcolor: hasLocationError ? '#FFF1F3' : hasCoordinates ? '#EAFBF4' : '#FFF8D8',
+                  border: '1px solid',
+                  borderColor: hasLocationError ? 'error.main' : 'var(--palette-grey-300)',
                 }}
                 aria-invalid={hasLocationError}
               >
@@ -301,12 +312,12 @@ export function ReportForm() {
                     )
                   }
                   sx={{
-                    color: '#fff',
-                    borderRadius: 99,
-                    bgcolor: '#E5007E',
-                    border: '2px solid #351129',
-                    boxShadow: '3px 3px 0 #351129',
-                    '&:hover': { bgcolor: '#C9006E' },
+                    color: 'var(--palette-background-paper)',
+                    borderRadius: '12px',
+                    bgcolor: 'var(--palette-primary-main)',
+                    border: '1px solid var(--palette-grey-300)',
+                    boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
+                    '&:hover': { bgcolor: 'var(--palette-primary-dark)' },
                   }}
                 >
                   {locating
@@ -368,10 +379,10 @@ export function ReportForm() {
                 <Box
                   sx={{
                     p: 2,
-                    border: '2px solid #351129',
-                    borderRadius: 2.5,
+                    border: '1px solid var(--palette-grey-300)',
+                    borderRadius: '12px',
                     bgcolor: '#EEFDF8',
-                    boxShadow: '3px 3px 0 #351129',
+                    boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
                   }}
                 >
                   <Stack
@@ -411,9 +422,9 @@ export function ReportForm() {
                             display: 'flex',
                             alignItems: 'center',
                             border: '1px solid',
-                            borderColor: selected ? '#00A99D' : 'divider',
-                            borderRadius: 2,
-                            bgcolor: '#fff',
+                            borderColor: selected ? 'primary.main' : 'divider',
+                            borderRadius: '12px',
+                            bgcolor: 'var(--palette-background-paper)',
                           }}
                         >
                           <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -431,7 +442,7 @@ export function ReportForm() {
                             variant={selected ? 'contained' : 'outlined'}
                             disabled={selected}
                             onClick={() => handleSelectStoreCandidate(candidate)}
-                            sx={{ flexShrink: 0, borderRadius: 99 }}
+                            sx={{ flexShrink: 0, borderRadius: '12px' }}
                           >
                             {selected ? 'เลือกแล้ว' : 'ใช่ ฉันอยู่ที่นี่'}
                           </Button>
@@ -445,39 +456,47 @@ export function ReportForm() {
           </FormSection>
         </Box>
 
-        <Stack spacing={2.5}>
+        <Stack spacing={2.5} sx={{ '& > section': { flex: 1 } }}>
           <FormSection
             step="02"
             icon="ri:store-2-fill"
             title="เจอที่ร้านไหน?"
             description="เลือกจากร้านใกล้พิกัด หรือกรอกข้อมูลร้านใหม่เมื่อยังไม่มีในระบบ"
-            color="#70E1F5"
+            color="var(--palette-secondary-lighter)"
           >
             <Stack spacing={2}>
               {!hasCoordinates ? (
-                <Alert severity="info">ปักพิกัดใน Step 01 ก่อน เพื่อเปิดข้อมูลร้าน</Alert>
+                <Alert severity="info" sx={{ py: 0.5 }}>
+                  ปักพิกัดใน Step 01 ก่อน เพื่อเปิดข้อมูลร้าน
+                </Alert>
               ) : null}
 
-              <Field.Select
-                name="storeType"
-                label="ประเภทร้านค้า *"
-                disabled={!hasCoordinates || Boolean(selectedStoreId)}
-                helperText={
-                  selectedStoreId ? 'ใช้ข้อมูลจากร้านที่เลือกตามพิกัด GPS' : undefined
-                }
+              <Box
+                sx={{
+                  display: 'grid',
+                  gap: 2,
+                  gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, .8fr) minmax(0, 1.2fr)' },
+                }}
               >
-                {storeTypeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Field.Select>
-              <Field.Text
-                name="storeName"
-                label="ชื่อร้าน / ชื่อสาขา *"
-                disabled={!hasCoordinates || Boolean(selectedStoreId)}
-                helperText={selectedStoreId ? 'ล็อกชื่อร้านเพื่อป้องกันข้อมูลสะกดผิด' : undefined}
-              />
+                <Field.Select
+                  name="storeType"
+                  label="ประเภทร้านค้า *"
+                  disabled={!hasCoordinates || Boolean(selectedStoreId)}
+                  helperText={selectedStoreId ? 'ใช้ข้อมูลจากร้านที่เลือกตามพิกัด GPS' : undefined}
+                >
+                  {storeTypeOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Field.Select>
+                <Field.Text
+                  name="storeName"
+                  label="ชื่อร้าน / ชื่อสาขา *"
+                  disabled={!hasCoordinates || Boolean(selectedStoreId)}
+                  helperText={selectedStoreId ? 'ล็อกชื่อร้านเพื่อป้องกันข้อมูลสะกดผิด' : undefined}
+                />
+              </Box>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Field.Autocomplete
                   name="province"
@@ -514,13 +533,13 @@ export function ReportForm() {
           </FormSection>
         </Stack>
 
-        <Stack spacing={2.5}>
+        <Stack spacing={2.5} sx={{ '& > section': { flex: 1 } }}>
           <FormSection
             step="03"
             icon="ri:drinks-2-fill"
             title="ความซ่ายังเหลือไหม?"
             description="อัปเดตสถานะ จำนวน และรสชาติที่เห็นบนชั้น"
-            color="#FF8EC4"
+            color="var(--palette-secondary-lighter)"
           >
             <Stack spacing={2}>
               <Field.Select name="stockStatus" label="สถานะสินค้า *">
@@ -545,17 +564,32 @@ export function ReportForm() {
               />
             </Stack>
           </FormSection>
+        </Stack>
 
+        <Box sx={{ gridColumn: '1 / -1' }}>
           <FormSection
             step="04"
             icon="ri:camera-3-fill"
             title="เพิ่มหลักฐานความซ่า"
             description="รูปชั้นวางหรือหน้าร้านช่วยให้ข้อมูลน่าเชื่อถือขึ้น"
-            color="#B8F3D6"
+            color="var(--palette-primary-lighter)"
           >
-            <Stack spacing={2}>
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 2.5,
+                alignItems: 'start',
+                gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
+              }}
+            >
               <Field.Upload
                 name="photo"
+                sx={{
+                  minHeight: 180,
+                  p: 2.5,
+                  borderRadius: '12px',
+                  '& .iconify': { width: 48, height: 48 },
+                }}
                 accept={{ 'image/*': [] }}
                 maxSize={MAX_PHOTO_SIZE}
                 helperText={`รองรับ ${ALLOWED_PHOTO_TYPES.map((type) => type.split('/')[1]).join(', ')} ขนาดไม่เกิน 5MB`}
@@ -566,32 +600,41 @@ export function ReportForm() {
                 label="เล่าเพิ่มอีกนิด (ถ้ามี)"
                 placeholder="เช่น อยู่ใกล้แคชเชียร์ ชั้นวางด้านหน้า..."
                 multiline
-                minRows={3}
+                minRows={5}
               />
-            </Stack>
+            </Box>
           </FormSection>
-        </Stack>
+        </Box>
       </Box>
 
       <Box
         sx={{
           mt: 3,
           p: { xs: 2, sm: 2.5 },
+          border: '5px solid var(--palette-background-paper)',
+          boxShadow: '0 4px 0 var(--palette-grey-200)',
           gap: 2,
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
-          borderRadius: 3.5,
-          color: '#fff',
-          bgcolor: '#351129',
+          borderRadius: '18px',
+          color: 'text.primary',
+          bgcolor: 'primary.lighter',
         }}
       >
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontSize: 16, fontWeight: 1000 }}>
             พร้อมแชร์พิกัดแล้วหรือยัง?
           </Typography>
-          <Typography sx={{ mt: 0.35, color: '#E9DDEB', fontSize: 11, fontWeight: 700 }}>
+          <Typography
+            sx={{
+              mt: 0.35,
+              color: 'text.secondary',
+              fontSize: 13,
+              fontWeight: 500,
+            }}
+          >
             ข้อมูลของคุณช่วยให้แก๊ง Loveza ตามหาความซ่าได้แม่นขึ้น
           </Typography>
         </Box>
@@ -602,14 +645,17 @@ export function ReportForm() {
           size="large"
           endIcon={!pending ? <Iconify icon="ri:send-plane-fill" /> : undefined}
           sx={{
-            minWidth: { sm: 190 },
-            color: '#351129',
-            border: '2px solid #fff',
-            borderRadius: 99,
+            minWidth: { sm: 180 },
+            minHeight: 48,
+            color: 'primary.contrastText',
+            borderRadius: '12px',
             backgroundImage: 'none',
-            bgcolor: '#FDE047',
-            boxShadow: '4px 5px 0 #E5007E',
-            '&:hover': { bgcolor: '#FFE96B', boxShadow: '2px 3px 0 #E5007E' },
+            bgcolor: 'primary.main',
+            boxShadow: '0 4px 0 var(--palette-primary-darker)',
+            '&:hover': {
+              bgcolor: 'primary.dark',
+              boxShadow: '0 4px 0 var(--palette-primary-darker)',
+            },
           }}
         >
           {pending ? <CircularProgress size={24} color="inherit" /> : 'แชร์พิกัดนี้'}
@@ -621,10 +667,10 @@ export function ReportForm() {
           sx={{
             mt: 2.5,
             p: { xs: 2, sm: 2.5 },
-            border: '2px solid #351129',
-            borderRadius: 3.5,
+            border: '1px solid var(--palette-grey-300)',
+            borderRadius: '18px',
             bgcolor: '#FFF8D8',
-            boxShadow: '4px 5px 0 #351129',
+            boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
           }}
         >
           <Typography sx={{ fontWeight: 900 }}>{state.message}</Typography>
@@ -642,12 +688,12 @@ export function ReportForm() {
                 )
               }
               sx={{
-                color: '#fff',
-                borderRadius: 99,
-                bgcolor: '#E5007E',
-                border: '2px solid #351129',
-                boxShadow: '3px 3px 0 #351129',
-                '&:hover': { bgcolor: '#C9006E' },
+                color: 'var(--palette-background-paper)',
+                borderRadius: '12px',
+                bgcolor: 'var(--palette-primary-main)',
+                border: '1px solid var(--palette-grey-300)',
+                boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
+                '&:hover': { bgcolor: 'var(--palette-primary-dark)' },
               }}
             >
               ใช่ ร้านเดิม
@@ -657,7 +703,11 @@ export function ReportForm() {
               variant="outlined"
               disabled={pending}
               onClick={handleRejectDuplicate}
-              sx={{ color: '#351129', borderColor: '#351129', borderRadius: 99 }}
+              sx={{
+                color: 'var(--palette-text-primary)',
+                borderColor: 'var(--palette-text-primary)',
+                borderRadius: '12px',
+              }}
             >
               ไม่ใช่ ร้านอื่น
             </Button>

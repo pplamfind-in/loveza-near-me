@@ -10,6 +10,7 @@ export type UserReport = {
   store_name: string;
   store_type: string;
   store_type_name: string;
+  store_type_logo_url: string | null;
   address: string | null;
   province: string;
   district: string | null;

@@ -25,7 +25,7 @@ type AdminNetworkViewProps = {
 };
 
 const DIGIT_LABELS = ['หลักแสน', 'หลักหมื่น', 'หลักพัน', 'หลักร้อย', 'หลักสิบ', 'หลักหน่วย'];
-const DIGIT_COLORS = ['#00a99d', '#00a9dc', '#6d3b8c', '#E5007E', '#f1a900', '#ef5da8'];
+const DIGIT_COLORS = ['#305C3D', '#427653', '#5B8555', '#AC7628', '#80551D', '#427653'];
 
 export function AdminNetworkView({ initialStats, hasError = false }: AdminNetworkViewProps) {
   const [stats, setStats] = useState(initialStats);
@@ -114,16 +114,17 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
         zIndex: 2000,
         width: '100vw',
         height: '100dvh',
-        color: '#48245f',
+        color: 'text.primary',
         display: 'flex',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: 'hidden',
         position: 'fixed',
-        alignItems: 'center',
+        alignItems: 'safe center',
         boxSizing: 'border-box',
         overscrollBehavior: 'none',
         px: { xs: 1.5, sm: 4, md: 6 },
-        py: { xs: 7, md: 5 },
-        bgcolor: '#eaf8ff',
+        py: { xs: 7, md: 4 },
+        bgcolor: 'background.default',
         '&::before': {
           content: '""',
           inset: 0,
@@ -131,8 +132,8 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
           position: 'absolute',
           pointerEvents: 'none',
           background: {
-            xs: 'linear-gradient(135deg, rgba(238,250,255,.90), rgba(255,237,247,.88))',
-            md: 'linear-gradient(90deg, rgba(237,250,255,.98) 0%, rgba(255,255,255,.90) 42%, rgba(255,255,255,.16) 72%, rgba(255,225,239,.12) 100%)',
+            xs: 'linear-gradient(180deg, rgba(251,246,237,.96), rgba(251,246,237,.82))',
+            md: 'linear-gradient(90deg, #FBF6ED 0%, rgba(251,246,237,.96) 40%, rgba(251,246,237,.12) 80%)',
           },
         },
         '&::after': {
@@ -147,6 +148,26 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
           pointerEvents: 'none',
           background: 'radial-gradient(circle, rgba(255,232,72,.58), rgba(255,232,72,0) 68%)',
         },
+        '@media (max-height: 760px)': {
+          py: 7,
+          '& .network-panel': { py: 2, px: { xs: 1.5, md: 0 } },
+          '& .network-heading': { mt: 1, fontSize: 'clamp(24px, 4.5vh, 36px)' },
+          '& .network-counter': { mt: 2 },
+          '& .network-digit': { height: 'clamp(42px, 11vh, 76px)' },
+          '& .network-counter-label': { mt: 1.5, fontSize: 18 },
+          '& .network-cta': { mt: 2, py: 1 },
+        },
+        '@media (max-height: 520px)': {
+          py: 6,
+          '& .network-panel': { py: 1 },
+          '& .network-description': { display: 'none' },
+          '& .network-heading': { mt: 0.75, fontSize: 24 },
+          '& .network-counter': { mt: 1 },
+          '& .network-digit': { height: 44 },
+          '& .network-digit-label': { display: 'none' },
+          '& .network-counter-label': { mt: 1, fontSize: 16 },
+          '& .network-cta': { mt: 1, minHeight: 36, py: 0.5 },
+        },
         '@keyframes counterPop': {
           '0%': { opacity: 0.55, transform: 'scale(.88) translateY(8px)' },
           '65%': { transform: 'scale(1.04) translateY(-2px)' },
@@ -158,8 +179,8 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
         fill
         priority
         sizes="100vw"
-        src="/assets/loveza/loveza-hero-v2.png"
-        alt="Loveza ทั้งสามรสชาติแช่เย็นพร้อมผลไม้และน้ำแข็ง"
+        src="/assets/loveza/nearby-explorer-v1.webp"
+        alt="นักสำรวจ Loveza กับร้านค้าในโลก Voxel"
         style={{ objectFit: 'cover', objectPosition: 'center' }}
       />
 
@@ -171,13 +192,13 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
           top: { xs: 16, md: 24 },
           right: { xs: 16, md: 24 },
           zIndex: 3,
-          color: '#5a2b72',
+          color: 'primary.dark',
           position: 'fixed',
           border: '1px solid rgba(109,59,140,.14)',
           bgcolor: 'rgba(255,255,255,.76)',
           boxShadow: '0 10px 30px rgba(86,42,106,.14)',
           backdropFilter: 'blur(12px)',
-          '&:hover': { color: '#E5007E', bgcolor: '#fff' },
+          '&:hover': { color: '#427653', bgcolor: '#fff' },
         }}
       >
         <Iconify icon="ri:close-line" width={26} />
@@ -185,13 +206,14 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
 
       <Box sx={{ zIndex: 2, width: 1, maxWidth: 1240, mx: 'auto' }}>
         <Box
+          className="network-panel"
           sx={{
-            width: { xs: 1, md: '58%', lg: '54%' },
-            p: { xs: 2.5, sm: 4, md: 0 },
-            py: { xs: 5, sm: 5, md: 0 },
+            width: { xs: 1, md: '65%', lg: '60%' },
+            p: { xs: 2, sm: 3, md: 0 },
+            py: { xs: 3, sm: 4, md: 0 },
             textAlign: { xs: 'center', md: 'left' },
-            border: { xs: '1px solid rgba(255,255,255,.72)', md: 0 },
-            borderRadius: { xs: 4, md: 0 },
+            border: { xs: '5px solid var(--palette-background-paper)', md: 0 },
+            borderRadius: '18px',
             bgcolor: { xs: 'rgba(255,255,255,.68)', md: 'transparent' },
             boxShadow: { xs: '0 24px 70px rgba(78,48,102,.12)', md: 'none' },
             backdropFilter: { xs: 'blur(18px)', md: 'none' },
@@ -204,7 +226,7 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
             alignItems="center"
           >
             <Iconify icon="ri:map-pin-2-fill" width={20} />
-            <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 3 }}>
+            <Typography sx={{ color: '#427653', fontSize: 12, fontWeight: 900, letterSpacing: 3 }}>
               LOVEZA LIVE NETWORK
             </Typography>
             <Box
@@ -219,31 +241,37 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
                 boxShadow: isLive ? '0 0 0 5px rgba(22,184,106,.12)' : 'none',
               }}
             />
-            <Typography sx={{ color: '#806c87', fontSize: 10, fontWeight: 800 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: 10, fontWeight: 800 }}>
               {isLive ? 'REALTIME' : 'กำลังเชื่อมต่อ'}
             </Typography>
           </Stack>
 
           <Typography
             component="h1"
+            className="network-heading"
             sx={{
               mt: 2,
               fontSize: { xs: 34, sm: 48, md: 66 },
               lineHeight: 1.08,
               fontWeight: 1000,
               letterSpacing: '-.04em',
-              color: '#4c255f',
+              color: 'primary.dark',
               textShadow: '0 8px 34px rgba(255,255,255,.84)',
             }}
           >
             พบจุดขาย Loveza แล้ว
           </Typography>
-          <Typography sx={{ mt: 1.5, color: '#745d7d', fontSize: { xs: 15, md: 18 } }}>
-            จุดขายที่ได้รับการยืนยันจากผู้ใช้งานทั่วประเทศไทย
+          <Typography
+            className="network-description"
+            sx={{ mt: 1.5, color: 'text.secondary', fontSize: { xs: 15, md: 18 } }}
+          >
+            ติดตามจุดขายที่ชุมชนช่วยกันค้นพบทั่วประเทศไทย
           </Typography>
-          <Typography sx={{ mt: 0.75, color: '#806c87', fontSize: 12, lineHeight: 1.6 }}>
-            รวมจุดที่แจ้งใหม่ทันทีโดยไม่ต้องรออนุมัติ · ตรวจซ้ำในระยะ{' '}
-            {formatRadiusM(stats.duplicateRadiusM)}
+          <Typography
+            className="network-description"
+            sx={{ mt: 0.75, color: 'text.secondary', fontSize: 12, lineHeight: 1.6 }}
+          >
+            อัปเดตตามข้อมูลล่าสุดในระบบ · ตรวจซ้ำในระยะ {formatRadiusM(stats.duplicateRadiusM)}
           </Typography>
 
           {hasError ? (
@@ -254,25 +282,28 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
 
           <Stack
             key={pulseKey}
+            className="network-counter"
             direction="row"
             justifyContent={{ xs: 'center', md: 'flex-start' }}
             spacing={{ xs: 0.5, sm: 1, md: 1.5 }}
             sx={{
               mt: { xs: 4, md: 5 },
               animation: pulseKey ? 'counterPop .55s ease-out' : 'none',
+              '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
             }}
           >
             {locationDigits.map((digit, index) => (
               <Box key={`${digitLabels[index]}-${index}`}>
                 <Paper
+                  className="network-digit"
                   elevation={0}
                   sx={{
-                    width: { xs: 42, sm: 72, md: 96 },
-                    height: { xs: 66, sm: 104, md: 132 },
+                    width: { xs: 36, sm: 60, md: 76 },
+                    height: { xs: 54, sm: 84, md: 104 },
                     color: DIGIT_COLORS[index % DIGIT_COLORS.length],
                     display: 'grid',
                     border: `1px solid ${DIGIT_COLORS[index % DIGIT_COLORS.length]}33`,
-                    borderRadius: { xs: 2.5, md: 3.5 },
+                    borderRadius: '12px',
                     placeItems: 'center',
                     bgcolor: 'rgba(255,255,255,.88)',
                     boxShadow: `inset 0 -12px 28px ${DIGIT_COLORS[index % DIGIT_COLORS.length]}12, 0 14px 34px rgba(86,42,106,.14)`,
@@ -280,15 +311,16 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
                   }}
                 >
                   <Typography
-                    sx={{ fontSize: { xs: 32, sm: 48, md: 64 }, lineHeight: 1, fontWeight: 1000 }}
+                    sx={{ fontSize: { xs: 28, sm: 42, md: 54 }, lineHeight: 1, fontWeight: 1000 }}
                   >
                     {digit}
                   </Typography>
                 </Paper>
                 <Typography
+                  className="network-digit-label"
                   sx={{
                     mt: 1.25,
-                    color: '#806c87',
+                    color: 'text.secondary',
                     fontSize: { xs: 8, sm: 10, md: 11 },
                     fontWeight: 800,
                   }}
@@ -299,13 +331,17 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
             ))}
           </Stack>
 
-          <Typography sx={{ mt: { xs: 3, md: 4 }, fontSize: { xs: 20, md: 24 }, fontWeight: 900 }}>
+          <Typography
+            className="network-counter-label"
+            sx={{ mt: { xs: 3, md: 4 }, fontSize: { xs: 20, md: 24 }, fontWeight: 900 }}
+          >
             จุดขายทั่วประเทศไทย
           </Typography>
 
           <Button
             component={Link}
             href="/admin/locations"
+            className="network-cta"
             variant="contained"
             startIcon={<Iconify icon="ri:map-2-fill" />}
             sx={{
@@ -313,10 +349,10 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
               px: 4,
               py: 1.4,
               color: '#fff',
-              borderRadius: 99,
-              bgcolor: '#E5007E',
-              boxShadow: '0 12px 30px rgba(239,35,130,.28)',
-              '&:hover': { bgcolor: '#d81972' },
+              borderRadius: '12px',
+              bgcolor: '#427653',
+              boxShadow: '0 4px 0 var(--palette-primary-darker)',
+              '&:hover': { bgcolor: 'primary.dark' },
             }}
           >
             ดูรายละเอียดทุกจุดขาย
@@ -340,11 +376,12 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
             gap: 1,
             position: 'fixed',
             alignItems: 'center',
-            borderRadius: 3,
-            bgcolor: '#00a99d',
+            borderRadius: '16px',
+            bgcolor: '#427653',
             boxShadow: '0 16px 40px rgba(0,169,157,.30)',
             transform: 'translateX(-50%)',
             animation: 'counterPop .45s ease-out',
+            '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
           }}
         >
           <Iconify icon="ri:map-pin-add-fill" width={21} />

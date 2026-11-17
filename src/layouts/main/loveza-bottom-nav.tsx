@@ -15,27 +15,35 @@ type LovezaBottomNavProps = {
 };
 
 const guestItems = [
-  { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-fill' },
-  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-fill' },
-  { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-fill' },
-  { label: 'กระทู้', path: '/forum', icon: 'ri:chat-3-fill' },
-  { label: 'เข้าสู่ระบบ', path: '/auth/login', icon: 'ri:login-circle-line' },
+  { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-line', activeIcon: 'ri:home-5-fill' },
+  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-line', activeIcon: 'ri:map-2-fill' },
+  { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-line', activeIcon: 'ri:map-pin-2-fill' },
+  { label: 'กระทู้', path: '/forum', icon: 'ri:chat-3-line', activeIcon: 'ri:chat-3-fill' },
 ];
 
 const userItems = [
-  { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-fill' },
-  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-fill' },
-  { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-fill' },
-  { label: 'กระทู้', path: '/forum', icon: 'ri:chat-3-fill' },
-  { label: 'แจ้งพิกัด', path: '/report', icon: 'ri:edit-2-fill' },
-  { label: 'บัญชี', path: '/account', icon: 'ri:user-3-fill' },
+  { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-line', activeIcon: 'ri:home-5-fill' },
+  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-line', activeIcon: 'ri:map-2-fill' },
+  { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-line', activeIcon: 'ri:map-pin-2-fill' },
+  { label: 'กระทู้', path: '/forum', icon: 'ri:chat-3-line', activeIcon: 'ri:chat-3-fill' },
+  {
+    label: 'แจ้งพิกัด',
+    path: '/report',
+    icon: 'ri:map-pin-add-line',
+    activeIcon: 'ri:map-pin-add-fill',
+  },
 ];
 
 const adminItems = [
-  { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-fill' },
-  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-fill' },
-  { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-fill' },
-  { label: 'จัดการ', path: '/admin', icon: 'ri:shield-check-fill' },
+  { label: 'หน้าแรก', path: '/', icon: 'ri:home-5-line', activeIcon: 'ri:home-5-fill' },
+  { label: 'ซ่าทั่วไทย', path: '/mapza', icon: 'ri:map-2-line', activeIcon: 'ri:map-2-fill' },
+  { label: 'ใกล้ฉัน', path: '/nearby', icon: 'ri:map-pin-2-line', activeIcon: 'ri:map-pin-2-fill' },
+  {
+    label: 'จัดการ',
+    path: '/admin',
+    icon: 'ri:shield-check-line',
+    activeIcon: 'ri:shield-check-fill',
+  },
 ];
 
 function normalizePath(path: string) {
@@ -58,7 +66,7 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
       component="nav"
       data-loveza-bottom-nav
       aria-label="เมนูหลักด้านล่าง"
-      elevation={12}
+      elevation={0}
       sx={(theme) => ({
         left: 0,
         right: 0,
@@ -67,10 +75,11 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
         display: { xs: 'block', md: 'none' },
         position: 'fixed',
         overflow: 'hidden',
-        bgcolor: '#FFF7FB',
+        bgcolor: 'var(--palette-background-paper)',
         borderRadius: '22px 22px 0 0',
         pb: 'max(12px, env(safe-area-inset-bottom))',
-        borderTop: '3px solid #351129',
+        borderTop: '1px solid var(--palette-grey-300)',
+        boxShadow: '0 -4px 24px rgba(65,49,30,.06)',
       })}
     >
       <BottomNavigation
@@ -78,21 +87,25 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
         value={activePath ?? false}
         sx={{
           height: 68,
-          bgcolor: '#FFF7FB',
+          px: 1,
+          gap: 0.5,
+          bgcolor: 'var(--palette-background-paper)',
           borderRadius: '22px 22px 0 0',
           '& .MuiBottomNavigationAction-root': {
             my: 0.75,
             minWidth: 0,
             px: 0.5,
-            color: '#817587',
-            borderRadius: 2.5,
+            color: 'var(--palette-text-secondary)',
+            borderRadius: '14px',
             transition: 'color 160ms ease, background-color 160ms ease',
+            '&:focus-visible': {
+              outline: '2px solid var(--palette-primary-main)',
+              outlineOffset: -2,
+            },
+            '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
             '&.Mui-selected': {
-              color: '#351129',
-              bgcolor: '#FDE047',
-              border: '2px solid #351129',
-              boxShadow: '2px 2px 0 #351129',
-              '& svg': { transform: 'translateY(-1px) scale(1.08)' },
+              color: 'var(--palette-primary-main)',
+              bgcolor: 'var(--palette-primary-lighter)',
             },
           },
           '& .MuiBottomNavigationAction-label': {
@@ -107,8 +120,11 @@ export function LovezaBottomNav({ user }: LovezaBottomNavProps) {
             key={item.path}
             href={item.path}
             value={item.path}
+            aria-current={activePath === item.path ? 'page' : undefined}
             label={item.label}
-            icon={<Iconify width={23} icon={item.icon} />}
+            icon={
+              <Iconify width={24} icon={activePath === item.path ? item.activeIcon : item.icon} />
+            }
           />
         ))}
       </BottomNavigation>

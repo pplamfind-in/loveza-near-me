@@ -44,8 +44,8 @@ const CARDS = [
     label: 'พิกัดทั้งหมด',
     icon: 'ri:map-2-fill',
     href: '/admin/locations',
-    color: '#008f84',
-    background: '#e9fbf8',
+    color: '#427653',
+    background: '#E8F0E4',
     suffix: 'จุด',
   },
   {
@@ -53,8 +53,8 @@ const CARDS = [
     label: 'ยอดคงเหลือรวม',
     icon: 'ri:archive-stack-fill',
     href: '/admin/locations',
-    color: '#e21d75',
-    background: '#fff0f6',
+    color: '#427653',
+    background: '#E8F0E4',
     suffix: 'กระป๋อง',
   },
   {
@@ -62,8 +62,8 @@ const CARDS = [
     label: 'สินค้าในระบบ',
     icon: 'ri:drinks-2-fill',
     href: '/admin/products',
-    color: '#6d3b8c',
-    background: '#f6effa',
+    color: '#AC7628',
+    background: '#FBF0CD',
     suffix: 'รายการ',
   },
   {
@@ -78,8 +78,8 @@ const CARDS = [
 ] as const;
 
 const REPORT_STATS = [
-  { key: 'totalReports', label: 'ส่งเข้ามาทั้งหมด', color: '#6d3b8c' },
-  { key: 'approvedReports', label: 'อนุมัติแล้ว', color: '#008f84' },
+  { key: 'totalReports', label: 'ส่งเข้ามาทั้งหมด', color: '#AC7628' },
+  { key: 'approvedReports', label: 'อนุมัติแล้ว', color: '#427653' },
   { key: 'pendingReports', label: 'รอตรวจสอบ', color: '#d97706' },
   { key: 'rejectedReports', label: 'ไม่อนุมัติ', color: '#d92d6f' },
 ] as const;
@@ -97,7 +97,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
         spacing={2}
       >
         <Box>
-          <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
+          <Typography sx={{ color: '#427653', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
             LOVEZA HUNT ADMIN
           </Typography>
           <Typography
@@ -118,7 +118,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
             color="secondary"
             variant="contained"
             startIcon={<Iconify icon="ri:fullscreen-fill" />}
-            sx={{ borderRadius: 99 }}
+            sx={{ borderRadius: '12px' }}
           >
             เปิดภาพรวมเต็มจอ
           </Button>
@@ -127,7 +127,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
             href="/admin/products"
             variant="outlined"
             startIcon={<Iconify icon="ri:add-circle-line" />}
-            sx={{ borderRadius: 99 }}
+            sx={{ borderRadius: '12px' }}
           >
             จัดการสินค้า
           </Button>
@@ -136,7 +136,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
             href="/admin/locations"
             variant="contained"
             startIcon={<Iconify icon="ri:map-pin-2-fill" />}
-            sx={{ borderRadius: 99 }}
+            sx={{ borderRadius: '12px' }}
           >
             ดูพิกัดทั้งหมด
           </Button>
@@ -174,7 +174,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
               sx={{
                 p: 2.5,
                 color: 'text.primary',
-                borderRadius: 3,
+                borderRadius: '16px',
                 textDecoration: 'none',
                 transition: 'transform .2s ease, box-shadow .2s ease',
                 '&:hover': {
@@ -189,7 +189,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
                   height: 46,
                   color: card.color,
                   display: 'grid',
-                  borderRadius: 2,
+                  borderRadius: '10px',
                   placeItems: 'center',
                   bgcolor: card.background,
                 }}
@@ -217,7 +217,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
           gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.5fr) minmax(300px, 1fr)' },
         }}
       >
-        <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 3 }}>
+        <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: '16px' }}>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             alignItems={{ xs: 'flex-start', sm: 'center' }}
@@ -248,7 +248,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
             {REPORT_STATS.map((item) => (
               <Box
                 key={item.key}
-                sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+                sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: '10px' }}
               >
                 <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>{item.label}</Typography>
                 <Typography sx={{ mt: 0.5, color: item.color, fontSize: 25, fontWeight: 900 }}>
@@ -259,7 +259,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
           </Box>
         </Paper>
 
-        <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 3 }}>
+        <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: '16px' }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <Box
               sx={{
@@ -268,7 +268,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
                 color: '#2574a9',
                 display: 'grid',
                 flexShrink: 0,
-                borderRadius: 2,
+                borderRadius: '10px',
                 placeItems: 'center',
                 bgcolor: '#edf7ff',
               }}
@@ -295,7 +295,7 @@ export function AdminOverview({ stats, hasError = false }: AdminOverviewProps) {
             href="/admin/analytics"
             variant="outlined"
             endIcon={<Iconify icon="ri:arrow-right-line" />}
-            sx={{ mt: 2, borderRadius: 99 }}
+            sx={{ mt: 2, borderRadius: '12px' }}
           >
             ดูสถิติในระบบ
           </Button>

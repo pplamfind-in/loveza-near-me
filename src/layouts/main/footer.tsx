@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
+
 import { getBrandOwnerNotice, getBrandOwnerStatusLabel } from 'src/lib/brand-owner-notice';
 
 import { Logo } from 'src/components/logo';
@@ -24,8 +25,9 @@ const FOOTER_LINKS = [
 
 const FooterRoot = styled('footer')({
   position: 'relative',
-  color: '#fff',
-  background: 'linear-gradient(135deg, #4B2440, #72003F)',
+  color: 'var(--palette-text-primary)',
+  background: 'var(--palette-background-default)',
+  borderTop: '1px solid var(--palette-grey-300)',
 });
 
 export type FooterProps = React.ComponentProps<typeof FooterRoot> & {
@@ -39,7 +41,10 @@ export function Footer({
   ...other
 }: FooterProps & { layoutQuery?: Breakpoint }) {
   return (
-    <FooterRoot sx={sx} {...other}>
+    <FooterRoot
+      sx={[{ display: { xs: 'none', md: 'block' } }, ...(Array.isArray(sx) ? sx : [sx])]}
+      {...other}
+    >
       <Container
         sx={{
           pt: { xs: 5, md: 6 },
@@ -56,7 +61,9 @@ export function Footer({
             <Logo sx={{ width: 56, height: 52 }} />
             <Box>
               <Typography sx={{ fontSize: 18, fontWeight: 1000 }}>LOVEZA HUNT</Typography>
-              <Typography sx={{ color: '#FFD9ED', fontSize: 12, fontWeight: 800 }}>
+              <Typography
+                sx={{ color: 'var(--palette-text-secondary)', fontSize: 12, fontWeight: 800 }}
+              >
                 {getBrandOwnerStatusLabel(brandOwnerAcknowledged)}
               </Typography>
             </Box>
@@ -79,10 +86,17 @@ export function Footer({
         </Stack>
 
         <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid rgba(255,255,255,.18)' }}>
-          <Typography sx={{ maxWidth: 920, color: '#FFD9ED', fontSize: 12, lineHeight: 1.7 }}>
+          <Typography
+            sx={{
+              maxWidth: 920,
+              color: 'var(--palette-text-secondary)',
+              fontSize: 12,
+              lineHeight: 1.7,
+            }}
+          >
             {getBrandOwnerNotice(brandOwnerAcknowledged)}
           </Typography>
-          <Typography sx={{ mt: 2, color: '#FFD9ED', fontSize: 12 }}>
+          <Typography sx={{ mt: 2, color: 'var(--palette-text-secondary)', fontSize: 12 }}>
             © {new Date().getFullYear()} LOVEZA HUNT. All rights reserved.
           </Typography>
         </Box>

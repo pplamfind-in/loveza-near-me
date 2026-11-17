@@ -6,7 +6,7 @@ import type { NavMainProps } from './nav/types';
 import type { LovezaHeaderUser } from '../components/loveza-header-account';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
-import { useBoolean } from 'minimal-shared/hooks';
+import { useScrollOffsetTop } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -18,16 +18,14 @@ import { usePathname } from 'src/routes/hooks';
 import { getUserDisplayName } from 'src/lib/user-display-name';
 
 import { Logo } from 'src/components/logo';
-import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
+import { Iconify } from 'src/components/iconify';
 
 import { useAuthContext } from 'src/auth/hooks';
 
 import { Footer } from './footer';
-import { NavMobile } from './nav/mobile';
 import { NavDesktop } from './nav/desktop';
 import { getMainNavData } from '../nav-config-main';
 import { LovezaBottomNav } from './loveza-bottom-nav';
-import { MenuButton } from '../components/menu-button';
 import { MainSection, LayoutSection, HeaderSection } from '../core';
 import { LovezaHeaderAccount } from '../components/loveza-header-account';
 
@@ -59,11 +57,21 @@ export function MainLayout({
   layoutQuery = 'md',
 }: MainLayoutProps) {
   const pathname = usePathname();
+  const { offsetTop: isHeaderOffset } = useScrollOffsetTop();
   const { user: authUser } = useAuthContext();
 
-  const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
-
   const isHomePage = pathname === '/';
+  const hasHeroHeader = [
+    '/',
+    '/nearby',
+    '/nearby/',
+    '/mapza',
+    '/mapza/',
+    '/about-us',
+    '/about-us/',
+    '/contact-us',
+    '/contact-us/',
+  ].includes(pathname);
 
   const contextUser: LovezaHeaderUser | null = authUser
     ? {
@@ -85,46 +93,13 @@ export function MainLayout({
       ),
       leftArea: (
         <>
-          {/** @slot Nav mobile */}
-          <MenuButton
-            onClick={onOpen}
-            sx={(theme) => ({
-              mr: 1,
-              ml: -1,
-              [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
-            })}
-          />
-          <NavMobile
-            data={navData}
-            open={open}
-            onClose={onClose}
-            slots={{
-              bottomArea: headerUser ? (
-                <Box sx={{ p: 2.5 }} textAlign="center">
-                  <LovezaHeaderAccount user={headerUser} mobile />
-                  <Box sx={{ mt: 1 }}>
-                    <LovezaSignOutButton
-                      buttonProps={{ color: 'inherit', fullWidth: true, variant: 'text' }}
-                    />
-                  </Box>
-                </Box>
-              ) : (
-                <Box sx={{ p: 2.5 }}>
-                  <Button href="/auth/login" variant="contained" fullWidth>
-                    เข้าสู่ระบบด้วย Google
-                  </Button>
-                </Box>
-              ),
-            }}
-          />
-
           {/** @slot Logo */}
           <Box sx={{ display: 'flex', gap: 1.1, alignItems: 'center' }}>
             <Logo />
             <Typography
               sx={(theme) => ({
                 display: 'none',
-                color: '#351129',
+                color: 'var(--palette-text-primary)',
                 fontSize: 16,
                 fontWeight: 1000,
                 lineHeight: 1,
@@ -134,7 +109,7 @@ export function MainLayout({
               })}
             >
               LOVEZA{' '}
-              <Box component="span" sx={{ color: '#E5007E' }}>
+              <Box component="span" sx={{ color: 'var(--palette-primary-main)' }}>
                 HUNT
               </Box>
             </Typography>
@@ -151,14 +126,49 @@ export function MainLayout({
               [theme.breakpoints.up(layoutQuery)]: {
                 mr: 1.5,
                 display: 'flex',
-                '& ul': { gap: { md: 1.5, lg: 2.5 } },
-                ...(isHomePage && { '& button span': { color: '#4B2440' } }),
+                '& ul': { gap: { md: 2, lg: 3.5 } },
+                ...(isHomePage && { '& button span': { color: 'var(--palette-primary-dark)' } }),
               },
             })}
           />
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-            {headerUser ? <LovezaHeaderAccount user={headerUser} /> : null}
+            {headerUser ? (
+              <LovezaHeaderAccount user={headerUser} />
+            ) : (
+              <Button
+                href="/auth/login"
+                aria-label="เข้าสู่ระบบ"
+                color="inherit"
+                sx={(theme) => ({
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.25,
+                  minWidth: 64,
+                  minHeight: 48,
+                  py: 0.5,
+                  px: 1,
+                  color: 'primary.dark',
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 0 var(--palette-grey-200)',
+                  '&:hover': { bgcolor: 'primary.lighter', borderColor: 'primary.light' },
+                  '&:focus-visible': {
+                    outline: '2px solid var(--palette-primary-main)',
+                    outlineOffset: 3,
+                  },
+                  fontSize: 10,
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                  [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
+                })}
+              >
+                <Iconify icon="ri:login-circle-line" width={24} />
+                เข้าสู่ระบบ
+              </Button>
+            )}
             {/** @slot Settings button */}
             {/* <SettingsButton /> */}
 
@@ -189,7 +199,19 @@ export function MainLayout({
         {...slotProps?.header}
         slots={{ ...headerSlots, ...slotProps?.header?.slots }}
         slotProps={slotProps?.header?.slotProps}
-        sx={slotProps?.header?.sx}
+        sx={[
+          ...(hasHeroHeader
+            ? [
+                {
+                  bgcolor: isHeaderOffset ? 'background.default' : 'transparent',
+                  boxShadow: isHeaderOffset ? '0 2px 16px rgba(65,49,30,.06)' : 'none',
+                  transition: 'background-color 180ms ease, box-shadow 180ms ease',
+                  '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                },
+              ]
+            : [{ bgcolor: 'background.default' }]),
+          ...(Array.isArray(slotProps?.header?.sx) ? slotProps.header.sx : [slotProps?.header?.sx]),
+        ]}
       />
     );
   };
@@ -207,7 +229,30 @@ export function MainLayout({
     <MainSection
       {...slotProps?.main}
       sx={[
-        { pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', md: 0 } },
+        {
+          pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', md: 0 },
+          bgcolor: 'background.default',
+          '& .MuiButton-root': { borderRadius: '12px' },
+          '& .MuiButton-containedPrimary': { boxShadow: '0 4px 0 var(--palette-primary-darker)' },
+          '& a:focus-visible, & button:focus-visible': {
+            outline: '3px solid var(--palette-primary-main)',
+            outlineOffset: 3,
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            '& *, & *::before, & *::after': {
+              transition: 'none !important',
+              animation: 'none !important',
+            },
+          },
+          ...(hasHeroHeader && {
+            mt: {
+              xs: 'calc(-1 * var(--layout-header-mobile-height))',
+              [layoutQuery]: 'calc(-1 * var(--layout-header-desktop-height))',
+            },
+            px: 0,
+            bgcolor: 'background.default',
+          }),
+        },
         ...(Array.isArray(slotProps?.main?.sx) ? slotProps.main.sx : [slotProps?.main?.sx]),
       ]}
     >

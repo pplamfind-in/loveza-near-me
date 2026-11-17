@@ -46,7 +46,7 @@ function MetricList({
   const maxPageviews = Math.max(...rows.map((row) => row.pageviews), 1);
 
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
       <Typography sx={{ fontSize: 18, fontWeight: 900 }}>{title}</Typography>
       <Stack divider={<Divider flexItem />} sx={{ mt: 1.5 }}>
         {rows.length ? (
@@ -63,7 +63,7 @@ function MetricList({
               <LinearProgress
                 variant="determinate"
                 value={(row.pageviews / maxPageviews) * 100}
-                sx={{ mt: 1, height: 5, borderRadius: 99 }}
+                sx={{ mt: 1, height: 5, borderRadius: '12px' }}
               />
             </Box>
           ))
@@ -82,7 +82,7 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
     ? (analytics.pageviews / analytics.visitors).toFixed(1)
     : '0.0';
   const chartOptions = useChart({
-    colors: ['#e5007e', '#00a99d'],
+    colors: ['#427653', '#AC7628'],
     xaxis: {
       categories: analytics.timeline.map((item) =>
         new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short' }).format(
@@ -100,24 +100,24 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
       value: analytics.pageviews.toLocaleString('th-TH'),
       suffix: 'ครั้ง',
       icon: 'ri:pages-fill',
-      color: '#e5007e',
-      background: '#fff0f7',
+      color: '#427653',
+      background: '#E8F0E4',
     },
     {
       label: 'ผู้เข้าชม',
       value: analytics.visitors.toLocaleString('th-TH'),
       suffix: 'คน',
       icon: 'ri:user-heart-fill',
-      color: '#008f84',
-      background: '#e9fbf8',
+      color: '#427653',
+      background: '#E8F0E4',
     },
     {
       label: 'หน้าเฉลี่ยต่อคน',
       value: averageViews,
       suffix: 'หน้า',
       icon: 'ri:bar-chart-box-fill',
-      color: '#6d3b8c',
-      background: '#f6effa',
+      color: '#AC7628',
+      background: '#FBF0CD',
     },
   ];
 
@@ -130,7 +130,7 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
         spacing={2}
       >
         <Box>
-          <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
+          <Typography sx={{ color: '#427653', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
             VERCEL WEB ANALYTICS
           </Typography>
           <Typography
@@ -140,18 +140,29 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
             สถิติการเข้าใช้งาน
           </Typography>
           <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-            ข้อมูลผู้เข้าชมเว็บไซต์จริงจาก Vercel อัปเดตอัตโนมัติทุก 5 นาที
+            สถิติจาก Vercel Web Analytics · แคชข้อมูล 5 นาที
           </Typography>
         </Box>
 
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Button
+            component="a"
+            href="https://vercel.com/love-za/loveza-near-me/analytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            color="inherit"
+            variant="outlined"
+            endIcon={<Iconify icon="ri:external-link-line" />}
+          >
+            เปิด Vercel Analytics
+          </Button>
           {PERIODS.map((item) => (
             <Button
               key={item.value}
               component={Link}
               href={`/admin/analytics?period=${item.value}`}
               variant={analytics.period === item.value ? 'contained' : 'outlined'}
-              sx={{ minWidth: 76, borderRadius: 99 }}
+              sx={{ minWidth: 76, borderRadius: '12px' }}
             >
               {item.label}
             </Button>
@@ -180,14 +191,14 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
         }}
       >
         {summaryCards.map((card) => (
-          <Paper key={card.label} elevation={0} sx={{ p: 2.5, borderRadius: 3 }}>
+          <Paper key={card.label} elevation={0} sx={{ p: 2.5, borderRadius: '16px' }}>
             <Box
               sx={{
                 width: 46,
                 height: 46,
                 color: card.color,
                 display: 'grid',
-                borderRadius: 2,
+                borderRadius: '10px',
                 placeItems: 'center',
                 bgcolor: card.background,
               }}
@@ -198,7 +209,7 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
               {card.label}
             </Typography>
             <Typography sx={{ mt: 0.25, fontSize: 28, fontWeight: 900 }}>
-              {card.value}{' '}
+              {analytics.error ? '—' : card.value}{' '}
               <Typography component="span" sx={{ color: 'text.secondary', fontSize: 13 }}>
                 {card.suffix}
               </Typography>
@@ -207,7 +218,7 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
         ))}
       </Box>
 
-      <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 3 }}>
+      <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: '16px' }}>
         <Typography sx={{ fontSize: 18, fontWeight: 900 }}>แนวโน้มการเข้าใช้งาน</Typography>
         <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 13 }}>
           จำนวนการเปิดหน้าและผู้เข้าชมแยกรายวัน
@@ -224,7 +235,9 @@ export function AdminAnalyticsView({ analytics }: AdminAnalyticsViewProps) {
           />
         ) : (
           <Box sx={{ py: 10, color: 'text.secondary', textAlign: 'center' }}>
-            ยังไม่มีข้อมูลในช่วงเวลานี้
+            {analytics.error
+              ? 'เชื่อมต่อ Vercel Analytics เพื่อแสดงกราฟ'
+              : 'ยังไม่มีข้อมูลในช่วงเวลานี้'}
           </Box>
         )}
       </Paper>

@@ -50,9 +50,20 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       <Button href="/forum" sx={{ alignSelf: 'flex-start' }}>
         ← กลับหน้ากระทู้
       </Button>
-      <Paper sx={{ p: { xs: 3, md: 4 }, border: '2px solid #351129', borderRadius: 3 }}>
+      <Paper
+        sx={{
+          p: { xs: 2, md: 3 },
+          border: '5px solid var(--palette-background-paper)',
+          borderRadius: '18px',
+          boxShadow: '0 4px 0 var(--palette-grey-200)',
+        }}
+      >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Chip label={thread.category} size="small" color="secondary" />
+          <Chip
+            label={thread.category}
+            size="small"
+            sx={{ bgcolor: 'primary.lighter', color: 'primary.dark', borderRadius: '6px' }}
+          />
           {user?.id === thread.author_id && <ForumPostActions thread={thread} threadId={id} />}
         </Stack>
         <Typography component="h2" variant="h4" sx={{ my: 2, overflowWrap: 'anywhere' }}>
@@ -63,7 +74,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             src={thread.author_avatar_url ?? undefined}
             alt={thread.author_name}
             slotProps={{ img: { referrerPolicy: 'no-referrer' } }}
-            sx={{ width: 36, height: 36, bgcolor: '#FCE4F1', color: '#AD005E', fontSize: 15 }}
+            sx={{
+              width: 36,
+              height: 36,
+              bgcolor: 'var(--palette-primary-lighter)',
+              color: 'var(--palette-primary-main)',
+              fontSize: 15,
+            }}
           >
             {thread.author_name.trim().slice(0, 1).toUpperCase()}
           </Avatar>

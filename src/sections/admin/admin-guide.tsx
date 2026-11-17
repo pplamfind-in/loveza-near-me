@@ -38,8 +38,8 @@ const ROLE_CARDS: RoleCard[] = [
   },
   {
     icon: 'ri:shield-check-fill',
-    color: '#e21d75',
-    background: '#fff0f6',
+    color: '#427653',
+    background: '#E8F0E4',
     title: 'แอดมิน',
     description: 'จัดการข้อมูลทั้งหมดใน /admin/* ตามสิทธิ์ที่อธิบายด้านล่าง',
   },
@@ -134,7 +134,7 @@ const REFERENCE_CARDS: ReferenceCard[] = [
   },
   {
     icon: 'ri:radar-fill',
-    color: '#e5007e',
+    color: '#427653',
     background: 'rgba(239,35,130,.10)',
     title: 'ตั้งค่าระบบ',
     href: '/admin/settings',
@@ -143,24 +143,24 @@ const REFERENCE_CARDS: ReferenceCard[] = [
   },
   {
     icon: 'ri:store-2-fill',
-    color: '#e5007e',
-    background: '#fff0f7',
+    color: '#427653',
+    background: '#E8F0E4',
     title: 'ประเภทร้าน',
     href: '/admin/store-types',
     description: 'จัดการประเภทร้าน โลโก้ ลำดับการแสดง และสถานะเปิดใช้งานที่ใช้ในฟอร์มแจ้งพิกัด',
   },
   {
     icon: 'ri:drinks-2-fill',
-    color: '#6d3b8c',
-    background: '#f6effa',
+    color: '#AC7628',
+    background: '#FBF0CD',
     title: 'จัดการสินค้า',
     href: '/admin/products',
     description: 'CRUD รสชาติ Loveza (ชื่อ สี ไอคอนผลไม้ คำอธิบาย รูปภาพ) ที่แสดงบน Landing page',
   },
   {
     icon: 'ri:image-2-fill',
-    color: '#e5007e',
-    background: '#fff0f7',
+    color: '#427653',
+    background: '#E8F0E4',
     title: 'จัดการแบนเนอร์',
     href: '/admin/banners',
     description:
@@ -168,8 +168,8 @@ const REFERENCE_CARDS: ReferenceCard[] = [
   },
   {
     icon: 'ri:bar-chart-box-fill',
-    color: '#6d3b8c',
-    background: '#f6effa',
+    color: '#AC7628',
+    background: '#FBF0CD',
     title: 'สถิติการเข้าใช้งาน',
     href: '/admin/analytics',
     description:
@@ -186,8 +186,8 @@ const REFERENCE_CARDS: ReferenceCard[] = [
   },
   {
     icon: 'ri:map-2-fill',
-    color: '#008f84',
-    background: '#e9fbf8',
+    color: '#427653',
+    background: '#E8F0E4',
     title: 'พิกัดทั้งหมด',
     href: '/admin/locations',
     description: 'รายการร้านทั้งหมดในระบบ รวมร้านที่ปิดใช้งานแล้ว (read-only)',
@@ -227,7 +227,7 @@ function FlowList({ steps }: { steps: FlowStep[] }) {
               placeItems: 'center',
               borderRadius: '50%',
               bgcolor: 'rgba(229,0,126,.10)',
-              color: '#e5007e',
+              color: '#427653',
               fontSize: 13,
               fontWeight: 900,
             }}
@@ -250,7 +250,7 @@ export function AdminGuide() {
   return (
     <Stack spacing={4}>
       <Box>
-        <Typography sx={{ color: '#00a99d', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
+        <Typography sx={{ color: '#427653', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}>
           LOVEZA HUNT ADMIN
         </Typography>
         <Typography component="h1" sx={{ mt: 0.75, fontSize: { xs: 30, md: 38 }, fontWeight: 900 }}>
@@ -262,7 +262,7 @@ export function AdminGuide() {
         </Typography>
       </Box>
 
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
         <Typography sx={{ fontSize: 18, fontWeight: 900 }}>บทบาทผู้ใช้งาน</Typography>
         <Box
           sx={{
@@ -273,14 +273,14 @@ export function AdminGuide() {
           }}
         >
           {ROLE_CARDS.map((role) => (
-            <Box key={role.title} sx={{ p: 2, borderRadius: 2.5, bgcolor: role.background }}>
+            <Box key={role.title} sx={{ p: 2, borderRadius: '12px', bgcolor: role.background }}>
               <Box
                 sx={{
                   width: 40,
                   height: 40,
                   color: role.color,
                   display: 'grid',
-                  borderRadius: 2,
+                  borderRadius: '10px',
                   placeItems: 'center',
                   bgcolor: '#fff',
                 }}
@@ -296,9 +296,9 @@ export function AdminGuide() {
         </Box>
       </Paper>
 
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <Iconify icon="ri:route-fill" width={22} sx={{ color: '#e5007e' }} />
+          <Iconify icon="ri:route-fill" width={22} sx={{ color: '#427653' }} />
           <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
             Flow การแจ้งพิกัด (/report)
           </Typography>
@@ -308,9 +308,9 @@ export function AdminGuide() {
         </Box>
       </Paper>
 
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <Iconify icon="ri:map-pin-user-fill" width={22} sx={{ color: '#e5007e' }} />
+          <Iconify icon="ri:map-pin-user-fill" width={22} sx={{ color: '#427653' }} />
           <Typography sx={{ fontSize: 18, fontWeight: 900 }}>Flow การอนุมัติและเผยแพร่</Typography>
         </Stack>
         <Box sx={{ mt: 2.5 }}>
@@ -318,9 +318,9 @@ export function AdminGuide() {
         </Box>
       </Paper>
 
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <Iconify icon="ri:refresh-line" width={22} sx={{ color: '#00a99d' }} />
+          <Iconify icon="ri:refresh-line" width={22} sx={{ color: '#427653' }} />
           <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
             Flow อัปเดตสถานะสินค้าจากประวัติ
           </Typography>
@@ -352,7 +352,7 @@ export function AdminGuide() {
               sx={{
                 p: 2.5,
                 color: 'text.primary',
-                borderRadius: 3,
+                borderRadius: '16px',
                 textDecoration: 'none',
                 transition: 'transform .2s ease, box-shadow .2s ease',
                 '&:hover': {
@@ -367,7 +367,7 @@ export function AdminGuide() {
                   height: 44,
                   color: card.color,
                   display: 'grid',
-                  borderRadius: 2,
+                  borderRadius: '10px',
                   placeItems: 'center',
                   bgcolor: card.background,
                 }}
@@ -385,7 +385,7 @@ export function AdminGuide() {
 
       <Paper
         elevation={0}
-        sx={{ p: 3, borderRadius: 3, border: '2px solid #d97706', bgcolor: '#fff7e6' }}
+        sx={{ p: 3, borderRadius: '16px', border: '2px solid #d97706', bgcolor: '#fff7e6' }}
       >
         <Stack direction="row" spacing={1} alignItems="center">
           <Iconify icon="ri:alert-fill" width={22} sx={{ color: '#d97706' }} />
@@ -402,9 +402,9 @@ export function AdminGuide() {
         </Typography>
       </Paper>
 
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+      <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <Iconify icon="ri:rocket-2-fill" width={22} sx={{ color: '#00a99d' }} />
+          <Iconify icon="ri:rocket-2-fill" width={22} sx={{ color: '#427653' }} />
           <Typography sx={{ fontSize: 18, fontWeight: 900 }}>
             เช็คลิสต์ก่อนขึ้น Production
           </Typography>
@@ -416,7 +416,7 @@ export function AdminGuide() {
               <Iconify
                 icon="ri:checkbox-blank-circle-line"
                 width={16}
-                sx={{ mt: 0.4, flexShrink: 0, color: '#00a99d' }}
+                sx={{ mt: 0.4, flexShrink: 0, color: '#427653' }}
               />
               <Typography sx={{ fontSize: 13.5, lineHeight: 1.7 }}>{item}</Typography>
             </Stack>

@@ -50,7 +50,7 @@ export function DisplayNameForm({ currentName }: { currentName: string }) {
         variant="contained"
         type="submit"
         disabled={pending || name.trim() === currentName}
-        sx={{ alignSelf: 'flex-end' }}
+        sx={{ alignSelf: 'stretch', minHeight: 42, borderRadius: '12px' }}
       >
         {pending ? 'กำลังบันทึก…' : 'บันทึกชื่อ'}
       </Button>

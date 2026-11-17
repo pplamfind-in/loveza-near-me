@@ -1,144 +1,156 @@
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
 
-const benefits = [
-  {
-    title: 'ล่าใกล้ฉัน',
-    body: 'ใช้ GPS ค้นหาร้าน Loveza ที่อยู่ใกล้คุณ',
-    color: '#ffdd3f',
-    icon: 'ri:map-pin-2-fill',
-  },
-  {
-    title: 'แก๊งช่วยกัน',
-    body: 'Community ช่วยแจ้งพิกัดร้านที่พบเจอ',
-    color: '#82e4dd',
-    icon: 'ri:team-fill',
-  },
-  {
-    title: 'เช็กของเหลือ',
-    body: 'ดูสถานะและจำนวนสินค้าก่อนไปถึงร้าน',
-    color: '#ff9bc9',
-    icon: 'ri:stock-fill',
-  },
-  {
-    title: 'พิกัดไว้ใจได้',
-    body: 'ลดจุดซ้ำและมีระบบตรวจสอบข้อมูลร้าน',
-    color: '#6940a5',
-    icon: 'ri:shield-check-fill',
-  },
-];
-
 export function StorySection() {
   return (
-    <Container maxWidth="xl">
-      <Box component="section" id="about" sx={{ py: { xs: 7, md: 6 } }}>
-        <Container maxWidth="xl" sx={{ px: { xs: '0 !important', sm: '0 !important' } }}>
+    <Container maxWidth="lg">
+      <Box
+        component="section"
+        id="about"
+        sx={{
+          pt: { xs: 3, md: 4 },
+          pb: { xs: 4, md: 5 },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gap: { xs: 4, md: 8 },
+          alignItems: 'center',
+        }}
+      >
+        <Box sx={{ position: 'relative', pb: 3, pr: 3 }}>
+          <Box
+            component="img"
+            src="/assets/loveza/voxel-loveza-trees-v2.webp"
+            alt="โลกแห่งการสำรวจ ร้านเล็ก ๆ และเส้นทางที่เชื่อมชุมชน"
+            loading="lazy"
+            width={1536}
+            height={1024}
+            sx={{
+              display: 'block',
+              width: 1,
+              height: { xs: 260, md: 330 },
+              objectFit: 'cover',
+              objectPosition: 'right bottom',
+              border: '5px solid var(--palette-background-paper)',
+              borderRadius: '18px',
+              boxShadow: '0 12px 32px rgba(65,49,30,.1)',
+            }}
+          />
           <Box
             sx={{
-              display: 'grid',
-              gap: { xs: 2, md: 2.5 },
-              gridTemplateColumns: { xs: '1fr', md: '0.92fr 1.08fr' },
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              p: 2,
+              display: 'flex',
+              gap: 1.5,
+              alignItems: 'center',
+              bgcolor: 'background.paper',
+              border: '1px solid var(--palette-grey-300)',
+              borderRadius: '14px',
+              boxShadow: '0 8px 24px rgba(65,49,30,.08)',
             }}
           >
-            <Box
-              sx={{
-                p: { xs: 3.5, sm: 5, md: 7 },
-                display: 'flex',
-                minHeight: { md: 520 },
-                border: '3px solid #351129',
-                borderRadius: { xs: '30px', md: '42px' },
-                flexDirection: 'column',
-                justifyContent: 'center',
-                background: 'linear-gradient(145deg, #E5007E 0%, #B80065 54%, #7C3AED 130%)',
-                boxShadow: '8px 9px 0 #351129',
-              }}
-            >
-              <Typography
-                sx={{ color: '#FFD9ED', fontWeight: 900, letterSpacing: 2, fontSize: 12 }}
-              >
-                WHY LOVEZA HUNT
+            <Iconify icon="ri:map-pin-add-line" width={30} sx={{ color: 'primary.main' }} />
+            <Box>
+              <Typography sx={{ fontSize: 14, fontWeight: 800 }}>พิกัดเล็ก ๆ ของคุณ</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+                ช่วยการเดินทางของคนต่อไป
               </Typography>
-              <Typography
-                component="h2"
-                sx={{
-                  mt: 1.5,
-                  color: '#fff',
-                  fontSize: { xs: 42, md: 62 },
-                  lineHeight: 1,
-                  fontWeight: 900,
-                  letterSpacing: '-.055em',
-                }}
-              >
-                ล่าให้เจอ
-                <br />
-                แล้วแชร์ต่อ
-              </Typography>
-              <Typography
-                sx={{ mt: 3, maxWidth: 480, color: '#FFEAF5', fontSize: 16, lineHeight: 1.8 }}
-              >
-                LOVEZA HUNT คือพื้นที่รวมพิกัดความซ่าจากนักล่าทั่วประเทศ เปิด GPS เช็กร้านใกล้ตัว
-                ดูของที่เหลือ และช่วยกันแจ้งจุดใหม่ให้แก๊งตามไปล่าได้ง่ายกว่าเดิม
-              </Typography>
-
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 4 }}>
-                {['GPS ใกล้ฉัน', 'พิกัดจาก Community', 'อัปเดตจำนวนสินค้า'].map((item) => (
-                  <Box
-                    key={item}
-                    sx={{
-                      px: 2,
-                      py: 1,
-                      color: '#fff',
-                      fontSize: 13,
-                      fontWeight: 800,
-                      border: '1px solid rgba(255,255,255,.3)',
-                      borderRadius: 99,
-                      bgcolor: 'rgba(255,255,255,.1)',
-                    }}
-                  >
-                    {item}
-                  </Box>
-                ))}
-              </Stack>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: { xs: 1.5, sm: 2 },
-              }}
-            >
-              {benefits.map((item, index) => (
-                <Box
-                  key={item.title}
-                  sx={{
-                    minHeight: { xs: 175, sm: 250 },
-                    p: { xs: 2.5, sm: 3.5 },
-                    color: index === 3 ? '#fff' : '#26311f',
-                    bgcolor: item.color,
-                    border: '3px solid #351129',
-                    borderRadius: { xs: '26px', sm: '34px' },
-                    boxShadow: '5px 6px 0 #351129',
-                    transition: 'transform .25s ease',
-                    '&:hover': { transform: 'translateY(-6px)' },
-                  }}
-                >
-                  <Iconify icon={item.icon} width={34} />
-                  <Typography
-                    sx={{ mt: { xs: 3, sm: 5 }, fontSize: { xs: 18, sm: 23 }, fontWeight: 900 }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography sx={{ mt: 0.5, opacity: 0.72 }}>{item.body}</Typography>
-                </Box>
-              ))}
             </Box>
           </Box>
-        </Container>
+        </Box>
+        <Box>
+          <Typography
+            sx={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: 'primary.main' }}
+          >
+            BUILT BY THE COMMUNITY
+          </Typography>
+          <Typography
+            component="h2"
+            sx={{ mt: 2, fontSize: { xs: 30, md: 40 }, fontWeight: 900, lineHeight: 1.35 }}
+          >
+            ทุกการค้นพบ
+            <br />
+            ต่อเติมแผนที่ของเรา
+          </Typography>
+          <Typography sx={{ mt: 2, color: 'text.secondary', lineHeight: 1.9 }}>
+            Loveza Hunt เริ่มจากคำถามง่าย ๆ ว่า “หาซื้อได้ที่ไหน?”
+            เราจึงชวนทุกคนมาช่วยกันปักหมุดร้าน แชร์สิ่งที่พบ และทำให้การตามหา Loveza
+            ครั้งต่อไปง่ายขึ้น
+          </Typography>
+          <Button
+            href="/about-us"
+            color="inherit"
+            endIcon={<Iconify icon="ri:arrow-right-line" />}
+            sx={{ mt: 2, px: 0, textDecoration: 'underline', textUnderlineOffset: 5 }}
+          >
+            รู้จัก Loveza Hunt
+          </Button>
+        </Box>
+      </Box>
+    </Container>
+  );
+}
+
+export function AdventureSection() {
+  return (
+    <Container maxWidth="lg">
+      <Box
+        component="section"
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '18px',
+          mb: { xs: 5, md: 8 },
+          p: { xs: 3, md: 5 },
+          minHeight: 260,
+          bgcolor: 'primary.lighter',
+        }}
+      >
+        <Box
+          component="img"
+          src="/assets/loveza/voxel-loveza-trees-v2.webp"
+          alt=""
+          loading="lazy"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: 1,
+            height: 1,
+            objectFit: 'cover',
+            objectPosition: 'center 70%',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(90deg, var(--palette-background-paper) 5%, rgba(255,253,250,.92) 40%, rgba(255,253,250,.1) 100%)',
+          }}
+        />
+        <Box sx={{ position: 'relative', maxWidth: 430 }}>
+          <Typography
+            component="h2"
+            sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 900, lineHeight: 1.4 }}
+          >
+            เริ่มจากร้านใกล้ตัว
+            <br />
+            แล้วออกไปเจอความซ่า
+          </Typography>
+          <Button
+            href="/nearby"
+            variant="contained"
+            endIcon={<Iconify icon="ri:arrow-right-line" />}
+            sx={{ mt: 3, px: 3 }}
+          >
+            ออกสำรวจกันเลย
+          </Button>
+        </Box>
       </Box>
     </Container>
   );

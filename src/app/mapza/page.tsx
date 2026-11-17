@@ -4,12 +4,18 @@ import type { MapzaStore } from 'src/types/store';
 import { preload } from 'react-dom';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { createSeoMetadata } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
 import { provinceColorSettingsFromRow } from 'src/lib/mapza/province-color-scale';
+
+import { Iconify } from 'src/components/iconify';
+
+import { explorerLabelSx } from 'src/sections/home/explorer-styles';
 
 import ThailandMap from './thailand-map';
 
@@ -49,107 +55,174 @@ export default async function MapzaPage() {
 
   return (
     <Box
-      component="main"
       sx={{
         minHeight: '100vh',
-        py: { xs: '94px', md: '110px' },
-        background:
-          'radial-gradient(circle at 12px 12px, rgba(229,0,126,.11) 2px, transparent 2.5px) 0 0 / 28px 28px, linear-gradient(145deg, #FFF1F8 0%, #FFFBE8 55%, #EAFBFF 100%)',
+        bgcolor: 'background.default',
+        pb: 7,
+        '& [id]': { scrollMarginTop: 96 },
       }}
     >
-      <Container maxWidth="lg">
+      <Box
+        component="section"
+        sx={{ position: 'relative', overflow: 'hidden', minHeight: { md: 560 } }}
+      >
         <Box
+          component="img"
+          src="/assets/loveza/voxel-loveza-trees-v2.webp"
+          alt=""
+          width={1536}
+          height={1024}
+          fetchPriority="high"
           sx={{
-            mb: 4,
-            p: { xs: 3, md: 5 },
-            overflow: 'hidden',
-            position: 'relative',
-            color: '#fff',
-            border: '3px solid #351129',
-            borderRadius: { xs: '26px', md: '38px' },
-            background: 'linear-gradient(135deg, #E5007E 0%, #C40088 55%, #7C3AED 125%)',
-            boxShadow: '8px 9px 0 #351129',
+            position: 'absolute',
+            inset: 0,
+            width: 1,
+            height: 1,
+            objectFit: 'cover',
+            objectPosition: 'right 45%',
+            maskImage: 'linear-gradient(to bottom, black 70%, transparent)',
           }}
-        >
-          <Box sx={{ zIndex: 1, position: 'relative' }}>
-            <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography
-                sx={{
-                  px: 1.5,
-                  py: 0.7,
-                  width: 'fit-content',
-                  color: '#351129',
-                  fontSize: 11,
-                  fontWeight: 1000,
-                  letterSpacing: 2,
-                  border: '2px solid #351129',
-                  borderRadius: 99,
-                  bgcolor: '#70E1F5',
-                  boxShadow: '3px 3px 0 #351129',
-                  transform: 'rotate(-2deg)',
-                }}
-              >
-                LOVEZA NATIONWIDE MAP
-              </Typography>
-            </Box>
+        />
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background: {
+              xs: 'linear-gradient(180deg, var(--palette-background-default), rgba(251,246,237,.96) 50%, transparent)',
+              md: 'linear-gradient(90deg, var(--palette-background-default), rgba(251,246,237,.92) 35%, transparent 80%)',
+            },
+          }}
+        />
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+          <Box
+            sx={{
+              maxWidth: 540,
+              pt: {
+                xs: 'calc(var(--layout-header-mobile-height) + 32px)',
+                md: 'calc(var(--layout-header-desktop-height) + 56px)',
+              },
+              pb: { xs: 22, md: 12 },
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'primary.main' }}>
+              <Iconify icon="ri:map-2-line" width={20} />
+              <Typography sx={explorerLabelSx}>COMMUNITY QUEST · THAILAND</Typography>
+            </Stack>
             <Typography
               component="h1"
               sx={{
                 mt: 2,
-                fontSize: { xs: 46, sm: 58, md: 76 },
-                lineHeight: 0.95,
-                fontWeight: 1000,
-                letterSpacing: '-.06em',
+                fontSize: { xs: 42, md: 60 },
+                lineHeight: 1.3,
+                fontWeight: 900,
+                letterSpacing: '-.03em',
               }}
             >
-              ซ่าทั่วไทย
+              ช่วยกันเติมแผนที่
+              <br />
+              <Box component="span" sx={{ color: 'primary.main' }}>
+                ให้ซ่าครบทั่วไทย
+              </Box>
             </Typography>
             <Typography
-              sx={{ mt: 2, maxWidth: 700, color: '#FFF0F8', fontSize: { xs: 15, md: 18 } }}
+              sx={{ mt: 2, maxWidth: 420, color: 'text.secondary', fontSize: 16, lineHeight: 1.85 }}
             >
-              รวมพิกัด Loveza ทั่วประเทศ 💖 เลือกจังหวัด แล้วออกล่าเลิฟซ่าใกล้คุณ เจอพิกัดแล้ว
-              ไปคว้าความซ่ากันเลย! ⚡
+              ประเทศไทยยังมีพิกัดให้ค้นพบอีกมาก เจอ Loveza ที่ไหน ช่วยปักหมุดที่นั่น
+              ทุกพิกัดของคุณเติมสีสันให้แผนที่ของเราสมบูรณ์ขึ้น
             </Typography>
-
-            <Box sx={{ mt: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {[
-                { icon: 'ri:store-2-fill', value: stores.length, label: 'จุดขาย' },
-                { icon: 'ri:map-2-fill', value: provinceCount, label: 'จังหวัด' },
-                { icon: 'ri:drinks-2-fill', value: totalQuantity, label: 'กระป๋องโดยประมาณ' },
-              ].map((item) => (
-                <Box
-                  key={item.label}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 3 }}>
+              <Button
+                href="/report"
+                variant="contained"
+                startIcon={<Iconify icon="ri:map-pin-add-line" />}
+                sx={{ px: 3, py: 1.4 }}
+              >
+                ช่วยเติมพิกัดใหม่
+              </Button>
+              <Button
+                href="#nationwide-map"
+                variant="text"
+                endIcon={<Iconify icon="ri:arrow-down-line" />}
+                sx={{ px: 2, py: 1.4 }}
+              >
+                ดูภารกิจทั่วไทย
+              </Button>
+            </Stack>
+          </Box>
+        </Container>
+      </Box>
+      <Container maxWidth="lg" sx={{ position: 'relative', mt: { xs: -4, md: -3 } }}>
+        <Box
+          component="section"
+          aria-label="สรุปพิกัดจากชุมชน"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gap: { xs: 1, sm: 2 },
+            mb: 3,
+          }}
+        >
+          {[
+            { image: 'voxel-store.svg', value: stores.length, label: 'จุดขายในแผนที่' },
+            { image: 'voxel-map-pin.svg', value: provinceCount, label: 'จังหวัดที่พบ' },
+            { image: 'voxel-soda.svg', value: totalQuantity, label: 'กระป๋องที่แจ้งไว้' },
+          ].map((item) => (
+            <Box
+              key={item.label}
+              sx={{
+                p: { xs: 1, sm: 1.5 },
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 1, sm: 1.5 },
+                flexDirection: { xs: 'column', sm: 'row' },
+                bgcolor: 'background.paper',
+                border: '5px solid var(--palette-background-paper)',
+                borderRadius: '18px',
+                boxShadow: '0 4px 0 var(--palette-grey-200)',
+              }}
+            >
+              <Box
+                component="img"
+                src={`/assets/icons/loveza/${item.image}`}
+                alt=""
+                width={48}
+                height={48}
+                sx={{ width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 }, flexShrink: 0 }}
+              />
+              <Box sx={{ minWidth: 0, textAlign: { xs: 'center', sm: 'left' } }}>
+                <Typography sx={{ fontSize: { xs: 22, md: 26 }, fontWeight: 800, lineHeight: 1.2 }}>
+                  {item.value.toLocaleString('th-TH')}
+                </Typography>
+                <Typography
                   sx={{
-                    px: 2,
-                    py: 1.25,
-                    width: { xs: 'auto', sm: 150 },
-                    color: '#351129',
-                    border: '2px solid #351129',
-                    borderRadius: 2,
-                    bgcolor: '#FFFDF5',
-                    boxShadow: '4px 4px 0 #351129',
-                    textAlign: 'center',
+                    mt: 0.5,
+                    color: 'text.secondary',
+                    fontSize: { xs: 10, sm: 12 },
+                    lineHeight: 1.6,
                   }}
                 >
-                  <Typography
-                    sx={{ fontSize: { xs: 23, md: 30 }, fontWeight: 1000, lineHeight: 1 }}
-                  >
-                    {item.value.toLocaleString('th-TH')}
-                  </Typography>
-                  <Typography sx={{ mt: 0.4, fontSize: 11, fontWeight: 900 }}>
-                    {item.label}
-                  </Typography>
-                </Box>
-              ))}
+                  {item.label}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
+          ))}
         </Box>
-
-        <ThailandMap
-          stores={stores}
-          hasError={hasError}
-          provinceColorSettings={provinceColorSettings}
-        />
+        <Box id="nationwide-map" component="section">
+          <Typography component="h2" sx={{ fontSize: { xs: 23, md: 28 }, fontWeight: 800 }}>
+            ภารกิจเติมความซ่าให้ครบ 77 จังหวัด
+          </Typography>
+          <Typography
+            sx={{ mt: 0.75, mb: 2, color: 'text.secondary', fontSize: 13, lineHeight: 1.8 }}
+          >
+            จังหวัดที่มีพิกัดจะมีสีบนแผนที่ ส่วนพื้นที่ที่ยังไม่มีข้อมูล กำลังรอการค้นพบจากทุกคน
+          </Typography>
+          <ThailandMap
+            stores={stores}
+            hasError={hasError}
+            provinceColorSettings={provinceColorSettings}
+          />
+        </Box>
       </Container>
     </Box>
   );

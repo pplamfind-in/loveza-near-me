@@ -8,6 +8,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
@@ -28,7 +29,7 @@ const STATUS_COLOR: Record<StoreStatus, string> = {
   available: '#19a76f',
   low_stock: '#f29b18',
   out_of_stock: '#e64b55',
-  unknown: '#7b4aa0',
+  unknown: 'var(--palette-grey-500)',
 };
 
 const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
@@ -36,6 +37,7 @@ const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
 
 export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
   const mapRef = useRef<MapRef>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<SortedNearbyStore | null>(null);
 
   const selectStore = useCallback((store: SortedNearbyStore) => {
@@ -92,7 +94,7 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
     });
   }, [stores]);
 
-  return (
+  const mapContent = (
     <Map
       ref={mapRef}
       mapStyle={MAP_STYLES.neutral}
@@ -104,18 +106,53 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
       onLoad={fitMarkers}
       onClick={() => setSelectedStore(null)}
       sx={{
-        height: { xs: 420, md: 560 },
-        border: '3px solid #351129',
-        borderRadius: 4,
-        boxShadow: '7px 8px 0 #351129',
+        height: fullscreen ? '100%' : { xs: 'clamp(320px, 52dvh, 420px)', sm: 420, md: 480 },
+        border: 0,
+        borderRadius: 0,
+        boxShadow: 'none',
       }}
     >
-      <MapControls hideGeolocate />
+      <MapControls hideGeolocate hideFullscreen />
+      <Button
+        variant="contained"
+        onClick={(event) => {
+          event.stopPropagation();
+          setFullscreen((current) => !current);
+        }}
+        startIcon={
+          <Iconify
+            icon={fullscreen ? 'ri:fullscreen-exit-line' : 'ri:fullscreen-line'}
+            width={18}
+          />
+        }
+        aria-label={fullscreen ? 'ออกจากแผนที่เต็มจอ' : 'ดูแผนที่เต็มจอ'}
+        sx={{
+          position: 'absolute',
+          top: 'max(12px, env(safe-area-inset-top))',
+          left: 12,
+          zIndex: 2,
+          minHeight: 36,
+          px: 1.5,
+          borderRadius: '10px',
+          fontSize: 12,
+          bgcolor: 'background.paper',
+          color: 'primary.dark',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 2px 8px rgba(35,63,43,.1)',
+          '&:hover': { bgcolor: 'primary.lighter' },
+        }}
+      >
+        {fullscreen ? 'ออกจากเต็มจอ' : 'ดูเต็มจอ'}
+      </Button>
 
       <Paper
         elevation={0}
         sx={{
-          top: 12,
+          top: {
+            xs: 'calc(max(12px, env(safe-area-inset-top)) + 44px)',
+            sm: 'max(12px, env(safe-area-inset-top))',
+          },
           right: 12,
           zIndex: 1,
           px: 1.5,
@@ -123,10 +160,10 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
           display: 'flex',
           gap: 1.5,
           position: 'absolute',
-          border: '2px solid #351129',
+          border: '1px solid var(--palette-grey-300)',
           borderRadius: 2,
           bgcolor: 'rgba(255,255,255,.92)',
-          boxShadow: '3px 3px 0 #351129',
+          boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
         }}
       >
         <Typography
@@ -152,7 +189,7 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
                   width: 9,
                   height: 9,
                   ml: index ? '-2px' : 0,
-                  border: '1px solid #fff',
+                  border: '1px solid var(--palette-background-paper)',
                   borderRadius: '50%',
                   bgcolor: color.main,
                 }}
@@ -171,42 +208,52 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
       >
         <Box
           role="img"
-          aria-label="ตำแหน่งปัจจุบันของคุณ"
+          aria-label="นักสำรวจ ตำแหน่งปัจจุบันของคุณ"
           sx={{
-            width: 46,
-            height: 46,
+            width: 48,
+            height: 48,
             display: 'grid',
-            borderRadius: '50%',
             placeItems: 'center',
             position: 'relative',
-            bgcolor: 'rgba(45, 139, 255, .16)',
+            borderRadius: '50%',
+            bgcolor: '#E8DDF8',
+            border: '3px solid var(--palette-common-white)',
+            boxShadow: '0 4px 14px rgba(75,55,105,.2)',
             '&::before': {
               content: '""',
-              inset: 0,
               position: 'absolute',
+              inset: -7,
+              border: '2px solid rgba(160,131,193,.24)',
               borderRadius: '50%',
-              border: '2px solid rgba(45, 139, 255, .24)',
-              animation: 'loveza-location-pulse 1.8s ease-out infinite',
+              animation: 'loveza-location-pulse 2.4s ease-out infinite',
             },
-            '&::after': {
-              content: '""',
-              width: 18,
-              height: 18,
-              border: '4px solid #fff',
-              borderRadius: '50%',
-              bgcolor: '#2D8BFF',
-              boxShadow: '0 3px 10px rgba(45, 139, 255, .45)',
-            },
+            '@media (prefers-reduced-motion: reduce)': { '&::before': { animation: 'none' } },
             '@keyframes loveza-location-pulse': {
-              '0%': { opacity: 0.8, transform: 'scale(.72)' },
-              '75%, 100%': { opacity: 0, transform: 'scale(1.45)' },
+              '0%': { opacity: 0.7, transform: 'scale(.85)' },
+              '80%, 100%': { opacity: 0, transform: 'scale(1.3)' },
             },
           }}
-        />
+        >
+          <Box
+            component="span"
+            aria-hidden="true"
+            sx={{
+              width: 1,
+              height: 1,
+              position: 'relative',
+              borderRadius: '50%',
+              backgroundImage: 'url(/assets/loveza/nearby-explorer-v1.webp)',
+              backgroundSize: '230px auto',
+              backgroundPosition: '89% 49%',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+        </Box>
       </MapMarker>
 
       {stores.map((store) => {
         const storeColor = getNearbyStoreColor(store.id);
+        const selected = selectedStore?.id === store.id;
 
         return (
           <MapMarker
@@ -214,71 +261,115 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
             latitude={store.latitude}
             longitude={store.longitude}
             anchor="bottom"
-            aria-label={`ร้าน ${store.name}`}
-            onClick={(event) => {
-              event.originalEvent.stopPropagation();
-              selectStore(store);
-            }}
+            sx={{ zIndex: selected ? 2 : 1 }}
           >
             <Box
-              role="img"
-              aria-label={`ร้าน ${store.name}`}
+              component="button"
+              type="button"
+              aria-label={`ดูรายละเอียดร้าน ${store.name}`}
+              aria-pressed={selected}
+              title={store.name}
+              onClick={(event) => {
+                event.stopPropagation();
+                selectStore(store);
+              }}
               sx={{
-                width: 44,
-                height: 44,
+                position: 'relative',
+                display: 'block',
+                p: 0,
+                pb: '14px',
+                border: 0,
+                bgcolor: 'transparent',
                 cursor: 'pointer',
-                display: 'grid',
-                color: '#fff',
-                placeItems: 'center',
-                border: '4px solid #fff',
-                borderRadius: '50% 50% 50% 0',
-                bgcolor: storeColor.main,
-                boxShadow: `0 7px 15px ${storeColor.main}55`,
-                transform: 'rotate(-45deg)',
-                transition: 'transform .2s ease, filter .2s ease',
-                '&:hover': {
-                  filter: 'brightness(1.06)',
-                  transform: 'translateY(-3px) rotate(-45deg) scale(1.1)',
+                transform: selected ? 'translateY(-5px)' : 'none',
+                transition: 'transform 180ms ease',
+                '&:hover': { transform: 'translateY(-5px)' },
+                '&:focus-visible': {
+                  outline: '3px solid var(--palette-primary-main)',
+                  outlineOffset: 4,
+                  borderRadius: '20px',
                 },
+                '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
               }}
             >
-              {store.store_type_logo_url ? (
-                <Box
-                  component="span"
-                  sx={{
-                    width: 30,
-                    height: 30,
-                    p: '3px',
-                    display: 'grid',
-                    overflow: 'hidden',
-                    borderRadius: '50%',
-                    placeItems: 'center',
-                    bgcolor: '#fff',
-                    transform: 'rotate(45deg)',
-                  }}
-                >
+              <Box
+                sx={{
+                  position: 'relative',
+                  zIndex: 1,
+                  width: { xs: 68, sm: 80 },
+                  height: { xs: 76, sm: 88 },
+                  overflow: 'hidden',
+                  display: 'grid',
+                  placeItems: 'center',
+                  border: '3px solid var(--palette-common-white)',
+                  borderRadius: '20px',
+                  bgcolor: storeColor.soft,
+                  boxShadow: selected
+                    ? `0 0 0 2px ${storeColor.main}, 0 10px 24px rgba(35,45,30,.22)`
+                    : '0 6px 18px rgba(35,45,30,.18)',
+                }}
+              >
+                {store.store_type_logo_url ? (
                   <Box
                     component="img"
                     src={store.store_type_logo_url}
                     alt=""
-                    sx={{ width: 1, height: 1, objectFit: 'contain' }}
+                    sx={{ width: '76%', height: '76%', p: 0.5, objectFit: 'contain' }}
                   />
-                </Box>
-              ) : (
-                <Typography
-                  component="span"
+                ) : (
+                  <Box
+                    sx={{
+                      color: storeColor.dark,
+                      display: 'grid',
+                      justifyItems: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <Iconify icon="ri:store-2-fill" width={30} />
+                    <Typography sx={{ fontSize: 10, fontWeight: 900, letterSpacing: 1 }}>
+                      LOVEZA
+                    </Typography>
+                  </Box>
+                )}
+                <Box
                   sx={{
-                    color: '#fff',
-                    fontSize: 15,
-                    fontWeight: 1000,
-                    lineHeight: 1,
-                    letterSpacing: '-.02em',
-                    transform: 'rotate(45deg)',
+                    position: 'absolute',
+                    top: 5,
+                    left: 5,
+                    width: 17,
+                    height: 17,
+                    display: 'grid',
+                    placeItems: 'center',
+                    bgcolor: 'common.white',
+                    borderRadius: '50%',
+                    boxShadow: '0 1px 4px rgba(0,0,0,.1)',
                   }}
                 >
-                  LZ
-                </Typography>
-              )}
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: STATUS_COLOR[store.current_status],
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Box
+                aria-hidden="true"
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 23,
+                  height: 23,
+                  borderRadius: '50%',
+                  bgcolor: storeColor.main,
+                  border: '3px solid var(--palette-common-white)',
+                  boxShadow: '0 3px 8px rgba(35,45,30,.16)',
+                }}
+              />
             </Box>
           </MapMarker>
         );
@@ -327,7 +418,9 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
                 ? ` · ประมาณ ${selectedStore.estimated_quantity} กระป๋อง`
                 : ''}
             </Typography>
-            <Typography sx={{ mt: 0.5, color: '#E5007E', fontSize: 12, fontWeight: 800 }}>
+            <Typography
+              sx={{ mt: 0.5, color: 'var(--palette-primary-main)', fontSize: 12, fontWeight: 800 }}
+            >
               ห่างจากคุณ {selectedStore.distanceKm.toFixed(1)} กม.
             </Typography>
             <Button
@@ -345,5 +438,21 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
         </MapPopup>
       ) : null}
     </Map>
+  );
+
+  return fullscreen ? (
+    <Dialog
+      open
+      fullScreen
+      onClose={() => setFullscreen(false)}
+      aria-label="แผนที่ร้านใกล้ฉันแบบเต็มจอ"
+      slotProps={{
+        paper: { sx: { m: 0, border: 0, borderRadius: 0, height: '100dvh', overflow: 'hidden' } },
+      }}
+    >
+      {mapContent}
+    </Dialog>
+  ) : (
+    mapContent
   );
 }

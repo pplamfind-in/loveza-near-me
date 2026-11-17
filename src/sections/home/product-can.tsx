@@ -24,12 +24,11 @@ export function ProductCan({
     <Box sx={{ textAlign: 'center' }}>
       <Box
         sx={{
-          height: { xs: 330, md: 400 },
+          height: { xs: 300, md: 320 },
           display: 'grid',
           placeItems: 'center',
           position: 'relative',
-          borderRadius: '36px',
-          background: `radial-gradient(circle, ${accent}44 0%, ${accent}16 38%, transparent 68%)`,
+          borderRadius: '16px 16px 0 0',
         }}
       >
         {imageUrl ? (
@@ -38,11 +37,12 @@ export function ProductCan({
             src={imageUrl}
             alt={`${name} ${thaiName}`}
             sx={{
-              width: { xs: 210, md: 330 },
-              height: { xs: 280, md: 330 },
+              width: '85%',
+              maxWidth: 290,
+              height: { xs: 260, md: 280 },
               zIndex: 1,
               objectFit: 'contain',
-              filter: `drop-shadow(0 30px 28px ${accent}55)`,
+              filter: `drop-shadow(0 12px 18px ${accent}22)`,
             }}
           />
         ) : (
@@ -59,8 +59,6 @@ export function ProductCan({
               flexDirection: 'column',
               justifyContent: 'flex-end',
               borderRadius: '22px 22px 28px 28px',
-              background: `linear-gradient(145deg, ${color}, ${accent})`,
-              boxShadow: `0 30px 50px ${accent}4d`,
               transform: 'rotate(2deg)',
               '&::before': {
                 content: '""',

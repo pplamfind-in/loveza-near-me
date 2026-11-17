@@ -43,21 +43,28 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     >
       <Stack
         spacing={2}
-        textAlign="center"
-        alignItems="center"
-        justifyContent="center"
+        textAlign="left"
+        alignItems="flex-start"
+        justifyContent="flex-start"
         sx={{ width: 1 }}
       >
         <GoogleLoginButton clientId={process.env.GOOGLE_CLIENT_ID ?? ''} nextPath={params.next} />
         <Stack
           direction="row"
           spacing={0.75}
-          alignItems="center"
-          justifyContent="center"
+          alignItems="flex-start"
+          justifyContent="flex-start"
           sx={{ width: 1, maxWidth: 340 }}
         >
-          <Iconify icon="ri:shield-check-fill" width={16} sx={{ color: '#25A56A' }} />
-          <Box component="span" sx={{ color: '#756A77', fontSize: 11, fontWeight: 700 }}>
+          <Iconify
+            icon="ri:shield-check-fill"
+            width={16}
+            sx={{ color: 'primary.main', flexShrink: 0, mt: 0.25 }}
+          />
+          <Box
+            component="span"
+            sx={{ color: 'var(--palette-text-secondary)', fontSize: 11, fontWeight: 700 }}
+          >
             ใช้เพื่อยืนยันผู้แจ้งพิกัดและลดข้อมูลซ้ำเท่านั้น
           </Box>
         </Stack>
@@ -65,23 +72,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           component="a"
           href="/"
           size="large"
-          variant="outlined"
+          variant="text"
           startIcon={<Iconify icon="ri:arrow-left-line" />}
           sx={{
-            width: 1,
-            maxWidth: 340,
-            minHeight: 48,
-            color: '#351129',
-            border: '2px solid #351129',
-            borderRadius: 99,
-            bgcolor: '#fff',
-            fontWeight: 900,
-            boxShadow: '3px 3px 0 #351129',
-            '&:hover': {
-              bgcolor: '#FFF1F8',
-              border: '2px solid #351129',
-              boxShadow: '1px 2px 0 #351129',
-            },
+            minHeight: 44,
+            color: 'text.secondary',
+            border: 0,
+            borderRadius: '8px',
+            bgcolor: 'transparent',
+            fontWeight: 700,
+            boxShadow: 'none',
+            '&:hover': { bgcolor: 'primary.lighter', border: 0, boxShadow: 'none' },
           }}
         >
           กลับหน้าหลัก

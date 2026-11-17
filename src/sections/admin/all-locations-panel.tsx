@@ -89,7 +89,7 @@ async function fetchLocationReportImages(id: string): Promise<LocationReportImag
 
 function SummaryCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
       <Stack direction="row" spacing={2} alignItems="center">
         <Box
           sx={{
@@ -97,7 +97,7 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
             height: 48,
             color: '#55296f',
             display: 'grid',
-            borderRadius: 2,
+            borderRadius: '10px',
             placeItems: 'center',
             bgcolor: 'rgba(85,41,111,.10)',
           }}
@@ -263,7 +263,7 @@ export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
         />
       </Box>
 
-      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 3 }}>
+      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '16px' }}>
         <Table sx={{ minWidth: 1080 }}>
           <TableHead>
             <TableRow>
@@ -507,7 +507,7 @@ export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
                 ) : reportImages.length === 0 ? (
                   <Paper
                     variant="outlined"
-                    sx={{ mt: 2, p: 3, textAlign: 'center', borderRadius: 2 }}
+                    sx={{ mt: 2, p: 3, textAlign: 'center', borderRadius: '10px' }}
                   >
                     <Typography color="text.secondary">สาขานี้ยังไม่มีรูปภาพแนบ</Typography>
                   </Paper>
@@ -537,7 +537,7 @@ export function AllLocationsPanel({ stores }: AllLocationsPanelProps) {
                           sx={{
                             p: 1,
                             color: 'inherit',
-                            borderRadius: 2,
+                            borderRadius: '10px',
                             textDecoration: 'none',
                             transition: 'border-color 150ms ease',
                             '&:hover': { borderColor: 'secondary.main' },

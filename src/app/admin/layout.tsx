@@ -9,6 +9,8 @@ import { getUserDisplayName } from 'src/lib/user-display-name';
 import { getAdminNavData } from 'src/layouts/nav-config-admin';
 import { AdminAccount } from 'src/layouts/dashboard/admin-account';
 
+import { AdminUI } from 'src/sections/admin/admin-ui';
+
 type AdminLayoutProps = {
   children: React.ReactNode;
 };
@@ -32,33 +34,34 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   const photoURL = user.user_metadata.avatar_url ?? user.user_metadata.picture ?? '';
 
   return (
-    <DashboardLayout
-      slotProps={{
-        nav: {
-          data: getAdminNavData(pendingReportsCount ?? 0),
-          hideWorkspace: true,
-          slots: { bottomArea: null },
-        },
-        header: {
-          slots: {
-            rightArea: (
-              <AdminAccount
-                displayName={displayName}
-                email={user.email ?? ''}
-                photoURL={photoURL}
-              />
-            ),
+    <AdminUI>
+      <DashboardLayout
+        slotProps={{
+          nav: {
+            data: getAdminNavData(pendingReportsCount ?? 0),
+            hideWorkspace: true,
+            slots: { bottomArea: null },
           },
-        },
-        main: {
-          sx: {
-            background:
-              'radial-gradient(circle at 100% 0%, rgba(229,0,126,.08), transparent 24%), linear-gradient(180deg, #FFF8FC 0%, #F9F4FF 100%)',
+          header: {
+            slots: {
+              rightArea: (
+                <AdminAccount
+                  displayName={displayName}
+                  email={user.email ?? ''}
+                  photoURL={photoURL}
+                />
+              ),
+            },
           },
-        },
-      }}
-    >
-      {children}
-    </DashboardLayout>
+          main: {
+            sx: {
+              background: 'linear-gradient(180deg, #F4F2E8 0%, #FBF6ED 300px)',
+            },
+          },
+        }}
+      >
+        {children}
+      </DashboardLayout>
+    </AdminUI>
   );
 }

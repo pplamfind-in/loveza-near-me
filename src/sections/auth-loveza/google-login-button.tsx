@@ -10,13 +10,11 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Checkbox from '@mui/material/Checkbox';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { supabase } from 'src/lib/supabase';
 
@@ -44,7 +42,7 @@ declare global {
               theme: 'outline';
               size: 'large';
               text: 'continue_with';
-              shape: 'pill';
+              shape: 'rectangular';
               locale: 'th';
               width: number;
             }
@@ -79,7 +77,6 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consentOpen, setConsentOpen] = useState(false);
-  const [consentAccepted, setConsentAccepted] = useState(false);
 
   const handleCredential = useCallback(
     async ({ credential }: GoogleCredentialResponse) => {
@@ -133,7 +130,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
         theme: 'outline',
         size: 'large',
         text: 'continue_with',
-        shape: 'pill',
+        shape: 'rectangular',
         locale: 'th',
         width: Math.min(buttonRef.current.clientWidth, 340),
       });
@@ -148,7 +145,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
   }, [clientId, handleCredential, scriptReady]);
 
   return (
-    <Stack spacing={1.5} sx={{ width: '100%', maxWidth: 340, mx: 'auto' }}>
+    <Stack spacing={1.5} sx={{ width: '100%', maxWidth: 340, textAlign: 'left' }}>
       <Script
         src="https://accounts.google.com/gsi/client"
         strategy="afterInteractive"
@@ -161,58 +158,32 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
       )} */}
       {error && <Alert severity="error">{error}</Alert>}
 
-      <FormControlLabel
-        sx={{
-          m: 0,
-          p: 1.25,
-          width: 1,
-          textAlign: 'left',
-          alignItems: 'flex-start',
-          border: '1px solid',
-          borderColor: consentAccepted ? 'success.main' : 'divider',
-          borderRadius: 2.5,
-          bgcolor: consentAccepted ? 'success.lighter' : 'background.neutral',
-          transition: 'background-color 160ms ease, border-color 160ms ease',
-          '& .MuiFormControlLabel-label': { minWidth: 0, flex: 1 },
-        }}
-        control={
-          <Checkbox
-            checked={consentAccepted}
-            onChange={(event) => setConsentAccepted(event.target.checked)}
-            inputProps={{ 'aria-describedby': 'login-consent-description' }}
-            sx={{ mt: -0.75, ml: -0.75 }}
-          />
-        }
-        label={
-          <Typography id="login-consent-description" sx={{ fontSize: 13, lineHeight: 1.65 }}>
-            ฉันได้อ่านและยอมรับ{' '}
-            <Link
-              component="button"
-              type="button"
-              fontWeight={900}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setConsentOpen(true);
-              }}
-            >
-              ข้อกำหนดและนโยบาย
-            </Link>
-            {' '}ของ LOVEZA HUNT
-          </Typography>
-        }
-      />
-
+      <Typography sx={{ fontSize: 12, lineHeight: 1.8, color: 'text.secondary' }}>
+        ฉันได้อ่านและยอมรับ{' '}
+        <Link
+          component="button"
+          type="button"
+          onClick={() => setConsentOpen(true)}
+          sx={{
+            fontSize: 'inherit',
+            fontWeight: 800,
+            verticalAlign: 'baseline',
+            textAlign: 'left',
+            textDecoration: 'underline',
+            textUnderlineOffset: 3,
+          }}
+        >
+          ข้อกำหนดและนโยบาย
+        </Link>{' '}
+        ของ LOVEZA HUNT
+      </Typography>
       <Box
-        aria-disabled={!consentAccepted}
         sx={{
           minHeight: 44,
           width: 1,
           display: 'grid',
-          placeItems: 'center',
+          justifyItems: 'start',
           position: 'relative',
-          opacity: consentAccepted ? 1 : 0.45,
-          transition: 'opacity 160ms ease',
         }}
       >
         {loading ? (
@@ -223,7 +194,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
               display: 'grid',
               position: 'absolute',
               placeItems: 'center',
-              borderRadius: 99,
+              borderRadius: '6px',
               bgcolor: 'rgba(255,255,255,.82)',
             }}
           >
@@ -231,13 +202,11 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
           </Box>
         ) : null}
         {!scriptReady && clientId ? <CircularProgress size={24} /> : null}
-        <Box ref={buttonRef} sx={{ width: 1, display: 'flex', justifyContent: 'center' }} />
-        {!consentAccepted ? (
-          <Box
-            title="กรุณายอมรับข้อกำหนดก่อนเข้าสู่ระบบ"
-            sx={{ inset: 0, zIndex: 2, position: 'absolute', cursor: 'not-allowed' }}
-          />
-        ) : null}
+        <Box
+          ref={buttonRef}
+          inert={loading}
+          sx={{ width: 1, display: 'flex', justifyContent: 'flex-start' }}
+        />
       </Box>
 
       <Dialog
@@ -288,7 +257,6 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
               แนวทางชุมชน
             </Link>
           </Typography>
-
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button variant="contained" onClick={() => setConsentOpen(false)}>

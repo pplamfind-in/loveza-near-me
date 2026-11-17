@@ -9,16 +9,23 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
 import Dialog from '@mui/material/Dialog';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import TableContainer from '@mui/material/TableContainer';
+import TablePagination from '@mui/material/TablePagination';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -53,6 +60,13 @@ export function StoreTypesPanel() {
   const saveMutation = useSaveStoreTypeMutation();
   const deleteMutation = useDeleteStoreTypeMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const currentPage = Math.min(page, Math.max(0, Math.ceil(storeTypes.length / rowsPerPage) - 1));
+  const visibleStoreTypes = storeTypes.slice(
+    currentPage * rowsPerPage,
+    (currentPage + 1) * rowsPerPage
+  );
   const [editing, setEditing] = useState<StoreTypeMaster | null>(null);
   const [form, setForm] = useState<FormValue>(EMPTY_VALUE);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -151,66 +165,123 @@ export function StoreTypesPanel() {
           <CircularProgress />
         </Stack>
       ) : (
-        <Box
-          sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}
-        >
-          {storeTypes.map((item) => (
-            <Paper key={item.id} elevation={0} sx={{ p: 2.5, borderRadius: 3 }}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Box
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    p: 1,
-                    display: 'grid',
-                    flexShrink: 0,
-                    overflow: 'hidden',
-                    borderRadius: '50%',
-                    placeItems: 'center',
-                    bgcolor: '#FFF0F8',
-                    border: '2px solid #a0006b',
-                  }}
-                >
-                  {item.logo_url ? (
-                    <Box
-                      component="img"
-                      src={item.logo_url}
-                      alt={item.name}
-                      sx={{ width: 1, height: 1, objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <Iconify icon="ri:store-2-fill" width={28} color="#a0006b" />
-                  )}
-                </Box>
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography noWrap sx={{ fontSize: 18, fontWeight: 900 }}>
-                      {item.name}
-                    </Typography>
+        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '16px' }}>
+          <Table sx={{ minWidth: 680 }} aria-label="ประเภทร้านค้า">
+            <TableHead>
+              <TableRow>
+                <TableCell>ประเภทร้านค้า</TableCell>
+                <TableCell>Code</TableCell>
+                <TableCell align="center">ลำดับการแสดง</TableCell>
+                <TableCell>สถานะ</TableCell>
+                <TableCell align="right">จัดการ</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visibleStoreTypes.map((item) => (
+                <TableRow key={item.id} hover>
+                  <TableCell>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Box
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          p: 0.5,
+                          display: 'grid',
+                          flexShrink: 0,
+                          overflow: 'hidden',
+                          borderRadius: '10px',
+                          placeItems: 'center',
+                          bgcolor: 'primary.lighter',
+                        }}
+                      >
+                        {item.logo_url ? (
+                          <Box
+                            component="img"
+                            src={item.logo_url}
+                            alt={item.name}
+                            sx={{ width: 1, height: 1, objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <Iconify
+                            icon="ri:store-2-fill"
+                            width={24}
+                            color="var(--palette-primary-dark)"
+                          />
+                        )}
+                      </Box>
+                      <Typography sx={{ fontWeight: 800 }}>{item.name}</Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell sx={{ color: 'text.secondary' }}>{item.code}</TableCell>
+                  <TableCell align="center">{item.sort_order}</TableCell>
+                  <TableCell>
                     <Chip
                       size="small"
                       label={item.is_active ? 'ใช้งาน' : 'ซ่อน'}
                       color={item.is_active ? 'success' : 'default'}
                     />
-                  </Stack>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
-                    {item.code} · ลำดับ {item.sort_order}
-                  </Typography>
-                </Box>
-                <IconButton aria-label={`แก้ไข ${item.name}`} onClick={() => openEdit(item)}>
-                  <Iconify icon="ri:edit-2-line" />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  aria-label={`ลบ ${item.name}`}
-                  onClick={() => handleDelete(item)}
-                >
-                  <Iconify icon="ri:delete-bin-6-line" />
-                </IconButton>
-              </Stack>
-            </Paper>
-          ))}
-        </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton aria-label={`แก้ไข ${item.name}`} onClick={() => openEdit(item)}>
+                      <Iconify icon="ri:edit-2-line" />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      disabled={deleteMutation.isPending}
+                      aria-label={`ลบ ${item.name}`}
+                      onClick={() => handleDelete(item)}
+                    >
+                      <Iconify icon="ri:delete-bin-6-line" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {storeTypes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 8, color: 'text.secondary' }}>
+                    ยังไม่มีประเภทร้านค้า กดเพิ่มประเภทร้านเพื่อเริ่มต้น
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <TablePagination
+            component="div"
+            page={currentPage}
+            count={storeTypes.length}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10, 25, 50]}
+            onPageChange={(_, nextPage) => setPage(nextPage)}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(Number(event.target.value));
+              setPage(0);
+            }}
+            labelRowsPerPage="แสดงต่อหน้า"
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}–${to} จาก ${count.toLocaleString('th-TH')}`
+            }
+            getItemAriaLabel={(type) =>
+              ({
+                first: 'ไปหน้าแรก',
+                last: 'ไปหน้าสุดท้าย',
+                next: 'ไปหน้าถัดไป',
+                previous: 'ไปหน้าก่อนหน้า',
+              })[type]
+            }
+            showFirstButton
+            showLastButton
+            sx={{
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              '& .MuiTablePagination-toolbar': {
+                px: { xs: 1, sm: 2 },
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                justifyContent: { xs: 'center', sm: 'flex-end' },
+              },
+              '& .MuiTablePagination-spacer': { display: { xs: 'none', sm: 'block' } },
+            }}
+          />
+        </TableContainer>
       )}
 
       <Dialog
@@ -257,8 +328,8 @@ export function StoreTypesPanel() {
                   overflow: 'hidden',
                   borderRadius: '50%',
                   placeItems: 'center',
-                  bgcolor: '#FFF0F8',
-                  border: '2px dashed #351129',
+                  bgcolor: '#E8F0E4',
+                  border: '2px dashed #305C3D',
                 }}
               >
                 {logoPreview ? (

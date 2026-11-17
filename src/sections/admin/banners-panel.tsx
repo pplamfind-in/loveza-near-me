@@ -145,7 +145,7 @@ export function BannersPanel() {
           variant="contained"
           startIcon={<Iconify icon="ri:image-add-line" />}
           onClick={openCreate}
-          sx={{ alignSelf: 'flex-start', borderRadius: 99 }}
+          sx={{ alignSelf: 'flex-start', borderRadius: '12px' }}
         >
           เพิ่มแบนเนอร์
         </Button>
@@ -170,7 +170,7 @@ export function BannersPanel() {
           }}
         >
           {banners.map((banner) => (
-            <Paper key={banner.id} elevation={0} sx={{ overflow: 'hidden', borderRadius: 3 }}>
+            <Paper key={banner.id} elevation={0} sx={{ overflow: 'hidden', borderRadius: '16px' }}>
               <Box sx={{ position: 'relative', aspectRatio: '16 / 6', bgcolor: '#f4f5f5' }}>
                 <Image
                   fill
@@ -217,7 +217,7 @@ export function BannersPanel() {
           {banners.length === 0 ? (
             <Paper
               elevation={0}
-              sx={{ gridColumn: '1 / -1', p: 8, textAlign: 'center', borderRadius: 3 }}
+              sx={{ gridColumn: '1 / -1', p: 8, textAlign: 'center', borderRadius: '16px' }}
             >
               <Iconify icon="ri:image-line" width={46} sx={{ mb: 1, color: 'text.disabled' }} />
               <Typography color="text.secondary">

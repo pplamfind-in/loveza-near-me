@@ -25,9 +25,7 @@ export default async function Page() {
   const [productsResult, bannersResult, storesResult, acknowledgementResult] = await Promise.all([
     supabase
       .from('products')
-      .select(
-        'id, name, thai_name, slug, description, image_url, color, accent, fruit, meta, sort_order, is_active'
-      )
+      .select('*')
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
     supabase
@@ -38,9 +36,7 @@ export default async function Page() {
       .order('created_at', { ascending: true }),
     supabase
       .from('stores')
-      .select(
-        'id, name, address, province, current_status, estimated_quantity, last_reported_at'
-      )
+      .select('id, name, address, province, current_status, estimated_quantity, last_reported_at')
       .eq('is_active', true)
       .order('last_reported_at', { ascending: false, nullsFirst: false })
       .limit(2),
@@ -56,8 +52,7 @@ export default async function Page() {
   const latestStores = storesResult.error
     ? []
     : ((storesResult.data ?? []) as LatestStorePreview[]);
-  const brandOwnerAcknowledged =
-    acknowledgementResult.data ?? DEFAULT_BRAND_OWNER_ACKNOWLEDGED;
+  const brandOwnerAcknowledged = acknowledgementResult.data ?? DEFAULT_BRAND_OWNER_ACKNOWLEDGED;
 
   return (
     <HomeView

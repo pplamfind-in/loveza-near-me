@@ -85,7 +85,7 @@ export function VisibilityButton({
       <input type="hidden" name="hidden" value={String(!hidden)} />
       <Button
         type="submit"
-        size='medium'
+        size="medium"
         color={hidden ? 'success' : 'warning'}
         variant="outlined"
         disabled={pending}

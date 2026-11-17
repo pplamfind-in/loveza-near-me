@@ -53,17 +53,19 @@ export async function GET() {
   });
   const codes = [...new Set(reports.map((report) => report.store_type))];
   const { data: storeTypes, error: storeTypesError } = codes.length
-    ? await supabase.from('store_types').select('code, name').in('code', codes)
+    ? await supabase.from('store_types').select('code, name, logo_url').in('code', codes)
     : { data: [], error: null };
   if (storeTypesError)
     return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
 
   const names = new Map((storeTypes ?? []).map((item) => [item.code, item.name]));
+  const logos = new Map((storeTypes ?? []).map((item) => [item.code, item.logo_url]));
   return NextResponse.json(
     {
       reports: reports.map((report) => ({
         ...report,
         store_type_name: names.get(report.store_type) ?? report.store_type,
+        store_type_logo_url: logos.get(report.store_type) ?? null,
       })),
     },
     { headers: { 'Cache-Control': 'private, no-store' } }

@@ -32,49 +32,64 @@ export default async function ReportPage() {
         minHeight: '100dvh',
         pt: '100px',
         pb: { xs: 'calc(140px + env(safe-area-inset-bottom))', md: '100px' },
-        background:
-          'radial-gradient(circle at 12px 12px, rgba(124,58,237,.1) 2px, transparent 2.5px) 0 0 / 28px 28px, #FFF1F8',
+        background: 'var(--palette-background-default)',
       }}
     >
       <Container maxWidth="lg">
         <Box
           sx={{
-            mb: 3,
+            mb: { xs: 3, md: 4 },
             p: { xs: 3, md: 5 },
-            color: '#351129',
-            border: '3px solid #351129',
-            borderRadius: { xs: '26px', md: '38px' },
-            bgcolor: '#FDE047',
-            boxShadow: '8px 9px 0 #E5007E',
+            border: '5px solid var(--palette-background-paper)',
+            borderRadius: '18px',
+            background:
+              'linear-gradient(90deg, #FBF6ED 20%, rgba(251,246,237,.96) 45%, rgba(251,246,237,.12) 100%), url(/assets/loveza/nearby-explorer-v1.webp) right center / cover',
+            boxShadow: '0 4px 0 var(--palette-grey-200)',
           }}
         >
-          <Typography sx={{ fontSize: 12, fontWeight: 1000, letterSpacing: 2 }}>
-            SPOTTED LOVEZA!
+          <Box
+            component="img"
+            src="/assets/icons/loveza/voxel-map-pin.svg"
+            alt=""
+            sx={{ width: 56, height: 56, mb: 2 }}
+          />
+          <Typography
+            sx={{ color: 'primary.dark', fontSize: 11, fontWeight: 800, letterSpacing: 2 }}
+          >
+            SHARE YOUR DISCOVERY
           </Typography>
           <Typography
             component="h1"
             sx={{
               mt: 1,
-              fontSize: { xs: 42, md: 64 },
-              lineHeight: 0.98,
-              fontWeight: 1000,
-              letterSpacing: '-.06em',
+              maxWidth: 650,
+              fontSize: { xs: 32, md: 48 },
+              lineHeight: 1.35,
+              fontWeight: 900,
             }}
           >
-            เจอแล้ว อย่าเก็บไว้คนเดียว
+            เจอแล้ว บอกต่อความซ่า
           </Typography>
-          <Typography sx={{ mt: 2, maxWidth: 700, fontSize: { xs: 15, md: 17 } }}>
-            ปักหมุดร้าน รสชาติ และจำนวนที่เหลือ ให้แก๊ง Loveza ตามไปซื้อได้เลย
+          <Typography
+            sx={{
+              mt: 1.5,
+              maxWidth: 540,
+              color: 'text.secondary',
+              fontSize: { xs: 15, md: 17 },
+              lineHeight: 1.8,
+            }}
+          >
+            ปักหมุดร้าน เลือกรสชาติ และแจ้งจำนวนที่พบ เพื่อให้ทุกคนตามไปเจอ Loveza
           </Typography>
         </Box>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 1.5, sm: 2.5, md: 3 },
-            border: '3px solid #351129',
-            borderRadius: { xs: '24px', md: '32px' },
-            bgcolor: '#FFF8FC',
-            boxShadow: '7px 8px 0 #351129',
+            p: 0,
+            border: 0,
+            borderRadius: '18px',
+            bgcolor: 'var(--palette-background-default)',
+            boxShadow: 'none',
           }}
         >
           <ReportForm />

@@ -50,11 +50,10 @@ type AdminSettingsPanelProps = {
 
 const SETTINGS_SECTION_SX = {
   p: { xs: 2.25, md: 3 },
-  border: '1px solid',
-  borderColor: 'divider',
-  borderRadius: 3,
+  border: '5px solid var(--palette-background-paper)',
+  borderRadius: '16px',
   bgcolor: 'background.paper',
-  boxShadow: '0 10px 30px rgba(53,17,41,.06)',
+  boxShadow: '0 4px 0 var(--palette-grey-200)',
 };
 
 function getClosestOptionIndex(options: readonly number[], value: number) {
@@ -99,12 +98,12 @@ function RadiusField({
           sx={{
             width: 52,
             height: 52,
-            color: '#E5007E',
+            color: 'primary.main',
             display: 'grid',
             flexShrink: 0,
-            borderRadius: 2.5,
+            borderRadius: '16px',
             placeItems: 'center',
-            bgcolor: 'rgba(239,35,130,.10)',
+            bgcolor: 'primary.lighter',
           }}
         >
           <Iconify icon={icon} width={28} />
@@ -117,7 +116,7 @@ function RadiusField({
         </Box>
       </Stack>
 
-      <Box sx={{ px: { xs: 1, sm: 2 } }}>
+      <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: 2, pb: 1 }}>
         <Slider
           value={getClosestOptionIndex(options, radiusM)}
           min={0}
@@ -190,12 +189,12 @@ function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
           sx={{
             width: 52,
             height: 52,
-            color: '#E5007E',
+            color: 'primary.main',
             display: 'grid',
             flexShrink: 0,
-            borderRadius: 2.5,
+            borderRadius: '16px',
             placeItems: 'center',
-            bgcolor: 'rgba(239,35,130,.10)',
+            bgcolor: 'primary.lighter',
           }}
         >
           <Iconify icon="ri:palette-fill" width={28} />
@@ -219,8 +218,11 @@ function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
               alignItems: 'center',
               border: '1px solid',
               borderColor: 'divider',
-              borderRadius: 2.5,
-              gridTemplateColumns: { xs: '1fr', sm: 'minmax(180px, 1fr) 150px 150px' },
+              borderRadius: '16px',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'minmax(0, 1fr) minmax(100px, 150px) minmax(90px, 130px)',
+              },
             }}
           >
             <Stack direction="row" spacing={1.25} alignItems="center">
@@ -378,12 +380,12 @@ export function AdminSettingsPanel({
         elevation={0}
         sx={{
           p: { xs: 2.5, md: 3.5 },
-          color: '#fff',
+          color: 'text.primary',
           overflow: 'hidden',
           position: 'relative',
-          borderRadius: 3.5,
-          background: 'linear-gradient(135deg, #4B2440 0%, #72003F 55%, #E5007E 140%)',
-          boxShadow: '0 14px 36px rgba(75,36,64,.18)',
+          borderRadius: '16px',
+          bgcolor: 'primary.lighter',
+          boxShadow: '0 4px 0 var(--palette-grey-200)',
           '&::after': {
             content: '""',
             width: 180,
@@ -396,18 +398,23 @@ export function AdminSettingsPanel({
           },
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{ position: 'relative', zIndex: 1 }}
+        >
           <Box
             sx={{
               width: 54,
               height: 54,
-              color: '#351129',
+              color: 'primary.dark',
               display: 'grid',
               flexShrink: 0,
-              borderRadius: 2.5,
+              borderRadius: '16px',
               placeItems: 'center',
-              bgcolor: '#FDE047',
-              boxShadow: '3px 4px 0 rgba(53,17,41,.8)',
+              bgcolor: 'secondary.lighter',
+              boxShadow: 'none',
             }}
           >
             <Iconify icon="ri:settings-4-fill" width={28} />
@@ -416,7 +423,7 @@ export function AdminSettingsPanel({
             <Typography component="h1" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 900 }}>
               ตั้งค่าระบบ
             </Typography>
-            <Typography sx={{ mt: 0.5, color: '#FFD9ED', lineHeight: 1.6 }}>
+            <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
               จัดการกติกาการรับข้อมูล ภาพลักษณ์เว็บไซต์ และการแสดงผลบนแผนที่
             </Typography>
           </Box>
@@ -429,20 +436,30 @@ export function AdminSettingsPanel({
         </Alert>
       ) : null}
 
-      <Paper elevation={0} sx={{ bgcolor: 'transparent' }}>
-        <Stack spacing={3}>
+      <Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 3,
+            alignItems: 'start',
+            gridTemplateColumns: { xs: '1fr', xl: 'repeat(2, minmax(0, 1fr))' },
+            '& > :nth-child(3), & > :nth-child(6), & > .MuiAlert-root, & > :last-child': {
+              gridColumn: '1 / -1',
+            },
+          }}
+        >
           <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
                   width: 52,
                   height: 52,
-                  color: '#E5007E',
+                  color: 'primary.main',
                   display: 'grid',
                   flexShrink: 0,
-                  borderRadius: 2.5,
+                  borderRadius: '16px',
                   placeItems: 'center',
-                  bgcolor: 'rgba(239,35,130,.10)',
+                  bgcolor: 'primary.lighter',
                 }}
               >
                 <Iconify icon="ri:shield-check-fill" width={28} />
@@ -460,7 +477,7 @@ export function AdminSettingsPanel({
                 p: 2,
                 border: '1px solid',
                 borderColor: requireReportApproval ? 'warning.main' : 'success.main',
-                borderRadius: 2.5,
+                borderRadius: '16px',
                 bgcolor: requireReportApproval ? 'warning.lighter' : 'success.lighter',
               }}
             >
@@ -493,12 +510,12 @@ export function AdminSettingsPanel({
                 sx={{
                   width: 52,
                   height: 52,
-                  color: '#E5007E',
+                  color: 'primary.main',
                   display: 'grid',
                   flexShrink: 0,
-                  borderRadius: 2.5,
+                  borderRadius: '16px',
                   placeItems: 'center',
-                  bgcolor: 'rgba(239,35,130,.10)',
+                  bgcolor: 'primary.lighter',
                 }}
               >
                 <Iconify icon="ri:verified-badge-fill" width={28} />
@@ -518,7 +535,7 @@ export function AdminSettingsPanel({
                 p: 2,
                 border: '1px solid',
                 borderColor: brandOwnerAcknowledged ? 'success.main' : 'warning.main',
-                borderRadius: 2.5,
+                borderRadius: '16px',
                 bgcolor: brandOwnerAcknowledged ? 'success.lighter' : 'warning.lighter',
               }}
             >
@@ -558,12 +575,12 @@ export function AdminSettingsPanel({
                 sx={{
                   width: 52,
                   height: 52,
-                  color: '#E5007E',
+                  color: 'primary.main',
                   display: 'grid',
                   flexShrink: 0,
-                  borderRadius: 2.5,
+                  borderRadius: '16px',
                   placeItems: 'center',
-                  bgcolor: 'rgba(239,35,130,.10)',
+                  bgcolor: 'primary.lighter',
                 }}
               >
                 <Iconify icon="ri:font-size-2" width={28} />
@@ -671,7 +688,7 @@ export function AdminSettingsPanel({
               position: 'sticky',
               border: '1px solid',
               borderColor: 'divider',
-              borderRadius: 3,
+              borderRadius: '16px',
               bgcolor: 'rgba(255,255,255,.94)',
               boxShadow: '0 14px 40px rgba(53,17,41,.14)',
               backdropFilter: 'blur(12px)',
@@ -693,13 +710,13 @@ export function AdminSettingsPanel({
                   <Iconify icon="ri:save-3-fill" />
                 )
               }
-              sx={{ minWidth: 150, borderRadius: 99 }}
+              sx={{ minWidth: 150, borderRadius: '12px' }}
             >
               {saving ? 'กำลังบันทึก' : 'บันทึกการตั้งค่า'}
             </Button>
           </Stack>
-        </Stack>
-      </Paper>
+        </Box>
+      </Box>
     </Stack>
   );
 }

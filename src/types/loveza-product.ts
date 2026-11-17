@@ -11,6 +11,7 @@ export type LovezaProduct = {
   meta: string;
   sort_order: number;
   is_active: boolean;
+  is_new?: boolean;
   created_at?: string;
   updated_at?: string;
 };

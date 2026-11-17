@@ -46,7 +46,7 @@ type UsersPanelProps = {
 
 function SummaryCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3 }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: '16px' }}>
       <Stack direction="row" spacing={2} alignItems="center">
         <Box
           sx={{
@@ -54,7 +54,7 @@ function SummaryCard({ icon, label, value }: { icon: string; label: string; valu
             height: 48,
             color: '#55296f',
             display: 'grid',
-            borderRadius: 2,
+            borderRadius: '10px',
             placeItems: 'center',
             bgcolor: 'rgba(85,41,111,.10)',
           }}
@@ -131,7 +131,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
         />
       </Box>
 
-      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 3 }}>
+      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '16px' }}>
         <Table sx={{ minWidth: 1080 }}>
           <TableHead>
             <TableRow>
@@ -152,7 +152,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
                       src={user.avatar_url || undefined}
                       alt={user.display_name}
                       imgProps={{ referrerPolicy: 'no-referrer' }}
-                      sx={{ bgcolor: '#E5007E', fontWeight: 900 }}
+                      sx={{ bgcolor: '#427653', fontWeight: 900 }}
                     >
                       {user.display_name.charAt(0).toUpperCase()}
                     </Avatar>
@@ -194,7 +194,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
                     color="secondary"
                     startIcon={<Iconify icon="ri:shield-user-line" />}
                     onClick={() => setSelectedUser(user)}
-                    sx={{ borderRadius: 99, whiteSpace: 'nowrap' }}
+                    sx={{ borderRadius: '12px', whiteSpace: 'nowrap' }}
                   >
                     ตั้งเป็น Admin
                   </Button>
@@ -252,7 +252,7 @@ export function UsersPanel({ users }: UsersPanelProps) {
         onClose={isPromoting ? undefined : () => setSelectedUser(null)}
         fullWidth
         maxWidth="xs"
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{ paper: { sx: { borderRadius: '16px' } } }}
       >
         <DialogTitle sx={{ fontWeight: 900 }}>ยืนยันการตั้งเป็น Admin</DialogTitle>
         <DialogContent>

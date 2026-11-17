@@ -70,47 +70,61 @@ export function LovezaSignOutButton({
       onClose={loading ? undefined : () => setConfirmOpen(false)}
       fullWidth
       maxWidth="xs"
+      aria-labelledby="sign-out-title"
+      aria-describedby="sign-out-description"
       slotProps={{
         paper: {
           sx: {
             width: 'calc(100% - 32px)',
             maxWidth: 360,
-            overflow: 'visible',
-            border: '3px solid #351129',
-            borderRadius: '28px',
-            boxShadow: '8px 9px 0 #351129',
+            overflow: 'hidden',
+            border: '5px solid var(--palette-background-paper)',
+            borderRadius: '18px',
+            bgcolor: 'background.paper',
+            boxShadow: '0 6px 0 var(--palette-grey-200), 0 24px 60px rgba(35,63,43,.15)',
           },
         },
       }}
     >
       <Box
         sx={{
-          width: 64,
-          height: 64,
+          width: 52,
+          height: 52,
           mx: 'auto',
-          mt: -4,
-          color: '#fff',
+          mt: 3,
+          color: 'primary.dark',
           display: 'grid',
           placeItems: 'center',
-          border: '3px solid #351129',
-          borderRadius: '20px',
-          bgcolor: '#E5007E',
-          boxShadow: '4px 4px 0 #351129',
-          transform: 'rotate(-4deg)',
+          borderRadius: '14px',
+          bgcolor: 'primary.lighter',
         }}
       >
-        <Iconify icon="ri:logout-box-r-line" width={31} />
+        <Iconify icon="ri:logout-box-r-line" width={26} />
       </Box>
-      <DialogTitle sx={{ pt: 2.5, pb: 1, textAlign: 'center', fontSize: 27, fontWeight: 1000 }}>
+      <DialogTitle
+        id="sign-out-title"
+        sx={{ pt: 2, pb: 1, textAlign: 'center', fontSize: 23, fontWeight: 800 }}
+      >
         ออกจากระบบใช่ไหม?
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+        <Typography
+          id="sign-out-description"
+          sx={{ color: 'text.secondary', fontSize: 14, lineHeight: 1.8 }}
+        >
           {confirmDescription}
         </Typography>
       </DialogContent>
       <DialogActions
-        sx={{ px: 3, pb: 3, gap: 1, flexDirection: { xs: 'column-reverse', sm: 'row' } }}
+        disableSpacing
+        sx={{
+          px: 2.5,
+          pb: 2.5,
+          pt: 1,
+          gap: 1,
+          '& .MuiButton-root': { borderRadius: '12px', minHeight: 44 },
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+        }}
       >
         <Button fullWidth color="inherit" disabled={loading} onClick={() => setConfirmOpen(false)}>
           อยู่ต่อ
@@ -122,12 +136,14 @@ export function LovezaSignOutButton({
           onClick={() => void handleSignOut()}
           startIcon={loading ? <CircularProgress size={18} color="inherit" /> : undefined}
           sx={{
-            color: '#fff',
-            border: '2px solid #351129',
+            color: 'primary.contrastText',
             backgroundImage: 'none',
-            bgcolor: '#E5007E',
-            boxShadow: '4px 5px 0 #351129',
-            '&:hover': { bgcolor: '#B80065', boxShadow: '2px 3px 0 #351129' },
+            bgcolor: 'primary.main',
+            boxShadow: '0 3px 0 var(--palette-primary-darker)',
+            '&:hover': {
+              bgcolor: 'primary.dark',
+              boxShadow: '0 3px 0 var(--palette-primary-darker)',
+            },
           }}
         >
           {loading ? 'กำลังออกจากระบบ' : 'ยืนยันออกจากระบบ'}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="12" y1="2" x2="82" y2="94" gradientUnits="userSpaceOnUse"><stop stop-color="#C5F5FD"/><stop offset="1" stop-color="#76D8ED"/></linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="18" fill="url(#sky)"/>
+  <path d="M13 72 48 54 84 72 49 91Z" fill="#57B63D" opacity=".18"/>
+  <path d="M13 66 47 49 82 66 48 83Z" fill="#9CE04A"/>
+  <path d="M13 66 48 83V92L13 75Z" fill="#4C9B2B"/>
+  <path d="M48 83 82 66V75L48 92Z" fill="#2F7E2D"/>
+  <path d="m13 66 9-4 9 4-9 5Zm18 0 8-4 9 4-9 5Zm17 0 9-4 9 4-9 5Zm17 0 9-4 8 4-8 5ZM22 71l9-5 8 5-8 4Zm17 0 9-5 9 5-9 4Zm18 0 9-5 8 5-8 4Zm-26 4 8-4 9 4-9 5Zm17 0 9-4 9 4-9 5Zm-9 5 9-5 9 5-9 3Z" fill="#79CD32"/>
+  <path d="m30 58 9-5 9 5-9 4Zm18 0 8-5 9 5-8 4Z" fill="#B9EC61"/>
+  <path d="M22 71v9l9 4v-9Zm17 9v8l9 4v-9Z" fill="#63B335"/>
+  <path d="m57 79 9-5v9l-9 4Zm17-9 8-4v9l-8 4Z" fill="#3D922D"/>
+  <path d="m39 58 9-4 9 4-9 5Z" fill="#3B842C" opacity=".35"/>
+  <path d="M38 13h22v5h6v6h5v23h-5v7h-6v7h-6v8h-8v-8h-6v-7h-6v-7h-5V24h5v-6h4Z" fill="#BA2053"/>
+  <path d="M34 10h22v5h6v6h5v22h-5v7h-6v7h-6v8h-8v-8h-6v-7h-6v-7h-5V21h5v-6h4Z" fill="#FF4B88"/>
+  <path d="M34 10h22v5H34Zm-4 5h4v6h-4Zm-5 6h5v17h-5Z" fill="#FF85B2"/>
+  <path d="M57 21h5v22h-6v7h-6v7h-8v-6h8v-8h7Z" fill="#EA326D"/>
+  <path d="M38 23h14v5h5v12h-5v5H38v-5h-5V28h5Z" fill="#FFFDF9"/>
+  <path d="M38 23h14v5H38v12h-5V28h5Z" fill="#FFD8E7"/>
+</svg>

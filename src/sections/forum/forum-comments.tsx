@@ -90,7 +90,7 @@ export function ForumComments({
     void mutate().catch(() => undefined);
     onChanged?.();
   };
-  const composer = userId ? (
+  const composer = userId && (
     <Paper
       elevation={0}
       sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}
@@ -100,18 +100,8 @@ export function ForumComments({
       </Typography>
       <CommentForm threadId={threadId} parentId={parentId} onSaved={refresh} />
     </Paper>
-  ) : (
-    <Alert
-      severity="info"
-      action={
-        <Button href={`/auth/login?next=/forum/${threadId}`} color="inherit">
-          เข้าสู่ระบบ
-        </Button>
-      }
-    >
-      เข้าสู่ระบบเพื่อแสดงความคิดเห็น
-    </Alert>
-  );
+  ) 
+  
   return (
     <Stack spacing={2}>
       {!parentId && (
@@ -203,8 +193,8 @@ function CommentCard({
           sx={{
             width: 36,
             height: 36,
-            bgcolor: '#FCE4F1',
-            color: '#AD005E',
+            bgcolor: 'var(--palette-primary-lighter)',
+            color: 'var(--palette-primary-main)',
             fontSize: 15,
             fontWeight: 700,
           }}

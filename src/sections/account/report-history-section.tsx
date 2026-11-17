@@ -28,9 +28,9 @@ import {
   useUpdateStoreStockMutation,
 } from 'src/app/account/use-account-reports';
 
+import { Upload } from 'src/components/upload';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
-import { Upload } from 'src/components/upload';
 
 import { FLAVOR_OPTIONS } from 'src/types/report';
 import { STORE_STATUS_LABEL } from 'src/types/store';
@@ -44,9 +44,9 @@ const statusLabels: Record<string, { label: string; color: 'warning' | 'success'
 const flavorLabel = (value: string) =>
   FLAVOR_OPTIONS.find((option) => option.value === value)?.label ?? value;
 
-const STOCK_STATUS_OPTIONS = (
-  ['available', 'low_stock', 'out_of_stock', 'unknown'] as const
-).map((value) => ({ value, label: STORE_STATUS_LABEL[value] }));
+const STOCK_STATUS_OPTIONS = (['available', 'low_stock', 'out_of_stock', 'unknown'] as const).map(
+  (value) => ({ value, label: STORE_STATUS_LABEL[value] })
+);
 
 type StockUpdateDialogProps = {
   report: UserReport;
@@ -55,11 +55,13 @@ type StockUpdateDialogProps = {
 
 function StockUpdateDialog({ report, onClose }: StockUpdateDialogProps) {
   const mutation = useUpdateStoreStockMutation();
-  const { coordinates, isLoading: locating, error: locationError, requestLocation } =
-    useGeolocation();
-  const [stockStatus, setStockStatus] = useState<StoreStatus>(
-    report.stock_status as StoreStatus
-  );
+  const {
+    coordinates,
+    isLoading: locating,
+    error: locationError,
+    requestLocation,
+  } = useGeolocation();
+  const [stockStatus, setStockStatus] = useState<StoreStatus>(report.stock_status as StoreStatus);
   const [estimatedQuantity, setEstimatedQuantity] = useState(
     report.estimated_quantity?.toString() ?? ''
   );
@@ -107,12 +109,9 @@ function StockUpdateDialog({ report, onClose }: StockUpdateDialogProps) {
       onClose={mutation.isPending ? undefined : onClose}
       fullWidth
       maxWidth="sm"
-      slotProps={{ paper: { sx: { borderRadius: 3.5 } } }}
+      slotProps={{ paper: { sx: { borderRadius: '18px' } } }}
     >
-      <DialogTitle
-        id="stock-update-dialog-title"
-        sx={{ pb: 1, fontSize: 24, fontWeight: 900 }}
-      >
+      <DialogTitle id="stock-update-dialog-title" sx={{ pb: 1, fontSize: 24, fontWeight: 900 }}>
         อัปเดตสถานะสินค้า
       </DialogTitle>
       <DialogContent>
@@ -142,7 +141,9 @@ function StockUpdateDialog({ report, onClose }: StockUpdateDialogProps) {
             value={estimatedQuantity}
             disabled={stockStatus === 'out_of_stock'}
             error={!quantityIsValid}
-            helperText={!quantityIsValid ? 'จำนวนต้องเป็นเลขจำนวนเต็ม 0–9,999' : 'เว้นว่างได้ถ้าไม่แน่ใจ'}
+            helperText={
+              !quantityIsValid ? 'จำนวนต้องเป็นเลขจำนวนเต็ม 0–9,999' : 'เว้นว่างได้ถ้าไม่แน่ใจ'
+            }
             onChange={(event) => setEstimatedQuantity(event.target.value)}
             slotProps={{ htmlInput: { min: 0, max: 9999, step: 1 } }}
           />
@@ -183,7 +184,7 @@ function StockUpdateDialog({ report, onClose }: StockUpdateDialogProps) {
                 <Iconify icon="ri:map-pin-user-fill" />
               )
             }
-            sx={{ alignSelf: 'flex-start', borderRadius: 99 }}
+            sx={{ alignSelf: 'flex-start', borderRadius: '12px' }}
           >
             {locating
               ? 'กำลังตรวจตำแหน่ง'
@@ -229,13 +230,14 @@ export function ReportHistorySection() {
     <Box
       id="report-history"
       sx={{
-        p: { xs: 2.5, md: 3.5 },
+        p: { xs: 2, md: 3 },
         minWidth: 0,
-        border: '3px solid #351129',
-        borderRadius: 4,
-        bgcolor: '#fff',
-        boxShadow: '7px 8px 0 #351129',
+        border: '5px solid var(--palette-background-paper)',
+        borderRadius: '18px',
+        bgcolor: 'var(--palette-background-paper)',
+        boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
         scrollMarginTop: 100,
+        '& .MuiChip-root': { borderRadius: '8px' },
       }}
     >
       <Stack
@@ -245,7 +247,7 @@ export function ReportHistorySection() {
         spacing={2}
       >
         <Box>
-          <Typography component="h2" sx={{ fontSize: { xs: 30, md: 40 }, fontWeight: 900 }}>
+          <Typography component="h2" sx={{ fontSize: { xs: 24, md: 30 }, fontWeight: 900 }}>
             ประวัติการแจ้งพิกัด
           </Typography>
           <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
@@ -256,12 +258,13 @@ export function ReportHistorySection() {
           href="/report"
           variant="contained"
           sx={{
-            color: '#351129',
-            border: '2px solid #351129',
-            borderRadius: 99,
+            color: 'primary.contrastText',
+            border: '1px solid var(--palette-grey-300)',
+            borderRadius: '12px',
             backgroundImage: 'none',
-            bgcolor: '#FDE047',
-            boxShadow: '3px 4px 0 #351129',
+            bgcolor: 'primary.main',
+            '&:hover': { bgcolor: 'primary.dark' },
+            boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
           }}
         >
           + แจ้งพิกัดใหม่
@@ -287,18 +290,37 @@ export function ReportHistorySection() {
             }}
           >
             {[
-              { label: 'ทั้งหมด', value: reports.length, color: '#6a40a5', bgcolor: '#f4effa' },
-              { label: 'รอตรวจสอบ', value: pendingCount, color: '#b87500', bgcolor: '#fff6df' },
-              { label: 'อนุมัติแล้ว', value: approvedCount, color: '#008c81', bgcolor: '#e8f8f5' },
+              {
+                label: 'ทั้งหมด',
+                value: reports.length,
+                color: 'var(--palette-primary-main)',
+                bgcolor: 'var(--palette-primary-lighter)',
+              },
+              {
+                label: 'รอตรวจสอบ',
+                value: pendingCount,
+                color: '#b87500',
+                bgcolor: 'var(--palette-secondary-lighter)',
+              },
+              {
+                label: 'อนุมัติแล้ว',
+                value: approvedCount,
+                color: 'var(--palette-primary-dark)',
+                bgcolor: 'var(--palette-primary-lighter)',
+              },
             ].map((item) => (
               <Box
                 key={item.label}
                 sx={{
-                  p: { xs: 1.5, sm: 2 },
-                  border: '2px solid #351129',
-                  borderRadius: 2.5,
+                  p: { xs: 1.25, sm: 1.5 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.25,
+                  flexWrap: 'wrap',
+                  border: '5px solid var(--palette-background-paper)',
+                  borderRadius: '14px',
                   bgcolor: item.bgcolor,
-                  boxShadow: '3px 3px 0 #351129',
+                  boxShadow: 'none',
                 }}
               >
                 <Typography
@@ -321,61 +343,135 @@ export function ReportHistorySection() {
                 <Paper
                   key={report.id}
                   elevation={0}
-                  sx={{ p: 2.5, border: '2px solid #351129', borderRadius: 3, bgcolor: '#FFF7FB' }}
+                  sx={{
+                    p: { xs: 1.75, sm: 2 },
+                    overflow: 'hidden',
+                    background:
+                      'linear-gradient(90deg, #FBF6ED 25%, rgba(251,246,237,.96) 65%, rgba(251,246,237,.8) 100%), url(/assets/loveza/nearby-explorer-v1.webp) right center / cover',
+                    border: '5px solid var(--palette-background-paper)',
+                    borderRadius: '18px',
+                    boxShadow: '0 4px 0 var(--palette-grey-200)',
+                    bgcolor: 'var(--palette-background-default)',
+                  }}
                 >
                   <Stack
-                    direction="row"
+                    direction={{ xs: 'column', sm: 'row' }}
                     justifyContent="space-between"
                     alignItems="flex-start"
-                    spacing={2}
+                    spacing={1.5}
                   >
-                    <Box>
-                      <Typography sx={{ fontSize: 19, fontWeight: 900 }}>
-                        {report.store_name}
-                      </Typography>
-                      <Chip
-                        size="small"
-                        label={report.store_type_name || report.store_type}
-                        sx={{ mt: 0.75, color: '#E5007E', fontWeight: 900, bgcolor: '#FFF0F8' }}
+                    <Box sx={{ display: 'flex', gap: 1.25, minWidth: 0 }}>
+                      <Box
+                        component="img"
+                        src={report.store_type_logo_url || '/assets/icons/loveza/voxel-store.svg'}
+                        alt=""
+                        onError={(event) => {
+                          event.currentTarget.onerror = null;
+                          event.currentTarget.src = '/assets/icons/loveza/voxel-store.svg';
+                        }}
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          flexShrink: 0,
+                          objectFit: 'contain',
+                          p: 0.5,
+                          borderRadius: '12px',
+                          bgcolor: 'background.paper',
+                        }}
                       />
-                      <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-                        {[report.address, report.district, report.province]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </Typography>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          sx={{ fontSize: { xs: 16, sm: 18 }, fontWeight: 800, lineHeight: 1.5 }}
+                        >
+                          {report.store_name}
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={report.store_type_name || report.store_type}
+                          sx={{
+                            mt: 0.75,
+                            color: 'var(--palette-primary-main)',
+                            fontWeight: 900,
+                            bgcolor: 'var(--palette-primary-lighter)',
+                          }}
+                        />
+                        <Typography
+                          sx={{ mt: 0.5, color: 'text.secondary', fontSize: 13, lineHeight: 1.6 }}
+                        >
+                          {[report.address, report.district, report.province]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </Typography>
+                      </Box>
                     </Box>
                     <Chip label={status.label} color={status.color} size="small" />
                   </Stack>
-                  <Typography sx={{ mt: 2, fontWeight: 700 }}>
-                    {STORE_STATUS_LABEL[report.stock_status as keyof typeof STORE_STATUS_LABEL] ??
-                      report.stock_status}
-                    {report.estimated_quantity !== null
-                      ? ` · ประมาณ ${report.estimated_quantity} กระป๋อง`
-                      : ''}
-                    {report.flavors?.length
-                      ? ` · ${report.flavors.map(flavorLabel).join(', ')}`
-                      : ''}
-                  </Typography>
-                  <Typography sx={{ mt: 1, color: 'text.secondary', fontSize: 13 }}>
-                    แจ้งเมื่อ {new Date(report.created_at).toLocaleString('th-TH')}
-                  </Typography>
-                  {report.approval_status === 'approved' && report.store_id ? (
-                    <Button
+                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} sx={{ mt: 1.5 }}>
+                    <Chip
                       size="small"
-                      variant="outlined"
-                      onClick={() => setStockUpdateReport(report)}
-                      startIcon={<Iconify icon="ri:refresh-line" />}
-                      sx={{ mt: 2, borderRadius: 99 }}
+                      label={
+                        STORE_STATUS_LABEL[
+                          report.stock_status as keyof typeof STORE_STATUS_LABEL
+                        ] ?? report.stock_status
+                      }
+                      sx={{
+                        borderRadius: '8px',
+                        bgcolor: 'secondary.lighter',
+                        color: 'secondary.dark',
+                      }}
+                    />
+                    {report.estimated_quantity !== null && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={`ประมาณ ${report.estimated_quantity} กระป๋อง`}
+                        sx={{ borderRadius: '8px' }}
+                      />
+                    )}
+                  </Stack>
+                  {Boolean(report.flavors?.length) && (
+                    <Typography
+                      sx={{ mt: 1, fontSize: 14, color: 'text.secondary', lineHeight: 1.7 }}
                     >
-                      อัปเดตสถานะสินค้า
-                    </Button>
-                  ) : null}
+                      {report.flavors?.map(flavorLabel).join(' · ')}
+                    </Typography>
+                  )}
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    justifyContent="space-between"
+                    spacing={1.5}
+                    sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}
+                  >
+                    <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+                      แจ้งเมื่อ {new Date(report.created_at).toLocaleString('th-TH')}
+                    </Typography>
+                    {report.approval_status === 'approved' && report.store_id ? (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setStockUpdateReport(report)}
+                        startIcon={<Iconify icon="ri:refresh-line" />}
+                        sx={{
+                          minHeight: 36,
+                          flexShrink: 0,
+                          px: 2,
+                          borderRadius: '12px',
+                          borderColor: 'primary.light',
+                          bgcolor: 'background.paper',
+                          boxShadow: 'none',
+                        }}
+                      >
+                        อัปเดตสถานะสินค้า
+                      </Button>
+                    ) : null}
+                  </Stack>
                 </Paper>
               );
             })}
 
             {reports.length === 0 ? (
-              <Paper elevation={0} sx={{ p: 5, borderRadius: 3, textAlign: 'center' }}>
+              <Paper elevation={0} sx={{ p: 5, borderRadius: '12px', textAlign: 'center' }}>
                 <Typography sx={{ fontWeight: 800 }}>ยังไม่มีประวัติการแจ้งพิกัด</Typography>
                 <Typography sx={{ mt: 1, mb: 2, color: 'text.secondary' }}>
                   ถ้าพบ Loveza ที่ร้านไหน ช่วยบอกต่อเป็นคนแรกได้เลย

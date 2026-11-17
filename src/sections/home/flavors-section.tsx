@@ -1,5 +1,7 @@
 import type { LovezaProduct } from 'src/types/loveza-product';
 
+import Image from 'next/image';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -8,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import { Iconify } from 'src/components/iconify';
 
 import { ProductCan } from './product-can';
+import { explorerCardSx, explorerLabelSx } from './explorer-styles';
 
 type FlavorsSectionProps = {
   products: LovezaProduct[];
@@ -15,21 +18,9 @@ type FlavorsSectionProps = {
 
 export function FlavorsSection({ products }: FlavorsSectionProps) {
   return (
-    <Container maxWidth="xl">
-      <Box component="section" id="flavors" sx={{ py: { xs: 7, md: 8 } }}>
-        <Container
-          maxWidth="xl"
-          sx={{
-            p: { xs: '30px 14px !important', sm: '48px 30px !important', md: '64px !important' },
-            color: '#fff',
-            overflow: 'hidden',
-            border: '3px solid #351129',
-            borderRadius: { xs: '32px', md: '48px' },
-            background:
-              'radial-gradient(circle at 18px 18px, rgba(255,255,255,.12) 3px, transparent 3.5px) 0 0 / 38px 38px, #6D28D9',
-            boxShadow: '10px 12px 0 #351129',
-          }}
-        >
+    <Container maxWidth="lg">
+      <Box component="section" id="flavors" sx={{ py: { xs: 4, md: 6 } }}>
+        <Box>
           <Box
             sx={{
               display: 'flex',
@@ -40,42 +31,25 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
             }}
           >
             <Box>
-              <Typography
-                sx={{
-                  px: 1.5,
-                  py: 0.75,
-                  width: 'fit-content',
-                  color: '#351129',
-                  fontSize: 12,
-                  fontWeight: 900,
-                  letterSpacing: 2,
-                  border: '2px solid #351129',
-                  borderRadius: 99,
-                  bgcolor: '#70E1F5',
-                  boxShadow: '3px 3px 0 #351129',
-                  transform: 'rotate(-2deg)',
-                }}
-              >
-                PICK YOUR VIBE
-              </Typography>
+              <Typography sx={explorerLabelSx}>CHOOSE YOUR FLAVOR</Typography>
               <Typography
                 component="h2"
                 sx={{
                   mt: 1,
                   maxWidth: 650,
-                  fontSize: { xs: 40, sm: 52, md: 68 },
-                  lineHeight: 1,
+                  fontSize: { xs: 30, sm: 38, md: 46 },
+                  lineHeight: 1.3,
                   fontWeight: 900,
-                  letterSpacing: '-.06em',
+                  letterSpacing: '-.03em',
                 }}
               >
-                เลือกรส แล้วไปซ่า!
+                ความซ่าที่อยากค้นพบ
               </Typography>
             </Box>
             <Typography
               sx={{
                 maxWidth: 390,
-                color: '#F4EFFF',
+                color: 'var(--palette-text-secondary)',
                 fontSize: { xs: 14, md: 16 },
                 lineHeight: 1.7,
               }}
@@ -89,7 +63,11 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
             sx={{
               mt: { xs: 3, md: 5 },
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                lg: 'repeat(4, minmax(0, 1fr))',
+              },
               gap: { xs: 2, md: 2.5 },
             }}
           >
@@ -97,15 +75,38 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
               <Box
                 key={product.id}
                 sx={{
-                  pb: 2.5,
-                  border: '3px solid #351129',
-                  borderRadius: { xs: '28px', md: '36px' },
-                  bgcolor: '#FFF9FC',
-                  boxShadow: '6px 7px 0 #351129',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  ...explorerCardSx,
+                  border: '5px solid var(--palette-background-paper)',
+                  borderRadius: '18px',
                   transition: 'transform 180ms ease',
-                  '&:hover': { transform: 'translateY(-8px) rotate(-1deg)' },
+                  '&:hover': { transform: 'translateY(-4px)' },
                 }}
               >
+                {product.is_new ? (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      left: 4,
+                      zIndex: 2,
+                      width: { xs: 96, md: 112 },
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Image
+                      src="/assets/loveza/new-badge.png"
+                      alt="สินค้าใหม่"
+                      width={1536}
+                      height={1024}
+                      sizes="112px"
+                      style={{ display: 'block', width: '100%', height: 'auto' }}
+                    />
+                  </Box>
+                ) : null}
                 <ProductCan
                   name={product.name}
                   thaiName={product.thai_name}
@@ -115,34 +116,53 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                   meta={product.meta}
                   imageUrl={product.image_url}
                 />
-                <Box sx={{ textAlign: 'center' }}>
+                <Box
+                  sx={{
+                    p: 2.5,
+                    pt: 2,
+                    borderTop: '1px solid var(--palette-grey-200)',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
                   <Typography
-                    component="p"
                     sx={{
-                      px: 2,
-                      mb: 1.25,
-                      color: '#6F616B',
-                      fontSize: 11,
-                      fontWeight: 500,
-                      lineHeight: 1.5,
+                      color: 'text.secondary',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: 1.5,
                     }}
                   >
-                    * ภาพสินค้าเป็นเพียงภาพตัวอย่าง ไม่ใช่สินค้าจริง
+                    LOVEZA SODA
+                  </Typography>
+                  <Typography
+                    component="h3"
+                    sx={{ mt: 0.75, fontSize: 22, fontWeight: 800, lineHeight: 1.4 }}
+                  >
+                    {product.thai_name}
+                  </Typography>
+                  <Typography sx={{ mt: 0.5, mb: 2.5, color: 'text.secondary', fontSize: 13 }}>
+                    {product.name}
                   </Typography>
                   <Button
                     href="/nearby"
+                    variant="outlined"
+                    fullWidth
+                    endIcon={<Iconify icon="ri:arrow-right-line" width={18} />}
                     sx={{
-                      px: 2.5,
-                      color: product.accent,
-                      fontWeight: 800,
-                      border: '2px solid #351129',
-                      borderRadius: 99,
-                      bgcolor: '#fff',
-                      boxShadow: '3px 4px 0 #351129',
+                      mt: 'auto',
+                      py: 1.2,
+                      borderRadius: '12px',
+                      justifyContent: 'space-between',
+                      px: 2,
+                      color: 'primary.dark',
+                      borderColor: 'divider',
+                      bgcolor: 'background.default',
+                      '&:hover': { bgcolor: 'primary.lighter', borderColor: 'primary.main' },
                     }}
                   >
-                    ค้นหารส {product.name}
-                    <Iconify icon="ri:arrow-right-up-line" width={18} sx={{ ml: 0.75 }} />
+                    ค้นหาร้านที่มี Loveza
                   </Button>
                 </Box>
               </Box>
@@ -154,7 +174,20 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
               </Typography>
             ) : null}
           </Box>
-        </Container>
+          {products.length > 0 ? (
+            <Typography
+              sx={{
+                mt: 2,
+                color: 'text.secondary',
+                fontSize: 11,
+                lineHeight: 1.7,
+                textAlign: 'center',
+              }}
+            >
+              * ภาพสินค้าเป็นเพียงภาพตัวอย่าง ไม่ใช่สินค้าจริง
+            </Typography>
+          ) : null}
+        </Box>
       </Box>
     </Container>
   );

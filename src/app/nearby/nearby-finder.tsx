@@ -12,7 +12,6 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -24,12 +23,10 @@ import { useGeolocation } from 'src/hooks/use-geolocation';
 import { calculateDistanceKm } from 'src/utils/geo';
 import { formatRelativeTimeTh } from 'src/utils/relative-time-th';
 
-import { CONFIG } from 'src/global-config';
 import { supabase } from 'src/lib/supabase';
 import { formatRadiusM } from 'src/lib/admin/duplicate-radius';
 
 import { Iconify } from 'src/components/iconify';
-import { SvgColor } from 'src/components/svg-color';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
 
@@ -49,16 +46,16 @@ const LOAD_MORE_DELAY_MS = 300;
 
 const locateButtonSx = {
   minHeight: 52,
-  color: '#351129',
-  border: '2px solid #351129',
+  color: 'var(--palette-common-white)',
+  border: '1px solid var(--palette-grey-300)',
   borderRadius: 99,
-  bgcolor: '#FDE047',
+  bgcolor: 'var(--palette-primary-main)',
   backgroundImage: 'none',
-  boxShadow: '4px 5px 0 #351129',
+  boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
   '&:hover': {
-    bgcolor: '#FFE96B',
+    bgcolor: 'var(--palette-primary-dark)',
     backgroundImage: 'none',
-    boxShadow: '2px 3px 0 #351129',
+    boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
   },
 } as const;
 
@@ -308,22 +305,59 @@ export function NearbyFinder() {
   }, [hasMoreStores, stores.length, visibleStoreCount]);
 
   return (
-    <Stack spacing={2}>
+    <Stack component="section" id="nearby-search" aria-label="ค้นหาร้านใกล้ฉัน" spacing={2}>
       {!coordinates ? (
-        <Button
-          onClick={() => setLocationDialogOpen(true)}
-          disabled={loading}
-          variant="contained"
-          size="large"
-          startIcon={!loading ? <Iconify icon="ri:focus-3-line" /> : undefined}
-          sx={locateButtonSx}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2.5, md: 3 },
+            border: '1px solid var(--palette-grey-300)',
+            borderRadius: '16px',
+            bgcolor: 'background.paper',
+            boxShadow: '0 4px 0 var(--palette-grey-200)',
+          }}
         >
-          {loading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            'เปิดตำแหน่งเพื่อค้นหาร้านใกล้ฉัน'
-          )}
-        </Button>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={3}
+            alignItems={{ xs: 'stretch', md: 'center' }}
+            justifyContent="space-between"
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
+                sx={{
+                  p: 1.5,
+                  display: 'flex',
+                  bgcolor: 'primary.lighter',
+                  color: 'primary.main',
+                  borderRadius: '12px',
+                }}
+              >
+                <Iconify icon="ri:radar-line" width={30} />
+              </Box>
+              <Box>
+                <Typography component="h2" sx={{ fontSize: 21, fontWeight: 800 }}>
+                  พร้อมค้นพบพิกัดใหม่หรือยัง?
+                </Typography>
+                <Typography
+                  sx={{ mt: 0.75, fontSize: 13, color: 'text.secondary', lineHeight: 1.7 }}
+                >
+                  ใช้ตำแหน่งของคุณเพื่อเรียงร้านจากใกล้ที่สุด
+                </Typography>
+              </Box>
+            </Stack>
+            <Button
+              onClick={() => setLocationDialogOpen(true)}
+              disabled={loading}
+              variant="contained"
+              size="large"
+              startIcon={!loading ? <Iconify icon="ri:focus-3-line" /> : undefined}
+              sx={locateButtonSx}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'เปิดตำแหน่ง เริ่มค้นหา'}
+            </Button>
+          </Stack>
+        </Paper>
       ) : null}
       {gpsError ? (
         <Alert severity="warning" sx={{ whiteSpace: 'pre-line' }}>
@@ -331,61 +365,106 @@ export function NearbyFinder() {
         </Alert>
       ) : null}
       {coordinates ? (
-        <>
+        <Box>
           <Paper
             elevation={0}
             sx={{
-              p: 2,
-              border: '2px solid #351129',
-              borderRadius: 3,
-              bgcolor: '#DDFBF7',
-              boxShadow: '4px 5px 0 #351129',
+              overflow: 'hidden',
+              bgcolor: 'background.paper',
+              border: '5px solid var(--palette-background-paper)',
+              borderRadius: '18px',
+              boxShadow: '0 16px 48px rgba(65,49,30,.06)',
             }}
           >
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={1.5}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-              justifyContent="space-between"
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Iconify icon="ri:map-pin-user-fill" width={28} sx={{ color: '#1687ff' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 900 }}>
-                    ตำแหน่งปัจจุบันของคุณ -{' '}
-                    {searchRadiusM && `ระยะค้นหา ${formatRadiusM(searchRadiusM)}`}
-                  </Typography>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
-                    {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
-                  </Typography>
-                </div>
-              </Stack>
-              <Button
-                onClick={requestLocation}
-                disabled={loading}
-                variant="contained"
-                size="large"
-                startIcon={!loading ? <Iconify icon="ri:focus-3-line" /> : undefined}
-                sx={locateButtonSx}
+            <Box sx={{ overflow: 'hidden', bgcolor: 'background.paper' }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                justifyContent="space-between"
+                sx={{ p: { xs: 2, md: 2.5 }, borderBottom: '1px solid var(--palette-grey-200)' }}
               >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : coordinates ? (
-                  'อัปเดตตำแหน่งปัจจุบัน'
-                ) : (
-                  'ค้นหาใกล้ฉัน'
-                )}
-              </Button>
-            </Stack>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box
+                    component="img"
+                    src="/assets/icons/loveza/voxel-map-pin.svg"
+                    alt=""
+                    width={52}
+                    height={52}
+                    sx={{ width: 52, height: 52, flexShrink: 0, display: 'block' }}
+                  />
+                  <Box>
+                    <Typography
+                      component="h2"
+                      sx={{ fontSize: { xs: 18, md: 20 }, fontWeight: 800 }}
+                    >
+                      แผนที่ความซ่าใกล้คุณ
+                    </Typography>
+                    <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.5 }}>
+                      <Box
+                        sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main' }}
+                      />
+                      <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+                        ระบุตำแหน่งแล้ว
+                        {searchRadiusM ? ` · ค้นหาในระยะ ${formatRadiusM(searchRadiusM)}` : ''}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                </Stack>
+                <Button
+                  onClick={requestLocation}
+                  disabled={loading}
+                  variant="outlined"
+                  startIcon={
+                    loading ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : (
+                      <Iconify icon="ri:refresh-line" width={18} />
+                    )
+                  }
+                  sx={{
+                    flexShrink: 0,
+                    minHeight: 44,
+                    borderColor: 'divider',
+                    color: 'primary.dark',
+                    px: 2,
+                  }}
+                >
+                  อัปเดตตำแหน่ง
+                </Button>
+              </Stack>
+              <NearbyMap coordinates={coordinates} stores={stores} />
+              <Stack
+                direction="row"
+                spacing={0.75}
+                alignItems="flex-start"
+                sx={{ p: 1.75, bgcolor: 'background.default', color: 'text.secondary' }}
+              >
+                <Iconify icon="ri:information-line" width={16} sx={{ flexShrink: 0, mt: 0.2 }} />
+                <Typography sx={{ fontSize: 11, lineHeight: 1.7 }}>
+                  ข้อมูลสินค้าจากชุมชนอาจเปลี่ยนแปลง ตรวจสอบเวลาอัปเดตและสอบถามร้านก่อนเดินทาง
+                </Typography>
+              </Stack>
+            </Box>
           </Paper>
-          <NearbyMap coordinates={coordinates} stores={stores} />
-        </>
+        </Box>
       ) : null}
       {message ? <Alert severity="info">{message}</Alert> : null}
       {stores.length ? (
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pt: 2 }}>
           <div>
-            <Typography sx={{ color: '#572676', fontSize: { xs: 22, md: 28 }, fontWeight: 1000 }}>
+            <Typography
+              sx={{ color: 'primary.main', fontSize: 10, letterSpacing: 2, fontWeight: 800 }}
+            >
+              DISCOVERED NEAR YOU
+            </Typography>
+            <Typography
+              sx={{
+                color: 'var(--palette-primary-dark)',
+                fontSize: { xs: 22, md: 28 },
+                fontWeight: 1000,
+              }}
+            >
               Loveza ใกล้คุณ
             </Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
@@ -395,7 +474,11 @@ export function NearbyFinder() {
           <Stack direction="row" spacing={1} alignItems="center">
             <Chip
               label={`${stores.length} ร้าน`}
-              sx={{ color: '#fff', fontWeight: 900, bgcolor: '#7b43a1' }}
+              sx={{
+                color: 'var(--palette-background-paper)',
+                fontWeight: 900,
+                bgcolor: 'var(--palette-primary-main)',
+              }}
             />
           </Stack>
         </Stack>
@@ -404,7 +487,11 @@ export function NearbyFinder() {
         sx={{
           display: 'grid',
           gap: 2,
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, minmax(0, 1fr))',
+            lg: 'repeat(3, minmax(0, 1fr))',
+          },
         }}
       >
         {visibleStores.map((store, index) => {
@@ -413,156 +500,239 @@ export function NearbyFinder() {
           return (
             <Paper
               key={store.id}
+              component="article"
               elevation={0}
               sx={{
-                p: 2.5,
-                overflow: 'hidden',
+                p: { xs: 2, md: 2.5 },
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                border: '5px solid var(--palette-background-paper)',
+                borderRadius: '18px',
                 position: 'relative',
-                border: '3px solid #351129',
-                borderRadius: 3.5,
-                background: `linear-gradient(135deg, #fff 46%, ${storeColor.soft} 100%)`,
-                boxShadow: '5px 6px 0 #351129',
-                transition: 'transform .2s ease, box-shadow .2s ease',
-                '&::before': {
-                  content: '""',
-                  top: 0,
-                  left: 0,
-                  width: 1,
-                  height: 5,
-                  position: 'absolute',
-                  background: `linear-gradient(90deg, ${storeColor.main}, ${storeColor.dark})`,
-                },
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '3px 4px 0 #351129',
-                },
+                bgcolor: 'background.paper',
+                boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
+                transition: 'transform 160ms ease',
+                '&:hover': { transform: 'translateY(-3px)' },
+                '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
               }}
             >
-              <Stack direction="row" justifyContent="space-between" spacing={2}>
-                <Stack direction="row" spacing={1.5} sx={{ minWidth: 0 }}>
-                  <Box
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      color: '#fff',
-                      display: 'grid',
-                      flexShrink: 0,
-                      borderRadius: 2.25,
-                      placeItems: 'center',
-                      border: '2px solid #351129',
-                      bgcolor: storeColor.main,
-                      boxShadow: '3px 3px 0 #351129',
-                    }}
-                  >
-                    {store.store_type_logo_url ? (
-                      <Box
-                        component="span"
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          p: '4px',
-                          display: 'grid',
-                          overflow: 'hidden',
-                          borderRadius: '50%',
-                          placeItems: 'center',
-                          bgcolor: '#fff',
-                        }}
-                      >
-                        <Box
-                          component="img"
-                          src={store.store_type_logo_url}
-                          alt={`Logo ${store.name}`}
-                          sx={{ width: 1, height: 1, objectFit: 'contain' }}
-                        />
-                      </Box>
-                    ) : (
-                      <Iconify icon="ri:store-2-fill" width={23} />
-                    )}
-                  </Box>
-                  <div>
-                    <Typography sx={{ fontWeight: 1000, fontSize: 18 }}>{store.name}</Typography>
-                    <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 13 }}>
-                      {[store.address, store.province].filter(Boolean).join(', ')}
-                    </Typography>
-                  </div>
-                </Stack>
-                <Typography sx={{ color: storeColor.dark, fontWeight: 1000, whiteSpace: 'nowrap' }}>
-                  #{index + 1}
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                spacing={1}
+                sx={{ mb: 2, pb: 1.5, borderBottom: '2px dashed var(--palette-grey-300)' }}
+              >
+                <Typography
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1.4,
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  STORE / {String(index + 1).padStart(2, '0')}
                 </Typography>
-              </Stack>
-              <Divider sx={{ my: 1.75, borderColor: `${storeColor.main}24` }} />
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Chip
                   size="small"
                   label={STORE_STATUS_LABEL[store.current_status] ?? STORE_STATUS_LABEL.unknown}
-                  sx={{ color: storeColor.dark, fontWeight: 900, bgcolor: storeColor.soft }}
+                  color={
+                    store.current_status === 'available'
+                      ? 'success'
+                      : store.current_status === 'low_stock'
+                        ? 'warning'
+                        : store.current_status === 'out_of_stock'
+                          ? 'error'
+                          : 'default'
+                  }
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 11,
+                    borderRadius: '4px',
+                    border: '1px solid currentColor',
+                    height: 24,
+                  }}
                 />
-                <Chip
-                  size="small"
-                  icon={<Iconify icon="ri:map-pin-distance-fill" />}
-                  label={`${store.distanceKm.toFixed(1)} กม.`}
-                  sx={{ fontWeight: 800, bgcolor: '#fff' }}
-                />
-                {store.estimated_quantity !== null ? (
-                  <Chip
-                    size="small"
-                    icon={
-                      <SvgColor
-                        src={`${CONFIG.assetsDir}/assets/icons/components/ic-soda-can.png`}
-                      />
-                    }
-                    label={`ประมาณ ${store.estimated_quantity} กระป๋อง`}
-                    sx={{ fontWeight: 800, bgcolor: '#fff' }}
-                  />
-                ) : null}
               </Stack>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="flex-end"
-                sx={{ mt: 2 }}
-              >
-                <Stack spacing={0.5} sx={{ minWidth: 0 }}>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
-                    {store.last_reported_at
-                      ? `พบล่าสุด ${formatRelativeTimeTh(store.last_reported_at)}`
-                      : 'ยังไม่มีเวลารายงานล่าสุด'}
+              <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    flexShrink: 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                    borderRadius: '4px',
+                    border: `2px solid ${storeColor.dark}`,
+                    boxShadow: `inset 3px 3px 0 rgba(255,255,255,.65), 3px 3px 0 ${storeColor.soft}`,
+                    bgcolor: storeColor.soft,
+                    color: storeColor.dark,
+                  }}
+                >
+                  {store.store_type_logo_url ? (
+                    <Box
+                      component="img"
+                      src={store.store_type_logo_url}
+                      alt=""
+                      sx={{ width: 36, height: 36, objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <Iconify icon="ri:store-2-line" width={25} />
+                  )}
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography
+                    component="h3"
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: 17,
+                      lineHeight: 1.55,
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
+                    {store.name}
                   </Typography>
                   <Typography
                     sx={{
-                      gap: 0.5,
-                      display: 'flex',
-                      color: storeColor.dark,
-                      alignItems: 'center',
+                      mt: 0.5,
+                      color: 'text.secondary',
                       fontSize: 12,
-                      fontWeight: 900,
+                      lineHeight: 1.7,
+                      overflowWrap: 'anywhere',
                     }}
                   >
-                    <Iconify icon="ri:user-heart-fill" width={15} />
-                    แจ้งโดย {store.reporter_display_name ?? 'นักล่า Loveza'}
+                    {[
+                      store.address?.trim().toLocaleLowerCase() !==
+                      store.name.trim().toLocaleLowerCase()
+                        ? store.address
+                        : null,
+                      store.province,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Box
+                sx={{
+                  mt: 2.5,
+                  mb: 2,
+                  p: 1.5,
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 1.5,
+                  bgcolor: 'background.default',
+                  borderRadius: '12px',
+                  alignItems: 'start',
+                }}
+              >
+                <Box>
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    alignItems="center"
+                    sx={{ color: 'text.secondary' }}
+                  >
+                    <Iconify icon="ri:map-pin-distance-line" width={14} />
+                    <Typography sx={{ fontSize: 11 }}>ระยะจากคุณ</Typography>
+                  </Stack>
+                  <Typography
+                    sx={{
+                      mt: 0.5,
+                      fontSize: 22,
+                      fontWeight: 800,
+                      color: 'primary.dark',
+                    }}
+                  >
+                    {store.distanceKm.toFixed(1)}{' '}
+                    <Box component="span" sx={{ fontSize: 11, fontWeight: 500 }}>
+                      กม.
+                    </Box>
+                  </Typography>
+                </Box>
+                <Box sx={{ pl: 1.5, borderLeft: '1px solid var(--palette-grey-300)' }}>
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    alignItems="center"
+                    sx={{ color: 'text.secondary' }}
+                  >
+                    <Iconify icon="ri:drinks-2-line" width={14} />
+                    <Typography sx={{ fontSize: 11 }}>จำนวนที่แจ้ง</Typography>
+                  </Stack>
+                  <Typography
+                    sx={{
+                      mt: 0.5,
+                      fontSize: store.estimated_quantity === null ? 13 : 22,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {store.estimated_quantity !== null
+                      ? store.estimated_quantity.toLocaleString('th-TH')
+                      : 'ไม่ระบุ'}
+                    {store.estimated_quantity !== null ? (
+                      <Box component="span" sx={{ fontSize: 11, fontWeight: 500 }}>
+                        {' '}
+                        กระป๋อง
+                      </Box>
+                    ) : null}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ mt: 'auto' }}>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  alignItems="center"
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <Iconify icon="ri:time-line" width={14} sx={{ flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 11, lineHeight: 1.7 }}>
+                    {store.last_reported_at
+                      ? `แจ้งล่าสุด ${formatRelativeTimeTh(store.last_reported_at)}`
+                      : 'ยังไม่มีเวลารายงานล่าสุด'}
+                  </Typography>
+                </Stack>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  alignItems="flex-start"
+                  sx={{ mt: 0.75, color: 'text.secondary' }}
+                >
+                  <Iconify icon="ri:user-heart-line" width={14} sx={{ mt: 0.2, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 11, lineHeight: 1.7, overflowWrap: 'anywhere' }}>
+                    โดย {store.reporter_display_name ?? 'นักล่า Loveza'}
                   </Typography>
                 </Stack>
                 <Button
-                  component="a"
                   href={buildGoogleMapsUrl(store.latitude, store.longitude)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  size="small"
+                  fullWidth
                   variant="contained"
-                  startIcon={<Iconify icon="ri:route-fill" />}
+                  startIcon={<Iconify icon="ri:route-line" />}
+                  endIcon={<Iconify icon="ri:arrow-right-up-line" width={17} />}
+                  aria-label={`นำทางไป ${store.name}`}
                   sx={{
-                    color: '#fff',
-                    flexShrink: 0,
-                    border: '2px solid #351129',
-                    borderRadius: 99,
-                    bgcolor: storeColor.main,
-                    boxShadow: '3px 3px 0 #351129',
-                    '&:hover': { bgcolor: storeColor.dark, boxShadow: '1px 2px 0 #351129' },
+                    mt: 2,
+                    minHeight: 44,
+                    justifyContent: 'space-between',
+                    px: 2,
+                    bgcolor: 'primary.main',
+                    '&&': {
+                      borderRadius: '12px',
+                      border: 0,
+                      boxShadow: '0 3px 0 var(--palette-primary-darker)',
+                    },
+                    '&:hover': { bgcolor: 'primary.dark' },
+                    '&:active': { transform: 'translateY(2px)' },
                   }}
                 >
-                  นำทาง
+                  นำทางไปร้านนี้
                 </Button>
-              </Stack>
+              </Box>
             </Paper>
           );
         })}
@@ -574,7 +744,7 @@ export function NearbyFinder() {
           aria-live="polite"
           spacing={1}
           alignItems="center"
-          sx={{ minHeight: 88, pt: 2, pb: 1, color: '#7b43a1' }}
+          sx={{ minHeight: 88, pt: 2, pb: 1, color: 'var(--palette-primary-main)' }}
         >
           {isLoadingMore ? (
             <CircularProgress size={28} color="inherit" />
@@ -606,6 +776,8 @@ export function NearbyFinder() {
       <Dialog
         open={locationDialogOpen && !coordinates}
         onClose={() => setLocationDialogOpen(false)}
+        aria-labelledby="nearby-location-title"
+        aria-describedby="nearby-location-description"
         fullWidth
         maxWidth="xs"
         slotProps={{
@@ -613,115 +785,215 @@ export function NearbyFinder() {
             sx: {
               m: 2,
               width: 'calc(100% - 32px)',
-              maxWidth: 340,
-              overflow: 'visible',
-              border: '3px solid #351129',
-              borderRadius: '28px',
-              boxShadow: '8px 9px 0 #351129',
+              maxWidth: 360,
+              maxHeight: 'calc(100dvh - 32px)',
+              overflow: 'hidden',
+              border: '1px solid var(--palette-grey-300)',
+              borderRadius: '20px',
+              bgcolor: 'background.paper',
+              boxShadow: '0 20px 70px rgba(35,45,30,.2)',
             },
           },
         }}
       >
-        <Box
-          sx={{
-            width: 64,
-            height: 64,
-            mx: 'auto',
-            mt: -4,
-            color: '#351129',
-            display: 'grid',
-            placeItems: 'center',
-            border: '3px solid #351129',
-            borderRadius: '20px',
-            bgcolor: '#FDE047',
-            boxShadow: '4px 4px 0 #351129',
-            transform: 'rotate(-4deg)',
-          }}
-        >
-          <Iconify icon="ri:map-pin-user-fill" width={32} />
-        </Box>
-        <DialogTitle
-          sx={{
-            pt: 2.5,
-            pb: 1,
-            px: 2,
-            textAlign: 'center',
-            fontSize: { xs: 23, sm: 26 },
-            lineHeight: 1.25,
-            fontWeight: 1000,
-          }}
-        >
-          {gpsError ? 'เปิดสิทธิ์ตำแหน่งที่ตั้งก่อน' : 'เปิดตำแหน่งที่ตั้งก่อนออกล่า'}
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center' }}>
-          <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
-            Loveza Hunt จะใช้ตำแหน่งปัจจุบันเพื่อค้นหาร้านที่อยู่ใกล้คุณเท่านั้น
-          </Typography>
-
-          {gpsError ? (
-            <Alert severity="warning" sx={{ mt: 2, textAlign: 'left', whiteSpace: 'pre-line' }}>
-              {gpsError}
-            </Alert>
-          ) : null}
-
+        <DialogContent sx={{ p: 0 }}>
           <Box
             sx={{
-              mt: 2,
-              p: 2,
-              textAlign: 'left',
-              border: '2px solid #351129',
-              borderRadius: '18px',
-              bgcolor: '#DDFBF7',
+              position: 'relative',
+              height: 132,
+              overflow: 'hidden',
+              bgcolor: 'primary.lighter',
             }}
           >
-            <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>หากเคยกดไม่อนุญาต</Typography>
-            <Stack spacing={1.1} sx={{ mt: 1.25 }}>
-              {locationSettingsSteps.map((step, index) => (
-                <Stack key={step} direction="row" spacing={1} alignItems="flex-start">
-                  <Box
-                    sx={{
-                      width: 22,
-                      height: 22,
-                      display: 'grid',
-                      flexShrink: 0,
-                      borderRadius: '50%',
-                      placeItems: 'center',
-                      color: '#fff',
-                      bgcolor: '#E5007E',
-                      fontSize: 11,
-                      fontWeight: 1000,
-                    }}
+            <Box
+              component="img"
+              src="/assets/loveza/nearby-explorer-v1.webp"
+              alt=""
+              width={1536}
+              height={1024}
+              sx={{
+                display: 'block',
+                width: 1,
+                height: 1,
+                objectFit: 'cover',
+                objectPosition: 'right 48%',
+              }}
+            />
+            <Button
+              aria-label="ปิดหน้าต่างขอตำแหน่ง"
+              onClick={() => setLocationDialogOpen(false)}
+              sx={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                minWidth: 32,
+                width: 32,
+                height: 32,
+                p: 0,
+                borderRadius: '10px',
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                '&:hover': { bgcolor: 'primary.lighter' },
+              }}
+            >
+              <Iconify icon="ri:close-line" width={20} />
+            </Button>
+          </Box>
+          <Box sx={{ px: 3, pt: 2.5, pb: 2 }}>
+            <Stack
+              direction="row"
+              spacing={0.75}
+              alignItems="center"
+              sx={{ color: 'primary.main', mb: 1 }}
+            >
+              <Iconify icon="ri:compass-3-line" width={17} />
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.8 }}>
+                READY TO EXPLORE?
+              </Typography>
+            </Stack>
+            <DialogTitle
+              id="nearby-location-title"
+              sx={{ p: 0, fontSize: 24, lineHeight: 1.4, fontWeight: 800 }}
+            >
+              {gpsError ? 'มาเปิดพิกัดกันอีกครั้ง' : 'เริ่มสำรวจร้านใกล้คุณ'}
+            </DialogTitle>
+            <Typography
+              id="nearby-location-description"
+              sx={{ mt: 1.25, fontSize: 13, color: 'text.secondary', lineHeight: 1.85 }}
+            >
+              เปิดตำแหน่งเพื่อดูร้าน Loveza รอบตัว
+              <br />
+              พร้อมระยะทางและเส้นทางไปร้าน
+            </Typography>
+            <Stack
+              direction="row"
+              spacing={0.75}
+              alignItems="flex-start"
+              sx={{
+                mt: 2,
+                p: 1.25,
+                bgcolor: 'primary.lighter',
+                borderRadius: '10px',
+                color: 'primary.dark',
+              }}
+            >
+              <Iconify icon="ri:map-pin-user-line" width={17} sx={{ mt: 0.15, flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 11, lineHeight: 1.7 }}>
+                ใช้ตำแหน่งปัจจุบันเพื่อค้นหาร้านใกล้คุณ
+              </Typography>
+            </Stack>
+            {gpsError ? (
+              <Alert severity="warning" sx={{ mt: 1.5, fontSize: 12, whiteSpace: 'pre-line' }}>
+                {gpsError}
+              </Alert>
+            ) : null}
+            <Box
+              component="details"
+              open={Boolean(gpsError)}
+              sx={{
+                mt: 2,
+                fontSize: 12,
+                color: 'text.secondary',
+                '& summary': {
+                  cursor: 'pointer',
+                  minHeight: 28,
+                  fontWeight: 700,
+                  color: 'primary.dark',
+                  '&:focus-visible': {
+                    outline: '2px solid var(--palette-primary-main)',
+                    outlineOffset: 3,
+                  },
+                },
+              }}
+            >
+              <Box component="summary">เคยกดไม่อนุญาตตำแหน่ง?</Box>
+              <Stack
+                component="ol"
+                spacing={1.25}
+                sx={{
+                  mt: 1.25,
+                  mb: 0,
+                  pl: 2.25,
+                  '& li::marker': { color: 'primary.main', fontWeight: 800 },
+                }}
+              >
+                {locationSettingsSteps.map((step) => (
+                  <Typography
+                    component="li"
+                    key={step}
+                    sx={{ pl: 0.5, fontSize: 12, lineHeight: 1.7 }}
                   >
-                    {index + 1}
-                  </Box>
-                  <Typography sx={{ color: '#5B3A50', fontSize: 12, lineHeight: 1.6 }}>
                     {step}
                   </Typography>
-                </Stack>
-              ))}
-            </Stack>
-            {gpsError?.includes('HTTPS') ? (
-              <Typography sx={{ mt: 1.25, color: '#7A5D72', fontSize: 11, lineHeight: 1.55 }}>
-                ต้องเปิดเว็บไซต์ผ่าน HTTPS การทดสอบด้วย IP แบบ http://192.168.x.x
-                จะไม่สามารถขอตำแหน่งได้
-              </Typography>
-            ) : null}
+                ))}
+              </Stack>
+              {gpsError?.includes('HTTPS') ? (
+                <Typography sx={{ mt: 1.25, fontSize: 11, lineHeight: 1.7 }}>
+                  โปรดเปิดเว็บไซต์ผ่าน HTTPS เพื่อขอสิทธิ์ตำแหน่ง
+                </Typography>
+              ) : null}
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions
-          sx={{ px: 3, pb: 3, gap: 1, flexDirection: { xs: 'column-reverse', sm: 'row' } }}
+          disableSpacing
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            gap: 1,
+            px: 3,
+            pt: 2,
+            pb: 2.5,
+            borderTop: '1px solid var(--palette-grey-200)',
+            '& > .MuiButton-root': { m: 0, width: '100%' },
+          }}
         >
-          <Button color="inherit" fullWidth onClick={() => setLocationDialogOpen(false)}>
-            ไว้ก่อน
-          </Button>
           <Button
             fullWidth
             variant="contained"
             onClick={handleRequestLocation}
-            startIcon={<Iconify icon="ri:focus-3-line" />}
-            sx={locateButtonSx}
+            disabled={loading}
+            startIcon={
+              loading ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <Iconify icon="ri:focus-3-line" />
+              )
+            }
+            sx={{
+              ...locateButtonSx,
+              borderRadius: '12px',
+              minHeight: 46,
+              '&&': { boxShadow: '0 3px 0 var(--palette-primary-darker)', border: 0 },
+            }}
           >
-            {gpsError ? 'รีโหลดหน้าและขอพิกัดใหม่' : 'เปิดตำแหน่ง'}
+            {loading
+              ? 'กำลังค้นหาตำแหน่ง…'
+              : gpsError
+                ? 'ลองขอตำแหน่งอีกครั้ง'
+                : 'เปิดตำแหน่ง เริ่มสำรวจ'}
+          </Button>
+          <Button
+            color="inherit"
+            variant="text"
+            fullWidth
+            onClick={() => setLocationDialogOpen(false)}
+            sx={{
+              minHeight: 44,
+              color: 'text.secondary',
+              fontSize: 12,
+              borderRadius: '10px',
+              bgcolor: 'transparent',
+              boxShadow: 'none',
+              '&:hover': {
+                bgcolor: 'transparent',
+                textDecoration: 'underline',
+                textUnderlineOffset: 4,
+              },
+            }}
+          >
+            ไว้ก่อน สำรวจหน้าเว็บต่อ
           </Button>
         </DialogActions>
       </Dialog>
