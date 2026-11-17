@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { LatestStorePreview } from 'src/types/store';
 
 import { createClient } from 'src/lib/supabase/server';
-import { SITE_DESCRIPTION, createSeoMetadata } from 'src/lib/seo';
+import { SITE_TITLE, SITE_DESCRIPTION, createSeoMetadata } from 'src/lib/seo';
 import { DEFAULT_BRAND_OWNER_ACKNOWLEDGED } from 'src/lib/brand-owner-notice';
 
 import { HomeView } from 'src/sections/home/view';
@@ -13,7 +13,7 @@ import { type LovezaProduct, DEFAULT_LOVEZA_PRODUCTS } from 'src/types/loveza-pr
 // ----------------------------------------------------------------------
 
 export const metadata: Metadata = createSeoMetadata({
-  title: 'Loveza Hunt — ตามหาร้าน Loveza ใกล้คุณ',
+  title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   path: '/',
 });

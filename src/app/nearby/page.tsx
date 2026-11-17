@@ -15,7 +15,7 @@ import { explorerLabelSx } from 'src/sections/home/explorer-styles';
 import { NearbyFinder } from './nearby-finder';
 
 export const metadata: Metadata = createSeoMetadata({
-  title: 'Loveza ใกล้ฉัน | แผนที่ร้าน Loveza ใกล้คุณ',
+  title: 'Loveza ใกล้ฉัน — ค้นหาร้านขายเลิฟซ่า | Loveza Hunt',
   description:
     'ใช้ตำแหน่ง GPS ค้นหาร้าน Loveza ใกล้คุณ ดูระยะทาง สถานะสินค้า จำนวนคงเหลือ และนำทางไปที่ร้านได้ทันที',
   path: '/nearby/',

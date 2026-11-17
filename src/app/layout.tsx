@@ -22,6 +22,7 @@ import { themeConfig, ThemeProvider, primary as primaryColor } from 'src/theme';
 import {
   SITE_URL,
   SITE_NAME,
+  SITE_TITLE,
   OG_IMAGE_URL,
   SITE_DESCRIPTION,
   createSeoMetadata,
@@ -79,7 +80,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   ...createSeoMetadata({
-    title: 'Loveza Hunt — ตามหาร้าน Loveza ใกล้คุณ',
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     path: '/',
   }),
@@ -159,7 +160,7 @@ const structuredData = {
       '@id': `${SITE_URL}/#website`,
       url: `${SITE_URL}/`,
       name: SITE_NAME,
-      alternateName: SITE_ALTERNATE_NAME,
+      alternateName: [SITE_ALTERNATE_NAME, 'เลิฟซ่า ฮันท์'],
       description: SITE_DESCRIPTION,
       inLanguage: 'th-TH',
     },

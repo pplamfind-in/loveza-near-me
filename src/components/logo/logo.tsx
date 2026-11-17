@@ -49,10 +49,11 @@ export function Logo({
 
   const fullLogo = (
     <img
-      alt="Full logo"
+      alt="Loveza Hunt"
       src={`${CONFIG.assetsDir}/logo/logo-full.svg`}
       width="100%"
       height="100%"
+      style={{ display: 'block', objectFit: 'contain' }}
     />
   );
 

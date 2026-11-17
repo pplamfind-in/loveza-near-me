@@ -22,7 +22,7 @@ import ThailandMap from './thailand-map';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = createSeoMetadata({
-  title: 'ซ่าทั่วไทย | แผนที่จุดขาย Loveza ทั่วประเทศไทย',
+  title: 'Loveza ซื้อที่ไหน? แผนที่จุดขายเลิฟซ่าทั่วไทย | Loveza Hunt',
   description:
     'เปิดแผนที่ซ่าทั่วไทย ค้นหาจุดขาย Loveza ที่ผ่านการตรวจสอบ ดูสถานะสินค้า จำนวนคงเหลือ และนำทางไปยังร้านได้ทันที',
   path: '/mapza/',

@@ -95,7 +95,10 @@ export function MainLayout({
         <>
           {/** @slot Logo */}
           <Box sx={{ display: 'flex', gap: 1.1, alignItems: 'center' }}>
-            <Logo />
+            <Logo
+              isSingle={false}
+              sx={{ width: { xs: 112, md: 102 }, height: { xs: 54, md: 50 }, flexShrink: 0 }}
+            />
             <Typography
               sx={(theme) => ({
                 display: 'none',

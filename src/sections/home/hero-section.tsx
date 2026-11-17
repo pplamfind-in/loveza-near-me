@@ -103,7 +103,7 @@ export function HeroSection() {
                 color: 'var(--palette-text-secondary)',
               }}
             >
-              แผนที่รวมร้านที่มี Loveza จากคนในชุมชน
+              Loveza (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านจากแผนที่ชุมชน
               <br />
               เช็กพิกัด ดูสถานะสินค้า แล้วออกไปเจอความซ่า
             </Typography>

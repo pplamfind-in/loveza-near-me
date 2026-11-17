@@ -2,17 +2,18 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = 'Loveza Hunt';
 export const SITE_ALTERNATE_NAME = 'LovezaHunt';
+export const SITE_TITLE = 'Loveza (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านใกล้ฉัน | Loveza Hunt';
 export const BRAND_ASSET_VERSION = 'loveza-hunt-20260809';
 export const SITE_DESCRIPTION =
-  'ค้นหาร้านที่มี Loveza ใกล้คุณด้วย GPS ดูสถานะและจำนวนสินค้า พร้อมช่วยแจ้งพิกัดให้ Community ตามไปซื้อได้ง่ายขึ้น';
+  'Loveza (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านขาย Loveza ใกล้ฉัน ดูแผนที่จุดขายทั่วไทย รสชาติ สถานะสินค้าและข้อมูลล่าสุดจากชุมชน พร้อมช่วยแจ้งพิกัดร้านที่พบ';
 export const OG_IMAGE_URL =
-  'https://res.cloudinary.com/dkdbilwtj/image/upload/v1786288069/ChatGPT_Image_Aug_9_2026_10_07_20_PM_zyotz2.png';
+  'https://res.cloudinary.com/dkdbilwtj/image/upload/v1794944774/og-image_uqyxkr.png';
 
 const productionDomain = process.env.VERCEL_PROJECT_PRODUCTION_URL;
 const configuredSiteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   process.env.NEXT_PUBLIC_SERVER_URL ??
-  (productionDomain ? `https://${productionDomain}` : 'http://localhost:3300');
+  (productionDomain ? `https://${productionDomain}` : 'https://lovezahunt.xyz');
 
 export const SITE_URL = configuredSiteUrl.replace(/\/$/, '');
 
@@ -66,8 +67,8 @@ export function createSeoMetadata({
       images: [
         {
           url: OG_IMAGE_URL,
-          width: 1536,
-          height: 1024,
+          width: 2683,
+          height: 1404,
           alt: 'Loveza Hunt ค้นหาร้าน Loveza ใกล้คุณ',
           type: 'image/png',
         },
