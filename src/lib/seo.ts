@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const SITE_NAME = 'Loveza Hunt';
 export const SITE_ALTERNATE_NAME = 'LovezaHunt';
 export const SITE_TITLE = 'Loveza (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านใกล้ฉัน | Loveza Hunt';
-export const BRAND_ASSET_VERSION = 'loveza-hunt-20260809';
+export const BRAND_ASSET_VERSION = 'loveza-hunt-20261118';
 export const SITE_DESCRIPTION =
   'Loveza (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านขาย Loveza ใกล้ฉัน ดูแผนที่จุดขายทั่วไทย รสชาติ สถานะสินค้าและข้อมูลล่าสุดจากชุมชน พร้อมช่วยแจ้งพิกัดร้านที่พบ';
 export const OG_IMAGE_URL =
