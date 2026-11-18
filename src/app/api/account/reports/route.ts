@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { createClient } from 'src/lib/supabase/server';
+import { buildExplorerProgress } from 'src/lib/explorer/progress';
 
 export async function GET() {
   const supabase = await createClient();
@@ -62,6 +63,7 @@ export async function GET() {
   const logos = new Map((storeTypes ?? []).map((item) => [item.code, item.logo_url]));
   return NextResponse.json(
     {
+      explorer: buildExplorerProgress(reports),
       reports: reports.map((report) => ({
         ...report,
         store_type_name: names.get(report.store_type) ?? report.store_type,

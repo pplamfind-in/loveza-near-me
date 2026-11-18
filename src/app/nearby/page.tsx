@@ -94,7 +94,7 @@ export default function NearbyPage() {
               component="h1"
               sx={{
                 mt: 2,
-                fontSize: { xs: 36, sm: 44, md: 50 },
+                fontSize: { xs: 30, sm: 38, md: 44 },
                 fontWeight: 900,
                 lineHeight: 1.3,
                 letterSpacing: '-.03em',
@@ -111,7 +111,7 @@ export default function NearbyPage() {
               sx={{
                 mt: 2,
                 maxWidth: 420,
-                fontSize: 16,
+                fontSize: { xs: 15, sm: 16 },
                 lineHeight: 1.85,
                 color: 'text.secondary',
               }}
@@ -143,10 +143,10 @@ export default function NearbyPage() {
                     <Iconify icon={step.icon} width={20} />
                   </Box>
                   <Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 800 }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 800 }}>
                       {index + 1}. {step.title}
                     </Typography>
-                    <Typography sx={{ mt: 0.25, fontSize: 11, color: 'text.secondary' }}>
+                    <Typography sx={{ mt: 0.25, fontSize: 12, color: 'text.secondary' }}>
                       {step.body}
                     </Typography>
                   </Box>
@@ -168,7 +168,7 @@ export default function NearbyPage() {
               sx={{ mt: 2, color: 'text.secondary' }}
             >
               <Iconify icon="ri:shield-check-line" width={15} />
-              <Typography sx={{ fontSize: 11 }}>ค้นหาร้านได้ ไม่ต้องเข้าสู่ระบบ</Typography>
+              <Typography sx={{ fontSize: 12 }}>ค้นหาร้านได้ ไม่ต้องเข้าสู่ระบบ</Typography>
             </Stack>
           </Box>
         </Container>

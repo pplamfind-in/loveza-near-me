@@ -29,3 +29,19 @@ export async function updateDisplayName(
   revalidatePath('/', 'layout');
   return { success: 'บันทึกชื่อแสดงผลแล้ว' };
 }
+
+export async function updateAccountAvatar(avatar: string): Promise<DisplayNameState> {
+  const db = await createClient();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (!user) return { error: 'กรุณาเข้าสู่ระบบก่อนเปลี่ยนรูป' };
+  const { getAccountAvatars } = await import('src/lib/account-avatars');
+  const options = await getAccountAvatars();
+  if (avatar !== '' && !options.includes(avatar))
+    return { error: 'กรุณาเลือกรูปจากรายการที่มีให้' };
+  const { error } = await db.auth.updateUser({ data: { loveza_avatar: avatar || null } });
+  if (error) return { error: 'บันทึกรูปไม่สำเร็จ กรุณาลองอีกครั้ง' };
+  revalidatePath('/', 'layout');
+  return { success: 'เปลี่ยนรูปโปรไฟล์แล้ว' };
+}

@@ -36,6 +36,15 @@ const supabaseImagePattern = (() => {
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
+  outputFileTracingIncludes: {
+    '/*': ['./public/avatar/**/*', './public/assets/avatar/**/*'],
+    '/admin/rewards': ['./public/assets/illustrations/p-*.webp'],
+    '/api/admin/rewards': ['./public/assets/illustrations/p-*.webp'],
+    '/api/rewards/*/download': [
+      './public/assets/illustrations/p-*.webp',
+      './public/fonts/LINESeedSansTH-Bold.ttf',
+    ],
+  },
   experimental: { serverActions: { bodySizeLimit: '6mb' } },
   output: isStaticExport ? 'export' : undefined,
   images: {

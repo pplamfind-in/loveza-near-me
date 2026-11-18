@@ -31,7 +31,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     .eq('approval_status', 'pending');
 
   const displayName = getUserDisplayName(user, 'Loveza Admin');
-  const photoURL = user.user_metadata.avatar_url ?? user.user_metadata.picture ?? '';
+  const photoURL =
+    user.user_metadata.loveza_avatar ||
+    user.user_metadata.avatar_url ||
+    user.user_metadata.picture ||
+    '';
 
   return (
     <AdminUI>

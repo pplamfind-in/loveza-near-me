@@ -46,17 +46,36 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                 ความซ่าที่อยากค้นพบ
               </Typography>
             </Box>
-            <Typography
-              sx={{
-                maxWidth: 390,
-                color: 'var(--palette-text-secondary)',
-                fontSize: { xs: 14, md: 16 },
-                lineHeight: 1.7,
-              }}
-            >
-              ทั้ง {products.length} รสชาติ พร้อมเติมความสดชื่น
-              เลือกรสที่ใช่แล้วตามหาร้านใกล้คุณได้เลย
-            </Typography>
+            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', maxWidth: 420 }}>
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  width: { xs: 64, md: 84 },
+                  height: { xs: 72, md: 94 },
+                  position: 'relative',
+                }}
+              >
+                <Image
+                  src="/assets/illustrations/p-kard.webp"
+                  unoptimized
+                  alt=""
+                  fill
+                  sizes="84px"
+                  style={{ objectFit: 'contain' }}
+                />
+              </Box>
+              <Typography
+                sx={{
+                  maxWidth: 390,
+                  color: 'var(--palette-text-secondary)',
+                  fontSize: { xs: 14, md: 16 },
+                  lineHeight: 1.7,
+                }}
+              >
+                ทั้ง {products.length} รสชาติ พร้อมเติมความสดชื่น
+                เลือกรสที่ใช่แล้วตามหาร้านใกล้คุณได้เลย
+              </Typography>
+            </Box>
           </Box>
 
           <Box
@@ -107,15 +126,31 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                     />
                   </Box>
                 ) : null}
-                <ProductCan
-                  name={product.name}
-                  thaiName={product.thai_name}
-                  color={product.color}
-                  accent={product.accent}
-                  fruit={product.fruit}
-                  meta={product.meta}
-                  imageUrl={product.image_url}
-                />
+                <Box
+                  component="a"
+                  href={`/products/${encodeURIComponent(product.slug)}/`}
+                  aria-label={`ดูรายละเอียด Loveza ${product.thai_name}`}
+                  sx={{
+                    display: 'block',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: -3,
+                    },
+                  }}
+                >
+                  <ProductCan
+                    name={product.name}
+                    thaiName={product.thai_name}
+                    color={product.color}
+                    accent={product.accent}
+                    fruit={product.fruit}
+                    meta={product.meta}
+                    imageUrl={product.image_url}
+                  />
+                </Box>
                 <Box
                   sx={{
                     p: 2.5,
@@ -146,7 +181,7 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                     {product.name}
                   </Typography>
                   <Button
-                    href="/nearby"
+                    href={`/products/${encodeURIComponent(product.slug)}/`}
                     variant="outlined"
                     fullWidth
                     endIcon={<Iconify icon="ri:arrow-right-line" width={18} />}
@@ -162,7 +197,7 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                       '&:hover': { bgcolor: 'primary.lighter', borderColor: 'primary.main' },
                     }}
                   >
-                    ค้นหาร้านที่มี Loveza
+                    ดูรายละเอียดรสนี้
                   </Button>
                 </Box>
               </Box>

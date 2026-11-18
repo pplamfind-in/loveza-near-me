@@ -6,6 +6,7 @@ import type { Coordinates, NearbyStore, StoreStatus } from 'src/types/store';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -24,6 +25,8 @@ type NearbyMapProps = {
   coordinates: Coordinates;
   stores: SortedNearbyStore[];
 };
+
+const STORE_AVATAR = '/assets/icons/loveza/voxel-store.svg';
 
 const STATUS_COLOR: Record<StoreStatus, string> = {
   available: '#19a76f',
@@ -399,12 +402,32 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
               // borderTop: `4px solid ${getNearbyStoreColor(selectedStore.id).main}`,
             }}
           >
-            <Typography sx={{ pr: 2, fontSize: 16, fontWeight: 900 }}>
-              {selectedStore.name}
-            </Typography>
-            <Typography sx={{ mt: 0.5, color: 'text.secondary', fontSize: 12 }}>
-              {[selectedStore.address, selectedStore.province].filter(Boolean).join(', ')}
-            </Typography>
+            <Stack direction="row" spacing={1.25} alignItems="flex-start" sx={{ pr: 2 }}>
+              <Box
+                component="img"
+                src={selectedStore.store_type_logo_url || STORE_AVATAR}
+                alt=""
+                width={46}
+                height={46}
+                onError={(event) => {
+                  const image = event.currentTarget;
+                  if (image.getAttribute('src') !== STORE_AVATAR) image.src = STORE_AVATAR;
+                }}
+                sx={{
+                  flexShrink: 0,
+                  p: 0.5,
+                  objectFit: 'contain',
+                  borderRadius: '12px',
+                  bgcolor: 'primary.lighter',
+                }}
+              />
+              <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                <Typography sx={{ fontSize: 16, fontWeight: 900 }}>{selectedStore.name}</Typography>
+                <Typography sx={{ mt: 0.5, color: 'text.secondary', fontSize: 12 }}>
+                  {[selectedStore.address, selectedStore.province].filter(Boolean).join(', ')}
+                </Typography>
+              </Box>
+            </Stack>
             <Typography
               sx={{
                 mt: 1,

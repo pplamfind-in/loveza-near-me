@@ -17,45 +17,15 @@ export function HeroSection() {
           minHeight: { md: '66.6667vw' },
         }}
       >
-        <Box
-          component="img"
-          src="/assets/loveza/voxel-loveza-trees-v2.webp"
-          alt=""
-          fetchPriority="high"
-          width={1536}
-          height={1024}
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            width: 1,
-            height: 1,
-            objectFit: 'cover',
-            objectPosition: { xs: '65% bottom', md: 'center bottom' },
-            maskImage: 'linear-gradient(to bottom, black 0%, black 78%, transparent 100%)',
-          }}
-        />
-        <Box
-          aria-hidden="true"
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background: {
-              xs: 'linear-gradient(180deg, #FBF6ED 0%, rgba(251,246,237,.98) 36%, rgba(251,246,237,.86) 52%, rgba(251,246,237,.12) 76%, transparent 100%)',
-              md: 'linear-gradient(90deg, rgba(251,246,237,.65), transparent 65%)',
-            },
-          }}
-        />
-        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <Box
             sx={{
-              position: 'relative',
-              zIndex: 1,
               maxWidth: 560,
               pt: {
                 xs: 'calc(var(--layout-header-mobile-height) + 24px)',
                 md: 'calc(var(--layout-header-desktop-height) + 64px)',
               },
-              pb: { xs: 26, sm: 32, md: 18 },
+              pb: { xs: 3, md: 18 },
             }}
           >
             <Stack
@@ -166,6 +136,37 @@ export function HeroSection() {
             </Stack>
           </Box>
         </Container>
+        <Box
+          component="img"
+          src="/assets/loveza/voxel-loveza-trees-v2.webp"
+          alt=""
+          fetchPriority="high"
+          width={1536}
+          height={1024}
+          sx={{
+            display: 'block',
+            position: { md: 'absolute' },
+            inset: { md: 0 },
+            width: 1,
+            height: { xs: 'auto', md: '100%' },
+            objectFit: { md: 'cover' },
+            objectPosition: { md: 'center bottom' },
+            maskImage: {
+              xs: 'linear-gradient(to bottom, transparent, black 8%, black 94%, transparent)',
+              md: 'linear-gradient(to bottom, black 90%, transparent)',
+            },
+          }}
+        />
+        <Box
+          aria-hidden="true"
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(90deg, rgba(251,246,237,.65) 0%, rgba(251,246,237,.36) 32%, transparent 58%)',
+          }}
+        />
       </Box>
     </Box>
   );

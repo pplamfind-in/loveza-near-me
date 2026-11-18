@@ -25,7 +25,11 @@ export async function LovezaMainLayout({ children }: LovezaMainLayoutProps) {
     ? {
         displayName: getUserDisplayName(user),
         email: user.email ?? '',
-        photoURL: user.user_metadata.avatar_url ?? user.user_metadata.picture ?? '',
+        photoURL:
+          user.user_metadata.loveza_avatar ||
+          user.user_metadata.avatar_url ||
+          user.user_metadata.picture ||
+          '',
         role: user.app_metadata.role ?? 'user',
       }
     : null;

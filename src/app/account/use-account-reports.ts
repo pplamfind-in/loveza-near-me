@@ -1,5 +1,7 @@
 'use client';
 
+import type { ExplorerProgress } from 'src/lib/explorer/progress';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // ----------------------------------------------------------------------
@@ -37,12 +39,14 @@ type StoreStockUpdateResponse = {
   error?: string;
 };
 
-async function fetchAccountReports(): Promise<UserReport[]> {
+async function fetchAccountReports(): Promise<{
+  reports: UserReport[];
+  explorer: ExplorerProgress;
+}> {
   const response = await fetch('/api/account/reports', { cache: 'no-store' });
   if (!response.ok) throw new Error('request failed');
 
-  const payload = (await response.json()) as { reports: UserReport[] };
-  return payload.reports;
+  return response.json();
 }
 
 export function useAccountReportsQuery() {
@@ -51,6 +55,20 @@ export function useAccountReportsQuery() {
     queryFn: fetchAccountReports,
     refetchOnMount: 'always',
     refetchOnWindowFocus: 'always',
+    select: (data) => data.reports,
+  });
+}
+
+export function useExplorerProgressQuery(enabled = true) {
+  return useQuery({
+    enabled,
+    queryKey: ['account-reports'],
+    queryFn: fetchAccountReports,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    staleTime: 0,
+    refetchInterval: 60_000,
+    select: (data) => data.explorer,
   });
 }
 

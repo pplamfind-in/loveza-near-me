@@ -1,9 +1,10 @@
+import sharp from 'sharp';
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 
-import { reportSchema } from 'src/app/report/schema';
 import { createClient } from 'src/lib/supabase/server';
+import { reportSchema, INVALID_PHOTO_MESSAGE } from 'src/app/report/schema';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -59,18 +60,30 @@ export async function POST(request: Request) {
     };
   }
 
-  const hasPhoto = values.photo instanceof File && values.photo.size > 0;
-
   let photoUrl: string | null = null;
   let photoPath: string | null = null;
 
-  if (hasPhoto) {
-    const photo = values.photo as File;
-    const extension = photo.name.split('.').pop() || 'jpg';
+  if (values.photo) {
+    const photo = values.photo;
+    const format = photo.type === 'image/jpg' ? 'jpeg' : photo.type.slice('image/'.length);
+
+    try {
+      const image = sharp(Buffer.from(await photo.arrayBuffer()), { limitInputPixels: 60_000_000 });
+      const metadata = await image.metadata();
+      if (metadata.format !== format) throw new Error(INVALID_PHOTO_MESSAGE);
+      await image.resize(1, 1, { fastShrinkOnLoad: false }).toBuffer();
+    } catch {
+      return NextResponse.json(
+        { status: 'error', message: INVALID_PHOTO_MESSAGE },
+        { status: 400 }
+      );
+    }
+
+    const extension = format === 'jpeg' ? 'jpg' : format;
     photoPath = `${user.id}/${randomUUID()}.${extension}`;
     const { error: uploadError } = await supabase.storage
       .from('report-images')
-      .upload(photoPath, photo, { contentType: photo.type });
+      .upload(photoPath, photo, { contentType: `image/${format}` });
 
     if (uploadError) {
       return NextResponse.json(

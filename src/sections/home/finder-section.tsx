@@ -1,5 +1,7 @@
 import type { StoreStatus, LatestStorePreview } from 'src/types/store';
 
+import Image from 'next/image';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -111,11 +113,12 @@ function MapPreview({ stores }: { stores: LatestStorePreview[] }) {
           { top: '34%', left: '24%' },
           { top: '25%', left: '72%' },
           { top: '64%', left: '56%' },
-        ].map((pin, index) => (
+        ].map(({ top, left }) => (
           <Box
-            key={index}
+            key={left}
             sx={{
-              ...pin,
+              top,
+              left,
               position: 'absolute',
               width: 40,
               height: 40,
@@ -124,12 +127,17 @@ function MapPreview({ stores }: { stores: LatestStorePreview[] }) {
               borderRadius: '14px 14px 14px 4px',
               transform: 'rotate(-45deg)',
               bgcolor: 'primary.main',
-              color: 'common.white',
               border: '3px solid var(--palette-background-paper)',
               boxShadow: '0 6px 14px rgba(48,92,61,.18)',
             }}
           >
-            <Iconify icon="ri:store-2-fill" width={18} sx={{ transform: 'rotate(45deg)' }} />
+            <Image
+              src="/assets/icons/loveza/voxel-store.svg"
+              alt=""
+              width={26}
+              height={26}
+              style={{ transform: 'rotate(45deg)', borderRadius: 5 }}
+            />
           </Box>
         ))}
         <Box
@@ -137,14 +145,24 @@ function MapPreview({ stores }: { stores: LatestStorePreview[] }) {
             position: 'absolute',
             left: '42%',
             top: '57%',
-            width: 14,
-            height: 14,
+            width: 46,
+            height: 46,
+            transform: 'translate(-16px, -16px)',
+            overflow: 'hidden',
             borderRadius: '50%',
             bgcolor: 'info.main',
             border: '3px solid var(--palette-common-white)',
-            boxShadow: '0 0 0 7px rgba(17,168,226,.13)',
+            boxShadow: '0 0 0 5px rgba(17,168,226,.22), 0 5px 12px rgba(26,73,91,.22)',
           }}
-        />
+        >
+          <Image
+            src="/assets/avatar/avatar-explorer.webp"
+            alt=""
+            width={40}
+            height={40}
+            style={{ display: 'block', objectFit: 'cover' }}
+          />
+        </Box>
       </Box>
       <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
         <Stack
@@ -262,12 +280,25 @@ function MapPreview({ stores }: { stores: LatestStorePreview[] }) {
         </Stack>
         <Button
           href="/nearby"
-          fullWidth
-          variant="outlined"
-          endIcon={<Iconify icon="ri:arrow-right-line" width={18} />}
-          sx={{ mt: 1, py: 1.1, borderRadius: '12px' }}
+          variant="contained"
+          startIcon={<Iconify icon="ri:compass-3-line" width={19} />}
+          endIcon={<Iconify icon="ri:arrow-right-line" width={17} />}
+          sx={{
+            mt: 1.5,
+            mb: 0.5,
+            minHeight: 46,
+            px: 1.5,
+            width: { xs: 'calc(100% - 105px)', sm: 'calc(100% - 145px)', lg: 'calc(100% - 165px)' },
+            minWidth: 145,
+            fontSize: 13,
+            borderRadius: '12px',
+            justifyContent: 'space-between',
+            whiteSpace: 'nowrap',
+            bgcolor: 'primary.main',
+            '&:hover': { bgcolor: 'primary.dark' },
+          }}
         >
-          ค้นหาร้านใกล้ฉัน
+          ค้นหาร้าน
         </Button>
       </Box>
     </Box>
@@ -377,7 +408,33 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
             </Box>
 
             <Box>
-              <MapPreview stores={latestStores} />
+              <Box sx={{ position: 'relative' }}>
+                <MapPreview stores={latestStores} />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: { xs: -16, sm: -28, lg: -40 },
+                    width: { xs: 150, sm: 210, lg: 240 },
+                    height: { xs: 225, sm: 315, lg: 360 },
+                    zIndex: 2,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <Image
+                    src="/assets/illustrations/p-korn.webp"
+                    unoptimized
+                    alt="ตัวละคร Voxel ยืนชวนสำรวจร้าน Loveza"
+                    fill
+                    sizes="(max-width: 599px) 150px, 240px"
+                    style={{
+                      objectFit: 'contain',
+                      objectPosition: 'bottom right',
+                      filter: 'drop-shadow(-6px 8px 10px rgba(48,63,35,.16))',
+                    }}
+                  />
+                </Box>
+              </Box>
               <Typography
                 sx={{
                   mt: 2,

@@ -31,11 +31,29 @@ import { useReportStoreCandidates, type ReportStoreCandidate } from './use-repor
 import {
   reportSchema,
   MAX_PHOTO_SIZE,
-  ALLOWED_PHOTO_TYPES,
   type ReportFormState,
+  INVALID_PHOTO_MESSAGE,
   type ReportFormValues,
   LOCATION_REQUIRED_MESSAGE,
 } from './schema';
+
+const reportFormSchema = reportSchema.extend({
+  photo: reportSchema.shape.photo.refine(async (file) => {
+    if (!file) return true;
+
+    const url = URL.createObjectURL(file);
+    try {
+      const image = new window.Image();
+      image.src = url;
+      await image.decode();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }, INVALID_PHOTO_MESSAGE),
+});
 
 const initialState: ReportFormState = { status: 'idle', message: '' };
 
@@ -178,13 +196,14 @@ export function ReportForm() {
 
   const methods = useForm({
     mode: 'onSubmit',
-    resolver: zodResolver(reportSchema),
+    resolver: zodResolver(reportFormSchema),
     defaultValues,
   });
 
   const {
     watch,
     setValue,
+    setError,
     handleSubmit,
     formState: { errors },
   } = methods;
@@ -571,7 +590,7 @@ export function ReportForm() {
             step="04"
             icon="ri:camera-3-fill"
             title="เพิ่มหลักฐานความซ่า"
-            description="รูปชั้นวางหรือหน้าร้านช่วยให้ข้อมูลน่าเชื่อถือขึ้น"
+            description="กรุณาแนบรูปชั้นวางหรือหน้าร้าน 1 รูปเพื่อยืนยันพิกัด"
             color="var(--palette-primary-lighter)"
           >
             <Box
@@ -590,9 +609,30 @@ export function ReportForm() {
                   borderRadius: '12px',
                   '& .iconify': { width: 48, height: 48 },
                 }}
-                accept={{ 'image/*': [] }}
+                accept={{
+                  'image/jpeg': ['.jpeg', '.jpg'],
+                  'image/png': ['.png'],
+                  'image/webp': ['.webp'],
+                }}
                 maxSize={MAX_PHOTO_SIZE}
-                helperText={`รองรับ ${ALLOWED_PHOTO_TYPES.map((type) => type.split('/')[1]).join(', ')} ขนาดไม่เกิน 5MB`}
+                hideFilesRejected
+                helperText="รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 5MB"
+                onDrop={([file], rejections) => {
+                  const reason = rejections[0]?.errors[0]?.code;
+                  if (reason) {
+                    setError('photo', {
+                      type: reason,
+                      message:
+                        reason === 'file-too-large'
+                          ? 'ไฟล์รูปต้องไม่เกิน 5MB'
+                          : reason === 'too-many-files'
+                            ? 'เลือกได้ครั้งละ 1 รูป'
+                            : 'รองรับเฉพาะไฟล์ JPG, PNG หรือ WEBP',
+                    });
+                  } else if (file) {
+                    setValue('photo', file, { shouldValidate: true });
+                  }
+                }}
                 onDelete={() => setValue('photo', null, { shouldValidate: true })}
               />
               <Field.Text

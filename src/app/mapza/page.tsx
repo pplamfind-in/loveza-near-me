@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { MapzaStore } from 'src/types/store';
+import type { ProvinceDiscoverer } from 'src/types/province-discoverer';
 
 import { preload } from 'react-dom';
 
@@ -33,7 +34,7 @@ export default async function MapzaPage() {
   preload('/assets/data/thailand-province-names.json', { as: 'fetch', crossOrigin: 'anonymous' });
 
   const supabase = await createClient();
-  const [storesResult, mapSettingsResult] = await Promise.all([
+  const [storesResult, mapSettingsResult, discoverersResult] = await Promise.all([
     supabase
       .from('stores')
       .select(
@@ -42,6 +43,7 @@ export default async function MapzaPage() {
       .eq('is_active', true)
       .order('last_reported_at', { ascending: false, nullsFirst: false }),
     supabase.rpc('get_public_map_settings').maybeSingle(),
+    supabase.rpc('get_public_province_discoverers'),
   ]);
 
   const stores = (storesResult.data ?? []) as MapzaStore[];
@@ -219,6 +221,8 @@ export default async function MapzaPage() {
           </Typography>
           <ThailandMap
             stores={stores}
+            discoverers={(discoverersResult.data ?? []) as ProvinceDiscoverer[]}
+            discoverersUnavailable={Boolean(discoverersResult.error)}
             hasError={hasError}
             provinceColorSettings={provinceColorSettings}
           />

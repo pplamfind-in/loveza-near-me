@@ -10,17 +10,20 @@ import { getUserDisplayName } from 'src/lib/user-display-name';
 
 import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
 
+import { AvatarPicker } from 'src/sections/account/avatar-picker';
 import { DisplayNameForm } from 'src/sections/account/display-name-form';
 
 type SessionCardProps = {
   user: User;
   role: 'admin' | 'user';
   compact?: boolean;
+  avatarOptions?: string[];
 };
 
-export function SessionCard({ user, role, compact = false }: SessionCardProps) {
+export function SessionCard({ user, role, compact = false, avatarOptions = [] }: SessionCardProps) {
   const displayName = getUserDisplayName(user);
-  const avatarUrl = user.user_metadata.avatar_url ?? user.user_metadata.picture;
+  const googleAvatar = user.user_metadata.avatar_url ?? user.user_metadata.picture ?? '';
+  const avatarUrl = user.user_metadata.loveza_avatar || googleAvatar;
   const avatarLabel = String(displayName ?? user.email ?? 'L')
     .charAt(0)
     .toUpperCase();
@@ -45,43 +48,68 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
         direction={compact ? 'column' : 'row'}
         justifyContent="space-between"
         alignItems={compact ? 'center' : 'flex-start'}
-        spacing={2}
+        spacing={1.5}
+        sx={
+          compact
+            ? {
+                pt: 3,
+                pb: 2.5,
+                px: 2,
+                position: 'relative',
+                overflow: 'visible',
+                isolation: 'isolate',
+                borderRadius: '14px',
+                background:
+                  'radial-gradient(ellipse at 50% 38%, #E8F0E499 0%, #FBF0CD33 38%, transparent 70%)',
+              }
+            : undefined
+        }
       >
         <Stack
-          direction={compact ? 'row' : { xs: 'column', sm: 'row' }}
+          direction={compact ? 'column' : { xs: 'column', sm: 'row' }}
           alignItems={compact ? 'center' : { xs: 'flex-start', sm: 'center' }}
           spacing={2}
         >
-          <Avatar
-            src={avatarUrl}
-            alt={String(displayName ?? 'Google profile')}
-            imgProps={{ referrerPolicy: 'no-referrer' }}
-            sx={{
-              width: compact ? 56 : { xs: 64, md: 76 },
-              flexShrink: 0,
-              height: compact ? 56 : { xs: 64, md: 76 },
-              border: isAdmin ? 'none' : '5px solid var(--palette-background-paper)',
-              bgcolor: 'var(--palette-primary-main)',
-              boxShadow: isAdmin
-                ? 'none'
-                : '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
-              fontSize: 30,
-              fontWeight: 900,
-            }}
-          >
-            {avatarLabel}
-          </Avatar>
-          <Box sx={{ textAlign: 'left', minWidth: 0 }}>
+          {compact ? (
+            <AvatarPicker
+              options={avatarOptions}
+              current={user.user_metadata.loveza_avatar || ''}
+              googleAvatar={googleAvatar}
+              name={displayName}
+            />
+          ) : (
+            <Avatar
+              src={avatarUrl}
+              alt={String(displayName ?? 'Google profile')}
+              imgProps={{ referrerPolicy: 'no-referrer' }}
+              sx={{
+                width: compact ? 56 : { xs: 64, md: 76 },
+                flexShrink: 0,
+                height: compact ? 56 : { xs: 64, md: 76 },
+                border: isAdmin ? 'none' : '5px solid var(--palette-background-paper)',
+                bgcolor: 'var(--palette-primary-main)',
+                boxShadow: isAdmin
+                  ? 'none'
+                  : '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
+                fontSize: 30,
+                fontWeight: 900,
+              }}
+            >
+              {avatarLabel}
+            </Avatar>
+          )}
+
+          <Box sx={{ textAlign: compact ? 'center' : 'left', minWidth: 0, width: 1 }}>
             <Typography
               sx={{ color: 'primary.dark', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}
             >
-              {isAdmin ? 'ADMIN DASHBOARD' : compact ? 'บัญชี GOOGLE' : 'LOGIN SUCCESS'}
+              {isAdmin ? 'ADMIN DASHBOARD' : compact ? 'LOVEZA EXPLORER' : 'LOGIN SUCCESS'}
             </Typography>
             <Typography
               component={compact ? 'h2' : 'h1'}
               sx={{
                 mt: 1,
-                fontSize: { xs: compact ? 24 : 30, md: compact ? 26 : 42 },
+                fontSize: { xs: compact ? 28 : 30, md: compact ? 30 : 42 },
                 overflowWrap: 'anywhere',
                 fontWeight: 900,
               }}
@@ -111,23 +139,6 @@ export function SessionCard({ user, role, compact = false }: SessionCardProps) {
       </Stack>
 
       {compact && <DisplayNameForm currentName={displayName} />}
-
-      <Typography
-        sx={{
-          mt: compact ? 2.5 : 4,
-          p: 2,
-          fontSize: compact ? 13 : 16,
-          color: 'text.secondary',
-          border: isAdmin ? 'none' : '1px solid var(--palette-grey-300)',
-          borderRadius: '16px',
-          bgcolor: isAdmin ? '#f4f9f8' : 'var(--palette-secondary-lighter)',
-          lineHeight: 1.7,
-        }}
-      >
-        {isAdmin
-          ? 'พร้อมตรวจสอบข้อมูลพิกัดร้าน อนุมัติรายงาน และดูแลสถานะสินค้าแล้ว'
-          : 'พบ Loveza แล้ว? แจ้งพิกัดและสถานะสินค้า เพื่อช่วยให้เพื่อนนักล่าตามไปเจอ'}
-      </Typography>
 
       <Stack
         direction={compact ? 'column' : { xs: 'column', sm: 'row' }}

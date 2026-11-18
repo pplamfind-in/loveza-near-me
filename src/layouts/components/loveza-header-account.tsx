@@ -97,6 +97,7 @@ export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccoun
         aria-expanded={drawerOpen}
         aria-controls={drawerOpen ? 'account-settings-drawer' : undefined}
         sx={{
+          display: { xs: 'inline-flex', md: 'none' },
           width: 40,
           height: 40,
           flexShrink: 0,
@@ -114,8 +115,8 @@ export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccoun
         slotProps={{
           paper: {
             sx: {
-              width: '100%',
-              maxWidth: 'none',
+              width: { xs: '100%', md: 400 },
+              maxWidth: '100%',
               height: '100dvh',
               borderRadius: 0,
               bgcolor: 'background.default',

@@ -2,17 +2,19 @@
 
 import type { Feature, Geometry, FeatureCollection, GeoJsonProperties } from 'geojson';
 import type { MapzaStore } from 'src/types/store';
+import type { ProvinceDiscoverer } from 'src/types/province-discoverer';
 import type { ProvinceColorSettings } from 'src/lib/mapza/province-color-scale';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
+import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
@@ -28,6 +30,8 @@ import { STORE_STATUS_LABEL } from 'src/types/store';
 
 type ThailandMapProps = {
   stores: MapzaStore[];
+  discoverers?: ProvinceDiscoverer[];
+  discoverersUnavailable?: boolean;
   provinceColorSettings: ProvinceColorSettings;
   hasError?: boolean;
 };
@@ -115,10 +119,71 @@ function getProvinceName(
 
 export default function ThailandMap({
   stores,
+  discoverers = [],
+  discoverersUnavailable = false,
   provinceColorSettings,
   hasError = false,
 }: ThailandMapProps) {
   const router = useRouter();
+  const discoverersByProvince = useMemo(
+    () => new Map(discoverers.map((person) => [person.province.trim(), person])),
+    [discoverers]
+  );
+  const renderDiscoverer = (province: string, small = false) => {
+    const person = discoverersByProvince.get(province.trim());
+    if (!person)
+      return (
+        <Typography sx={{ mt: 1, fontSize: 11, color: 'text.secondary' }}>
+          {discoverersUnavailable
+            ? 'ยังโหลดข้อมูลผู้ค้นพบไม่ได้'
+            : 'ยังไม่มีข้อมูลผู้เปิดแผนที่จังหวัดนี้'}
+        </Typography>
+      );
+    return (
+      <Stack
+        direction="row"
+        spacing={1}
+        alignItems="center"
+        sx={{
+          mt: 1.5,
+          p: small ? 0 : 1.5,
+          bgcolor: small ? 'transparent' : 'primary.lighter',
+          borderRadius: '12px',
+        }}
+      >
+        <Avatar
+          src={person.avatar_url || undefined}
+          alt={person.display_name}
+          imgProps={{ referrerPolicy: 'no-referrer' }}
+          sx={{
+            width: small ? 30 : 48,
+            height: small ? 30 : 48,
+            bgcolor: 'background.paper',
+            color: 'primary.dark',
+            border: '2px solid white',
+          }}
+        >
+          {person.display_name.charAt(0)}
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: small ? 10 : 11, color: 'primary.dark' }}>
+            ✦ นักล่าผู้เปิดแผนที่
+          </Typography>
+          <Typography sx={{ fontSize: small ? 12 : 15, fontWeight: 800, overflowWrap: 'anywhere' }}>
+            {person.display_name}
+          </Typography>
+          {!small && (
+            <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+              แจ้งพิกัดแรกเมื่อ{' '}
+              {new Date(person.discovered_at).toLocaleDateString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+              })}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+    );
+  };
   const [geoJson, setGeoJson] = useState<FeatureCollection<Geometry> | null>(null);
   const [provinceNames, setProvinceNames] = useState<ProvinceNameRecord[]>([]);
   const [mapError, setMapError] = useState(false);
@@ -126,6 +191,22 @@ export default function ThailandMap({
   const [provinceFilter, setProvinceFilter] = useState<'all' | 'found' | 'missing'>('all');
   const [selectedProvince, setSelectedProvince] = useState<ProvinceSummary | null>(null);
   const [hoveredProvince, setHoveredProvince] = useState<ProvinceSummary | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  const fullscreenButton = useRef<HTMLButtonElement>(null);
+  const restoreFullscreenFocus = useRef(false);
+
+  const closeFullscreen = () => {
+    restoreFullscreenFocus.current = true;
+    setFullscreen(false);
+  };
+
+  useEffect(() => {
+    if (!fullscreen && restoreFullscreenFocus.current) {
+      fullscreenButton.current?.focus();
+      restoreFullscreenFocus.current = false;
+    }
+  }, [fullscreen]);
+
   const provinceColorScale = useMemo(
     () => buildProvinceColorScale(provinceColorSettings),
     [provinceColorSettings]
@@ -257,6 +338,458 @@ export default function ThailandMap({
   if (!geoJson || !provinceNames.length) {
     return <Skeleton variant="rounded" height={680} sx={{ borderRadius: 4 }} />;
   }
+
+  const mapExplorer = (
+    <Box
+      sx={{
+        order: 2,
+        minWidth: 0,
+        position: 'relative',
+        bgcolor: 'transparent',
+        ...(fullscreen && { width: '100%', maxWidth: 1200, mx: 'auto', px: { xs: 2, sm: 3 } }),
+      }}
+    >
+      <Box
+        sx={{
+          px: { xs: 0, sm: 1 },
+          pt: { xs: 1.5, sm: 2 },
+          pb: 2,
+          display: 'grid',
+          position: 'relative',
+          placeItems: 'center',
+        }}
+      >
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+          spacing={2}
+          sx={{ width: 1, mb: 3 }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              sx={{ fontSize: 10, color: 'primary.main', fontWeight: 800, letterSpacing: 1.5 }}
+            >
+              THAILAND EXPLORER
+            </Typography>
+            <Typography sx={{ mt: 0.5, fontSize: 16, fontWeight: 800 }}>
+              {hoveredProvince?.name ?? selectedProvince?.name ?? 'แผนที่ประเทศไทย · 77 จังหวัด'}
+            </Typography>
+            <Typography sx={{ mt: 0.25, fontSize: 11, color: 'text.secondary' }}>
+              {hoveredProvince
+                ? `${hoveredProvince.stores.length} จุดขายจากชุมชน`
+                : selectedProvince
+                  ? `${selectedProvince.stores.length} จุดขายจากชุมชน`
+                  : 'แตะจังหวัด เพื่อร่วมเติมพิกัดให้แผนที่'}
+            </Typography>
+          </Box>
+          <Stack
+            direction="row"
+            useFlexGap
+            flexWrap="wrap"
+            spacing={0.75}
+            sx={{ maxWidth: '100%' }}
+          >
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                setSelectedProvince(null);
+                setHoveredProvince(null);
+              }}
+              startIcon={<Iconify icon="ri:focus-3-line" width={16} />}
+              sx={{
+                flexShrink: 0,
+                minHeight: 40,
+                color: 'primary.dark',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                px: 1.5,
+              }}
+            >
+              ดูทั้งหมด
+            </Button>
+            <Button
+              ref={fullscreen ? undefined : fullscreenButton}
+              size="small"
+              variant="outlined"
+              autoFocus={fullscreen}
+              onClick={fullscreen ? closeFullscreen : () => setFullscreen(true)}
+              startIcon={
+                <Iconify
+                  icon={fullscreen ? 'ri:fullscreen-exit-line' : 'ri:fullscreen-line'}
+                  width={16}
+                />
+              }
+              sx={{ minHeight: 40, bgcolor: 'background.paper', borderColor: 'divider', px: 1.5 }}
+            >
+              {fullscreen ? 'ออกจากเต็มจอ' : 'เต็มจอ'}
+            </Button>
+          </Stack>
+        </Stack>
+        <Box
+          component="svg"
+          viewBox={`-12 -12 ${SVG_WIDTH + 24} ${SVG_HEIGHT + 24}`}
+          role="group"
+          aria-label="แผนที่จังหวัดประเทศไทย แสดงจำนวนจุดขาย Loveza"
+          sx={{
+            width: 1,
+            height: 'auto',
+            outline: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            maxWidth: { xs: '100%', sm: 540, md: 600, lg: 720 },
+            aspectRatio: `${SVG_WIDTH} / ${SVG_HEIGHT}`,
+            ...(fullscreen && { maxHeight: 'max(420px, calc(100dvh - 150px))' }),
+            overflow: 'visible',
+            filter: 'drop-shadow(0 10px 12px rgba(48,63,35,.08))',
+            '& path[role="button"]:focus-visible': {
+              outline: 'none',
+              stroke: 'var(--palette-primary-dark)',
+              strokeWidth: 2.5,
+            },
+            '@media (prefers-reduced-motion: reduce)': {
+              '& path': { transition: 'none !important' },
+            },
+          }}
+        >
+          <g
+            aria-hidden="true"
+            transform="translate(0 7)"
+            fill="var(--palette-primary-dark)"
+            opacity="0.2"
+            style={{ pointerEvents: 'none' }}
+          >
+            {provinceSummaries
+              .filter((province) => province.stores.length > 0)
+              .map((province) => (
+                <path key={province.id} d={geometryToPath(province.geometry)} fillRule="evenodd" />
+              ))}
+          </g>
+          {provinceSummaries.map((province) => {
+            const selected = selectedProvince?.id === province.id;
+            return (
+              <Tooltip
+                key={province.id}
+                describeChild
+                arrow
+                followCursor
+                disableInteractive
+                open={hoveredProvince?.id === province.id}
+                onOpen={() => setHoveredProvince(province)}
+                onClose={() =>
+                  setHoveredProvince((current) => (current?.id === province.id ? null : current))
+                }
+                enterDelay={120}
+                enterTouchDelay={400}
+                leaveTouchDelay={2500}
+                slotProps={{
+                  transition: { timeout: 0 },
+                  tooltip: {
+                    sx: {
+                      p: 1.5,
+                      maxWidth: 230,
+                      bgcolor: 'background.paper',
+                      color: 'text.primary',
+                      border: '1px solid var(--palette-grey-300)',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(48,63,35,.14)',
+                    },
+                  },
+                  arrow: { sx: { color: 'background.paper' } },
+                }}
+                title={
+                  <Box>
+                    <Typography sx={{ fontSize: 14, fontWeight: 800 }}>{province.name}</Typography>
+                    <Stack
+                      direction="row"
+                      spacing={0.75}
+                      alignItems="center"
+                      sx={{ mt: 0.75, color: 'primary.dark' }}
+                    >
+                      <Iconify icon="ri:store-2-line" width={15} />
+                      <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
+                        {province.stores.length
+                          ? `${province.stores.length.toLocaleString('th-TH')} จุดขาย`
+                          : 'ภารกิจ: ค้นพบพิกัดแรก'}
+                      </Typography>
+                    </Stack>
+                    <Typography
+                      sx={{ mt: 0.5, color: 'text.secondary', fontSize: 11, lineHeight: 1.7 }}
+                    >
+                      {province.stores.length
+                        ? `แจ้งไว้ประมาณ ${province.quantity.toLocaleString('th-TH')} กระป๋อง`
+                        : 'จังหวัดนี้กำลังรอการค้นพบจากคุณ'}
+                    </Typography>
+                    {province.stores.length > 0 && renderDiscoverer(province.name, true)}
+                    <Typography sx={{ mt: 0.75, color: 'primary.main', fontSize: 10 }}>
+                      แตะเพื่อดูรายละเอียดจังหวัด
+                    </Typography>
+                  </Box>
+                }
+              >
+                <path
+                  d={geometryToPath(province.geometry)}
+                  fill={
+                    province.stores.length
+                      ? getProvinceColor(province.stores.length, provinceColorScale)
+                      : 'var(--palette-background-paper)'
+                  }
+                  fillOpacity={province.stores.length ? 1 : 0}
+                  fillRule="evenodd"
+                  stroke={
+                    province.stores.length ? 'var(--palette-background-paper)' : 'transparent'
+                  }
+                  strokeWidth={province.stores.length ? 1.1 : 0}
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${province.name} ${province.stores.length} จุดขาย`}
+                  aria-pressed={selected}
+                  onMouseEnter={() => setHoveredProvince(province)}
+                  onMouseLeave={() => setHoveredProvince(null)}
+                  onFocus={() => setHoveredProvince(province)}
+                  onBlur={() => setHoveredProvince(null)}
+                  onClick={() => setSelectedProvince(province)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelectedProvince(province);
+                    }
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    outline: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    opacity: selected || hoveredProvince?.id === province.id ? 1 : 0.94,
+                    transition: 'opacity 160ms ease, filter 160ms ease',
+                    filter:
+                      selected || hoveredProvince?.id === province.id
+                        ? 'brightness(1.07)'
+                        : undefined,
+                  }}
+                />
+              </Tooltip>
+            );
+          })}
+          {selectedProvince ? (
+            <path
+              aria-hidden="true"
+              d={geometryToPath(selectedProvince.geometry)}
+              fill="none"
+              fillRule="evenodd"
+              stroke="var(--palette-primary-dark)"
+              strokeWidth={1.5}
+              vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              style={{ pointerEvents: 'none' }}
+            />
+          ) : null}
+        </Box>
+        <Stack
+          direction="row"
+          useFlexGap
+          flexWrap="wrap"
+          justifyContent="center"
+          spacing={1.5}
+          aria-label="จำนวนจุดขายตามสีจังหวัด"
+          sx={{
+            mt: 2,
+            px: 0,
+            py: 0.5,
+            width: 1,
+          }}
+        >
+          {provinceColorScale.map((item) => (
+            <Stack
+              key={item.label}
+              direction="row"
+              spacing={0.6}
+              alignItems="center"
+              sx={{ px: 1, py: 0.6, borderRadius: '6px', bgcolor: 'background.paper' }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '3px',
+                  bgcolor: item.maxCount === 0 ? 'var(--palette-background-paper)' : item.color,
+                  border: '1px solid rgba(48,63,35,.12)',
+                }}
+              />
+              <Typography sx={{ fontSize: 10, color: 'text.secondary' }}>
+                {item.maxCount === 0 ? 'รอการค้นพบ' : item.label}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+        <Typography
+          sx={{
+            mt: 1.25,
+            maxWidth: 560,
+            color: 'text.secondary',
+            fontSize: 10,
+            lineHeight: 1.8,
+            textAlign: 'center',
+          }}
+        >
+          สีแสดงจำนวนจุดขายที่ชุมชนค้นพบ ส่วนจำนวนสินค้าอาจเปลี่ยนแปลง ควรตรวจสอบกับร้านก่อนเดินทาง
+        </Typography>
+      </Box>
+
+      {selectedProvince ? (
+        <Box
+          component="section"
+          aria-label={`จุดขายใน${selectedProvince.name}`}
+          sx={{
+            mx: { xs: 1, sm: 2 },
+            mb: 2,
+            p: { xs: 1.5, sm: 2.5 },
+            borderRadius: '18px',
+            bgcolor: 'background.default',
+            border: '5px solid var(--palette-background-paper)',
+            boxShadow: '0 16px 48px rgba(65,49,30,.06)',
+          }}
+        >
+          <Stack direction="row" alignItems="flex-start" spacing={1.25}>
+            <Box
+              sx={{
+                display: 'grid',
+                placeItems: 'center',
+                width: 42,
+                height: 42,
+                borderRadius: '12px',
+                flexShrink: 0,
+                bgcolor: 'primary.lighter',
+                color: 'primary.dark',
+              }}
+            >
+              <Iconify icon="ri:map-pin-2-fill" width={22} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography component="h3" sx={{ fontSize: { xs: 19, sm: 23 }, fontWeight: 900 }}>
+                {selectedProvince.name}
+              </Typography>
+              <Typography sx={{ color: 'primary.dark', fontSize: 13, fontWeight: 800 }}>
+                {selectedProvince.stores.length
+                  ? `พบ ${selectedProvince.stores.length.toLocaleString('th-TH')} จุดขาย · ประมาณ ${selectedProvince.quantity.toLocaleString('th-TH')} กระป๋อง`
+                  : 'มาเป็นคนแรกที่ช่วยปักหมุดจังหวัดนี้'}
+              </Typography>
+            </Box>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => setSelectedProvince(null)}
+              aria-label="ปิดรายละเอียดจังหวัด"
+              sx={{
+                minWidth: 40,
+                height: 40,
+                borderRadius: '12px',
+                bgcolor: 'background.neutral',
+              }}
+            >
+              <Iconify icon="ri:close-line" width={22} />
+            </Button>
+          </Stack>
+
+          {selectedProvince.stores.length > 0 && renderDiscoverer(selectedProvince.name)}
+
+          {selectedProvince.stores.length ? (
+            <Stack spacing={1} sx={{ mt: 1.5, maxHeight: 320, overflowY: 'auto' }}>
+              {selectedProvince.stores.map((store) => (
+                <Box
+                  key={store.id}
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: 'auto minmax(0, 1fr)',
+                      sm: 'auto minmax(0, 1fr) auto',
+                    },
+                    alignItems: 'center',
+                    gap: 1.25,
+                    p: 1.25,
+                    bgcolor: 'background.paper',
+                    border: '1px solid var(--palette-grey-300)',
+                    borderRadius: '16px',
+                  }}
+                >
+                  <Avatar
+                    variant="rounded"
+                    src={store.store_type_logo_url || '/assets/icons/loveza/voxel-store.svg'}
+                    alt=""
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      bgcolor: 'primary.lighter',
+                      color: 'primary.dark',
+                      '& img': { objectFit: 'contain' },
+                    }}
+                  >
+                    <Iconify icon="ri:store-2-fill" width={22} />
+                  </Avatar>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 800, overflowWrap: 'anywhere' }}>
+                      {store.name}
+                    </Typography>
+                    <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
+                      {[store.district, store.address].filter(Boolean).join(' · ') ||
+                        selectedProvince.name}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={STORE_STATUS_LABEL[store.current_status] ?? STORE_STATUS_LABEL.unknown}
+                      color={
+                        (
+                          {
+                            available: 'success',
+                            low_stock: 'warning',
+                            out_of_stock: 'error',
+                            unknown: 'default',
+                          } as const
+                        )[store.current_status] ?? 'default'
+                      }
+                      variant="outlined"
+                      sx={{ mt: 0.75, height: 22, fontSize: 11, fontWeight: 800 }}
+                    />
+                  </Box>
+                  <Button
+                    component="a"
+                    href={buildGoogleMapsUrl(store.latitude, store.longitude)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outlined"
+                    size="small"
+                    aria-label={`นำทางไป ${store.name}`}
+                    startIcon={<Iconify icon="ri:route-fill" />}
+                    sx={{
+                      gridColumn: { xs: '2', sm: 'auto' },
+                      justifySelf: 'start',
+                      minHeight: 36,
+                      px: 1.5,
+                    }}
+                  >
+                    นำทาง
+                  </Button>
+                </Box>
+              ))}
+            </Stack>
+          ) : (
+            <Button
+              href="/report"
+              size="small"
+              variant="contained"
+              startIcon={<Iconify icon="ri:map-pin-add-fill" />}
+              sx={{ mt: 1.5, fontWeight: 900 }}
+            >
+              ช่วยปักหมุดแรกของจังหวัดนี้
+            </Button>
+          )}
+        </Box>
+      ) : null}
+    </Box>
+  );
 
   return (
     <>
@@ -539,379 +1072,19 @@ export default function ThailandMap({
           </Box>
         </Box>
 
-        <Box
-          sx={{
-            order: 2,
-            minWidth: 0,
-            position: 'relative',
-            bgcolor: 'transparent',
-          }}
-        >
-          <Box
-            sx={{
-              px: { xs: 0, sm: 1 },
-              pt: { xs: 1.5, sm: 2 },
-              pb: 2,
-              display: 'grid',
-              position: 'relative',
-              placeItems: 'center',
-            }}
+        {fullscreen ? (
+          <Dialog
+            open
+            fullScreen
+            onClose={closeFullscreen}
+            aria-label="แผนที่ประเทศไทยแบบเต็มจอ"
+            slotProps={{ paper: { sx: { bgcolor: 'background.default' } } }}
           >
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={2}
-              sx={{ width: 1, mb: 3 }}
-            >
-              <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  sx={{ fontSize: 10, color: 'primary.main', fontWeight: 800, letterSpacing: 1.5 }}
-                >
-                  THAILAND EXPLORER
-                </Typography>
-                <Typography sx={{ mt: 0.5, fontSize: 16, fontWeight: 800 }}>
-                  {hoveredProvince?.name ??
-                    selectedProvince?.name ??
-                    'แผนที่ประเทศไทย · 77 จังหวัด'}
-                </Typography>
-                <Typography sx={{ mt: 0.25, fontSize: 11, color: 'text.secondary' }}>
-                  {hoveredProvince
-                    ? `${hoveredProvince.stores.length} จุดขายจากชุมชน`
-                    : selectedProvince
-                      ? `${selectedProvince.stores.length} จุดขายจากชุมชน`
-                      : 'แตะจังหวัด เพื่อร่วมเติมพิกัดให้แผนที่'}
-                </Typography>
-              </Box>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => {
-                  setSelectedProvince(null);
-                  setHoveredProvince(null);
-                }}
-                startIcon={<Iconify icon="ri:focus-3-line" width={16} />}
-                sx={{
-                  flexShrink: 0,
-                  minHeight: 40,
-                  color: 'primary.dark',
-                  borderColor: 'divider',
-                  bgcolor: 'background.paper',
-                  px: 1.5,
-                }}
-              >
-                ดูทั้งหมด
-              </Button>
-            </Stack>
-            <Box
-              component="svg"
-              viewBox={`-12 -12 ${SVG_WIDTH + 24} ${SVG_HEIGHT + 24}`}
-              role="group"
-              aria-label="แผนที่จังหวัดประเทศไทย แสดงจำนวนจุดขาย Loveza"
-              sx={{
-                width: 1,
-                height: 'auto',
-                outline: 'none',
-                WebkitTapHighlightColor: 'transparent',
-                maxWidth: { xs: '100%', sm: 540, md: 600, lg: 720 },
-                aspectRatio: `${SVG_WIDTH} / ${SVG_HEIGHT}`,
-                overflow: 'visible',
-                filter: 'drop-shadow(0 10px 12px rgba(48,63,35,.08))',
-                '& path[role="button"]:focus-visible': {
-                  outline: 'none',
-                  stroke: 'var(--palette-primary-dark)',
-                  strokeWidth: 2.5,
-                },
-                '@media (prefers-reduced-motion: reduce)': {
-                  '& path': { transition: 'none !important' },
-                },
-              }}
-            >
-              <g
-                aria-hidden="true"
-                transform="translate(0 7)"
-                fill="var(--palette-primary-dark)"
-                opacity="0.2"
-                style={{ pointerEvents: 'none' }}
-              >
-                {provinceSummaries
-                  .filter((province) => province.stores.length > 0)
-                  .map((province) => (
-                    <path
-                      key={province.id}
-                      d={geometryToPath(province.geometry)}
-                      fillRule="evenodd"
-                    />
-                  ))}
-              </g>
-              {provinceSummaries.map((province) => {
-                const selected = selectedProvince?.id === province.id;
-                return (
-                  <Tooltip
-                    key={province.id}
-                    describeChild
-                    arrow
-                    followCursor
-                    disableInteractive
-                    open={hoveredProvince?.id === province.id}
-                    onOpen={() => setHoveredProvince(province)}
-                    onClose={() =>
-                      setHoveredProvince((current) =>
-                        current?.id === province.id ? null : current
-                      )
-                    }
-                    enterDelay={120}
-                    enterTouchDelay={400}
-                    leaveTouchDelay={2500}
-                    slotProps={{
-                      transition: { timeout: 0 },
-                      tooltip: {
-                        sx: {
-                          p: 1.5,
-                          maxWidth: 230,
-                          bgcolor: 'background.paper',
-                          color: 'text.primary',
-                          border: '1px solid var(--palette-grey-300)',
-                          borderRadius: '12px',
-                          boxShadow: '0 8px 24px rgba(48,63,35,.14)',
-                        },
-                      },
-                      arrow: { sx: { color: 'background.paper' } },
-                    }}
-                    title={
-                      <Box>
-                        <Typography sx={{ fontSize: 14, fontWeight: 800 }}>
-                          {province.name}
-                        </Typography>
-                        <Stack
-                          direction="row"
-                          spacing={0.75}
-                          alignItems="center"
-                          sx={{ mt: 0.75, color: 'primary.dark' }}
-                        >
-                          <Iconify icon="ri:store-2-line" width={15} />
-                          <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
-                            {province.stores.length
-                              ? `${province.stores.length.toLocaleString('th-TH')} จุดขาย`
-                              : 'ภารกิจ: ค้นพบพิกัดแรก'}
-                          </Typography>
-                        </Stack>
-                        <Typography
-                          sx={{ mt: 0.5, color: 'text.secondary', fontSize: 11, lineHeight: 1.7 }}
-                        >
-                          {province.stores.length
-                            ? `แจ้งไว้ประมาณ ${province.quantity.toLocaleString('th-TH')} กระป๋อง`
-                            : 'จังหวัดนี้กำลังรอการค้นพบจากคุณ'}
-                        </Typography>
-                        <Typography sx={{ mt: 0.75, color: 'primary.main', fontSize: 10 }}>
-                          แตะเพื่อดูรายละเอียดจังหวัด
-                        </Typography>
-                      </Box>
-                    }
-                  >
-                    <path
-                      d={geometryToPath(province.geometry)}
-                      fill={
-                        province.stores.length
-                          ? getProvinceColor(province.stores.length, provinceColorScale)
-                          : 'var(--palette-background-paper)'
-                      }
-                      fillOpacity={province.stores.length ? 1 : 0}
-                      fillRule="evenodd"
-                      stroke={
-                        province.stores.length ? 'var(--palette-background-paper)' : 'transparent'
-                      }
-                      strokeWidth={province.stores.length ? 1.1 : 0}
-                      strokeLinejoin="round"
-                      vectorEffect="non-scaling-stroke"
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${province.name} ${province.stores.length} จุดขาย`}
-                      aria-pressed={selected}
-                      onMouseEnter={() => setHoveredProvince(province)}
-                      onMouseLeave={() => setHoveredProvince(null)}
-                      onFocus={() => setHoveredProvince(province)}
-                      onBlur={() => setHoveredProvince(null)}
-                      onClick={() => setSelectedProvince(province)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          setSelectedProvince(province);
-                        }
-                      }}
-                      style={{
-                        cursor: 'pointer',
-                        outline: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                        opacity: selected || hoveredProvince?.id === province.id ? 1 : 0.94,
-                        transition: 'opacity 160ms ease, filter 160ms ease',
-                        filter:
-                          selected || hoveredProvince?.id === province.id
-                            ? 'brightness(1.07)'
-                            : undefined,
-                      }}
-                    />
-                  </Tooltip>
-                );
-              })}
-              {selectedProvince ? (
-                <path
-                  aria-hidden="true"
-                  d={geometryToPath(selectedProvince.geometry)}
-                  fill="none"
-                  fillRule="evenodd"
-                  stroke="var(--palette-primary-dark)"
-                  strokeWidth={1.5}
-                  vectorEffect="non-scaling-stroke"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  style={{ pointerEvents: 'none' }}
-                />
-              ) : null}
-            </Box>
-            <Stack
-              direction="row"
-              useFlexGap
-              flexWrap="wrap"
-              justifyContent="center"
-              spacing={1.5}
-              aria-label="จำนวนจุดขายตามสีจังหวัด"
-              sx={{
-                mt: 2,
-                px: 0,
-                py: 0.5,
-                width: 1,
-              }}
-            >
-              {provinceColorScale.map((item) => (
-                <Stack
-                  key={item.label}
-                  direction="row"
-                  spacing={0.6}
-                  alignItems="center"
-                  sx={{ px: 1, py: 0.6, borderRadius: '6px', bgcolor: 'background.paper' }}
-                >
-                  <Box
-                    component="span"
-                    sx={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '3px',
-                      bgcolor: item.maxCount === 0 ? 'var(--palette-background-paper)' : item.color,
-                      border: '1px solid rgba(48,63,35,.12)',
-                    }}
-                  />
-                  <Typography sx={{ fontSize: 10, color: 'text.secondary' }}>
-                    {item.maxCount === 0 ? 'รอการค้นพบ' : item.label}
-                  </Typography>
-                </Stack>
-              ))}
-            </Stack>
-            <Typography
-              sx={{
-                mt: 1.25,
-                maxWidth: 560,
-                color: 'text.secondary',
-                fontSize: 10,
-                lineHeight: 1.8,
-                textAlign: 'center',
-              }}
-            >
-              สีแสดงจำนวนจุดขายที่ชุมชนค้นพบ ส่วนจำนวนสินค้าอาจเปลี่ยนแปลง
-              ควรตรวจสอบกับร้านก่อนเดินทาง
-            </Typography>
-          </Box>
-
-          {selectedProvince ? (
-            <Box
-              sx={{
-                m: 2,
-                mt: 0,
-                p: 2,
-                borderRadius: 3,
-                bgcolor: 'var(--palette-background-paper)',
-                border: '1px solid var(--palette-grey-300)',
-                boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" spacing={2}>
-                <Box>
-                  <Typography sx={{ fontSize: 20, fontWeight: 1000 }}>
-                    {selectedProvince.name}
-                  </Typography>
-                  <Typography
-                    sx={{ color: 'var(--palette-primary-main)', fontSize: 13, fontWeight: 1000 }}
-                  >
-                    {selectedProvince.stores.length
-                      ? `พบ ${selectedProvince.stores.length} จุดขาย · ประมาณ ${selectedProvince.quantity.toLocaleString('th-TH')} กระป๋อง`
-                      : 'ยังไม่มีข้อมูลพิกัด มาเป็นคนแรกที่ช่วยเติมแผนที่กัน'}
-                  </Typography>
-                </Box>
-                <Button
-                  color="inherit"
-                  size="small"
-                  onClick={() => setSelectedProvince(null)}
-                  aria-label="ปิดรายละเอียดจังหวัด"
-                  sx={{ minWidth: 36, alignSelf: 'flex-start' }}
-                >
-                  <Iconify icon="ri:close-line" width={22} />
-                </Button>
-              </Stack>
-
-              {selectedProvince.stores.length ? (
-                <Stack
-                  divider={<Divider flexItem />}
-                  sx={{ mt: 1.25, maxHeight: 260, overflowY: 'auto' }}
-                >
-                  {selectedProvince.stores.map((store) => (
-                    <Box key={store.id} sx={{ py: 1 }}>
-                      <Stack direction="row" spacing={1} justifyContent="space-between">
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>
-                            {store.name}
-                          </Typography>
-                          <Typography sx={{ color: 'var(--palette-text-secondary)', fontSize: 11 }}>
-                            {[store.district, store.address].filter(Boolean).join(' · ') ||
-                              selectedProvince.name}
-                          </Typography>
-                          <Chip
-                            size="small"
-                            label={
-                              STORE_STATUS_LABEL[store.current_status] ?? STORE_STATUS_LABEL.unknown
-                            }
-                            sx={{ mt: 0.6, height: 21, fontSize: 10, fontWeight: 900 }}
-                          />
-                        </Box>
-                        <Button
-                          component="a"
-                          href={buildGoogleMapsUrl(store.latitude, store.longitude)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          size="small"
-                          aria-label={`นำทางไป ${store.name}`}
-                          startIcon={<Iconify icon="ri:route-fill" />}
-                          sx={{ minWidth: 0, flexShrink: 0, alignSelf: 'center', fontWeight: 900 }}
-                        >
-                          นำทาง
-                        </Button>
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-              ) : (
-                <Button
-                  href="/report"
-                  size="small"
-                  variant="contained"
-                  startIcon={<Iconify icon="ri:map-pin-add-fill" />}
-                  sx={{ mt: 1.5, fontWeight: 900 }}
-                >
-                  ช่วยปักหมุดแรกของจังหวัดนี้
-                </Button>
-              )}
-            </Box>
-          ) : null}
-        </Box>
+            {mapExplorer}
+          </Dialog>
+        ) : (
+          mapExplorer
+        )}
       </Box>
     </>
   );

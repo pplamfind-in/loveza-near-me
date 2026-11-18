@@ -6,6 +6,7 @@ import { SITE_TITLE, SITE_DESCRIPTION, createSeoMetadata } from 'src/lib/seo';
 import { DEFAULT_BRAND_OWNER_ACKNOWLEDGED } from 'src/lib/brand-owner-notice';
 
 import { HomeView } from 'src/sections/home/view';
+import { LimitedMissionsSection } from 'src/sections/home/limited-missions-section';
 
 import { type LandingBanner, DEFAULT_LANDING_BANNERS } from 'src/types/landing-banner';
 import { type LovezaProduct, DEFAULT_LOVEZA_PRODUCTS } from 'src/types/loveza-product';
@@ -56,6 +57,7 @@ export default async function Page() {
 
   return (
     <HomeView
+      limitedMissions={<LimitedMissionsSection db={supabase} />}
       products={products}
       banners={banners}
       latestStores={latestStores}

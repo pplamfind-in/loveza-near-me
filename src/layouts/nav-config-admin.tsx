@@ -39,6 +39,21 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           icon: navIcon('ri:map-2-fill'),
         },
         {
+          title: 'รางวัลนักสำรวจ',
+          path: '/admin/rewards',
+          icon: navIcon('ri:gift-2-line'),
+        },
+        {
+          title: 'เงื่อนไขรางวัล',
+          path: '/admin/reward-rules',
+          icon: navIcon('ri:list-check-3'),
+        },
+        {
+          title: 'เลเวลนักสำรวจ',
+          path: '/admin/explorer-levels',
+          icon: navIcon('ri:bar-chart-box-line'),
+        },
+        {
           title: 'จัดการสินค้า',
           path: '/admin/products',
           icon: navIcon('ri:drinks-2-fill'),

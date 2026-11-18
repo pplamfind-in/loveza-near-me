@@ -5,6 +5,8 @@ import { z } from 'zod';
 export const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 export const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
+export const INVALID_PHOTO_MESSAGE = 'เปิดไฟล์ภาพไม่ได้ กรุณาเลือกรูปใหม่';
+
 export const LOCATION_REQUIRED_MESSAGE = 'กรุณากดใช้ตำแหน่งปัจจุบันก่อนส่งพิกัด';
 
 // province/district come from an Autocomplete bound to the bundled 77-province
@@ -42,10 +44,12 @@ export const reportSchema = z.object({
     .union([z.literal(''), z.coerce.number().int().min(0, 'จำนวนต้องไม่ต่ำกว่า 0').max(9999)])
     .optional()
     .transform((value) => (value === '' || value === undefined ? null : value)),
-  flavors: z.array(z.enum(['honey_lemon', 'lychee', 'kyoho_grape', 'unknown'])).max(4),
+  flavors: z.array(z.enum(['honey_lemon', 'lychee', 'kyoho_grape', 'yoghurt', 'unknown'])).max(5),
   photo: z
     .instanceof(File)
     .nullable()
+    .refine((file) => file !== null, 'กรุณาแนบรูปหลักฐาน 1 รูป')
+    .refine((file) => !file || file.size > 0, INVALID_PHOTO_MESSAGE)
     .refine((file) => !file || file.size <= MAX_PHOTO_SIZE, 'ไฟล์รูปต้องไม่เกิน 5MB')
     .refine(
       (file) => !file || ALLOWED_PHOTO_TYPES.includes(file.type),

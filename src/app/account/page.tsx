@@ -8,8 +8,11 @@ import Typography from '@mui/material/Typography';
 
 import { NO_INDEX_ROBOTS } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
+import { getAccountAvatars } from 'src/lib/account-avatars';
 
 import { SessionCard } from 'src/sections/auth-loveza/session-card';
+import { FlavorCollection } from 'src/sections/explorer/flavor-collection';
+import { ExplorerProgressPanel } from 'src/sections/explorer/explorer-progress';
 import { ReportHistorySection } from 'src/sections/account/report-history-section';
 
 export const metadata: Metadata = {
@@ -24,6 +27,16 @@ export default async function AccountPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect('/auth/login');
+
+  const [avatarOptions, productsResult] = await Promise.all([
+    getAccountAvatars(),
+    supabase
+      .from('products')
+      .select('id, slug, thai_name, name, image_url, fruit')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('id'),
+  ]);
 
   return (
     <Box
@@ -90,9 +103,17 @@ export default async function AccountPage() {
           }}
         >
           <Box sx={{ position: { md: 'sticky' }, top: { md: 100 } }}>
-            <SessionCard user={user} role="user" compact />
+            <SessionCard user={user} role="user" compact avatarOptions={avatarOptions} />
           </Box>
-          <ReportHistorySection />
+          <Box sx={{ minWidth: 0, display: 'grid', gap: 3 }}>
+            <ExplorerProgressPanel />
+            <FlavorCollection
+              products={productsResult.data ?? []}
+              userId={user.id}
+              unavailable={Boolean(productsResult.error)}
+            />
+            <ReportHistorySection />
+          </Box>
         </Box>
       </Container>
     </Box>

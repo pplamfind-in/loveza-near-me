@@ -61,23 +61,35 @@ export function MainLayout({
   const { user: authUser } = useAuthContext();
 
   const isHomePage = pathname === '/';
-  const hasHeroHeader = [
-    '/',
-    '/nearby',
-    '/nearby/',
-    '/mapza',
-    '/mapza/',
-    '/about-us',
-    '/about-us/',
-    '/contact-us',
-    '/contact-us/',
-  ].includes(pathname);
+  const normalizedPathname = pathname.replace(/\/$/, '');
+  const isExplorerLevelsPage = normalizedPathname === '/mapza/leaderboard/levels';
+  const hasHeroHeader =
+    normalizedPathname === '/mapza/leaderboard' ||
+    pathname.startsWith('/products/') ||
+    pathname.startsWith('/rewards/') ||
+    [
+      '/',
+      '/rewards',
+      '/rewards/',
+      '/nearby',
+      '/nearby/',
+      '/mapza',
+      '/mapza/',
+      '/about-us',
+      '/about-us/',
+      '/contact-us',
+      '/contact-us/',
+    ].includes(pathname);
 
   const contextUser: LovezaHeaderUser | null = authUser
     ? {
         displayName: getUserDisplayName(authUser),
         email: authUser.email ?? '',
-        photoURL: authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '',
+        photoURL:
+          authUser.user_metadata?.loveza_avatar ||
+          authUser.user_metadata?.avatar_url ||
+          authUser.user_metadata?.picture ||
+          '',
         role: authUser.app_metadata?.role ?? 'user',
       }
     : null;
@@ -145,12 +157,13 @@ export function MainLayout({
                 color="inherit"
                 sx={(theme) => ({
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.25,
-                  minWidth: 64,
-                  minHeight: 48,
+                  flexDirection: 'row',
+                  gap: 0.75,
+                  minWidth: 0,
+                  minHeight: 44,
                   py: 0.5,
-                  px: 1,
+                  pl: 0.75,
+                  pr: 1.25,
                   color: 'primary.dark',
                   bgcolor: 'background.paper',
                   border: '1px solid',
@@ -162,13 +175,26 @@ export function MainLayout({
                     outline: '2px solid var(--palette-primary-main)',
                     outlineOffset: 3,
                   },
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 700,
                   lineHeight: 1.5,
                   [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
                 })}
               >
-                <Iconify icon="ri:login-circle-line" width={24} />
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'grid',
+                    placeItems: 'center',
+                    width: 30,
+                    height: 30,
+                    borderRadius: '9px',
+                    bgcolor: 'primary.lighter',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Iconify icon="ri:login-circle-line" width={20} />
+                </Box>
                 เข้าสู่ระบบ
               </Button>
             )}
@@ -220,7 +246,7 @@ export function MainLayout({
   };
 
   const renderFooter = () =>
-    isHomePage ? null : (
+    isHomePage || isExplorerLevelsPage ? null : (
       <Footer
         sx={slotProps?.footer?.sx}
         layoutQuery={layoutQuery}
@@ -247,6 +273,7 @@ export function MainLayout({
               animation: 'none !important',
             },
           },
+          ...(isExplorerLevelsPage && { mt: 0, pb: 0 }),
           ...(hasHeroHeader && {
             mt: {
               xs: 'calc(-1 * var(--layout-header-mobile-height))',
@@ -268,7 +295,7 @@ export function MainLayout({
       /** **************************************
        * @Header
        *************************************** */
-      headerSection={renderHeader()}
+      headerSection={isExplorerLevelsPage ? null : renderHeader()}
       /** **************************************
        * @Footer
        *************************************** */

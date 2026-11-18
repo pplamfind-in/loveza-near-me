@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -63,7 +65,7 @@ export function StorySection() {
             </Box>
           </Box>
         </Box>
-        <Box>
+        <Box sx={{ position: 'relative' }}>
           <Typography
             sx={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: 'primary.main' }}
           >
@@ -107,7 +109,8 @@ export function AdventureSection() {
           borderRadius: '18px',
           mb: { xs: 5, md: 8 },
           p: { xs: 3, md: 5 },
-          minHeight: 260,
+          pb: { xs: 28, sm: 5 },
+          minHeight: { xs: 430, sm: 300 },
           bgcolor: 'primary.lighter',
         }}
       >
@@ -133,7 +136,30 @@ export function AdventureSection() {
               'linear-gradient(90deg, var(--palette-background-paper) 5%, rgba(255,253,250,.92) 40%, rgba(255,253,250,.1) 100%)',
           }}
         />
-        <Box sx={{ position: 'relative', maxWidth: 430 }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            right: { xs: 'calc(50% - 105px)', sm: 24, md: 60 },
+            width: { xs: 210, sm: 220, md: 270 },
+            height: { xs: 230, sm: 260, md: 295 },
+            pointerEvents: 'none',
+          }}
+        >
+          <Image
+            src="/assets/illustrations/p-sung.webp"
+            unoptimized
+            alt=""
+            fill
+            sizes="(max-width: 899px) 220px, 270px"
+            style={{
+              objectFit: 'contain',
+              objectPosition: 'bottom',
+              filter: 'drop-shadow(0 8px 12px rgba(66,118,83,.15))',
+            }}
+          />
+        </Box>
+        <Box sx={{ position: 'relative', maxWidth: { xs: '100%', sm: '60%', md: 520 } }}>
           <Typography
             component="h2"
             sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 900, lineHeight: 1.4 }}
