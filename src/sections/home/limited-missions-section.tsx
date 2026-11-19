@@ -119,18 +119,30 @@ export async function LimitedMissionsSection({
             position: 'relative',
             minWidth: 0,
             py: { xs: 2, sm: 3 },
-            background:
-              'repeating-radial-gradient(circle at center, transparent 0 31px, #A9752224 32px 33px, transparent 34px 55px)',
-            '&::before': {
+            '&::before, &::after': {
               content: '""',
               position: 'absolute',
-              inset: 0,
-              background: 'radial-gradient(ellipse at center, #FFF9DF 12%, transparent 68%)',
+              aspectRatio: '1312 / 1199',
+              background: 'url(/assets/loveza/loveza-coin.webp) center / contain no-repeat',
               pointerEvents: 'none',
+            },
+            '&::before': {
+              width: { xs: '38%', md: '46%' },
+              top: '2%',
+              right: { xs: '-5%', md: '-8%' },
+              opacity: 0.34,
+              transform: 'rotate(18deg)',
+            },
+            '&::after': {
+              width: '32%',
+              bottom: '6%',
+              left: { xs: '-5%', md: '-8%' },
+              opacity: 0.29,
+              transform: 'rotate(-23deg)',
             },
           }}
         >
-          <Box sx={{ width: 'min(100% - 12px, 310px)', position: 'relative' }}>
+          <Box sx={{ width: 'min(100% - 40px, 310px)', position: 'relative', zIndex: 1 }}>
             <RewardCard {...featured} showDetails={false} />
           </Box>
         </Box>

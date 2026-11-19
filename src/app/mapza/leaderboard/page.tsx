@@ -117,7 +117,7 @@ function ExplorerPodium({ entries }: { entries: LeaderboardEntry[] }) {
                       fontWeight: 800,
                     }}
                   >
-                    {(winner.store_count * POINTS_PER_STORE).toLocaleString('th-TH')} แต้ม
+                    {(winner.store_count * POINTS_PER_STORE).toLocaleString('th-TH')} เหรียญ
                   </Typography>
                 </Box>
               ))}
@@ -244,8 +244,8 @@ export default async function LeaderboardPage({
             อันดับนักสำรวจ
           </Typography>
           <Typography sx={{ mt: 1.5, maxWidth: 380, color: 'text.secondary', lineHeight: 1.75 }}>
-            ร้านไม่ซ้ำที่แจ้งและผ่านอนุมัติ รับ {POINTS_PER_STORE} แต้มต่อร้าน
-            แต้มเท่ากันได้อันดับร่วม
+            ร้านไม่ซ้ำที่แจ้งและผ่านอนุมัติ รับ {POINTS_PER_STORE} เหรียญต่อร้าน
+            เหรียญเท่ากันได้อันดับร่วม
           </Typography>
           <Button
             href="#leaderboard-results"
@@ -384,7 +384,7 @@ export default async function LeaderboardPage({
                 <Typography
                   sx={{ flexShrink: 0, color: 'primary.dark', fontSize: 14, fontWeight: 900 }}
                 >
-                  {(entry.store_count * POINTS_PER_STORE).toLocaleString('th-TH')} แต้ม
+                  {(entry.store_count * POINTS_PER_STORE).toLocaleString('th-TH')} เหรียญ
                 </Typography>
               </Stack>
             ))}

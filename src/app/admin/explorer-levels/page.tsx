@@ -20,7 +20,7 @@ export default function Page() {
         เงื่อนไขเลเวลนักสำรวจ
       </Typography>
       <Typography sx={{ mt: 1, mb: 3, color: 'text.secondary' }}>
-        เลเวล 1–100 · ร้านไม่ซ้ำที่ผ่านอนุมัติรับ {POINTS_PER_STORE} แต้มต่อร้าน
+        เลเวล 1–100 · ร้านไม่ซ้ำที่ผ่านอนุมัติรับ {POINTS_PER_STORE} เหรียญต่อร้าน
       </Typography>
       <Card>
         <TableContainer sx={{ maxHeight: 'min(70dvh, 760px)' }}>
@@ -35,7 +35,7 @@ export default function Page() {
                 <TableCell>เลเวล</TableCell>
                 <TableCell align="right">ร้านเพิ่มจากเลเวลก่อน</TableCell>
                 <TableCell align="right">ร้านสะสมขั้นต่ำ</TableCell>
-                <TableCell align="right">แต้มสะสมขั้นต่ำ</TableCell>
+                <TableCell align="right">เหรียญสะสมขั้นต่ำ</TableCell>
                 <TableCell>ฉายา</TableCell>
               </TableRow>
             </TableHead>

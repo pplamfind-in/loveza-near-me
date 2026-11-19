@@ -4,7 +4,7 @@ import { buildExplorerProgress, type ExplorerProgress } from './progress';
 
 export const REWARD_CARD_HEADER = {
   brand: 'LOVEZA HUNT',
-  label: 'CHARACTER CARD',
+  label: 'EXPLORER CARD',
   color: '#427653',
 } as const;
 

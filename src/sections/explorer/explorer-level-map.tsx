@@ -592,7 +592,7 @@ export function ExplorerLevelMap({
                     color: '#E0EDCF',
                   },
                   {
-                    label: 'แต้มสะสมขั้นต่ำ',
+                    label: 'เหรียญสะสมขั้นต่ำ',
                     value: selected.points,
                     icon: 'ri:star-fill',
                     color: '#FBE8AA',
@@ -613,7 +613,7 @@ export function ExplorerLevelMap({
                 ))}
               </Box>
               <Typography sx={{ mt: 1, color: 'text.secondary', fontSize: 12 }}>
-                ร้านไม่ซ้ำที่ผ่านอนุมัติรับ {POINTS_PER_STORE} แต้มต่อร้าน
+                ร้านไม่ซ้ำที่ผ่านอนุมัติรับ {POINTS_PER_STORE} เหรียญต่อร้าน
               </Typography>
               {selected.titleUnlock && (
                 <Chip

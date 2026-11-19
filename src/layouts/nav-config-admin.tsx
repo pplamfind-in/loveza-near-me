@@ -44,6 +44,11 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           icon: navIcon('ri:gift-2-line'),
         },
         {
+          title: 'ประวัติดาวน์โหลดการ์ด',
+          path: '/admin/reward-downloads',
+          icon: navIcon('ri:download-2-line'),
+        },
+        {
           title: 'เงื่อนไขรางวัล',
           path: '/admin/reward-rules',
           icon: navIcon('ri:list-check-3'),

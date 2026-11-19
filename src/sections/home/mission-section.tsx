@@ -5,7 +5,11 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { POINTS_PER_STORE } from 'src/lib/explorer/progress';
+
 import { Iconify } from 'src/components/iconify';
+
+const coinAsset = '/assets/loveza/loveza-coin.webp';
 
 export function MissionSection() {
   return (
@@ -53,9 +57,17 @@ export function MissionSection() {
               lineHeight: 1.75,
             }}
           >
-            ร่วมแจ้งร้าน Loveza ที่พบ รับ 10 แต้มต่อร้านไม่ซ้ำที่ผ่านอนุมัติ
-            ทำภารกิจและเลื่อนเลเวลไปด้วยกัน
+            ร่วมแจ้งร้าน Loveza ที่พบ ทำภารกิจและเลื่อนเลเวลไปด้วยกัน
           </Typography>
+          <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Image src={coinAsset} alt="" width={48} height={44} unoptimized />
+            <Typography sx={{ color: 'primary.darker', fontSize: 14 }}>
+              <Box component="strong" sx={{ fontSize: 17, fontWeight: 900 }}>
+                {POINTS_PER_STORE} เหรียญ
+              </Box>{' '}
+              ต่อร้านไม่ซ้ำที่ผ่านอนุมัติ
+            </Typography>
+          </Box>
           <Box
             sx={{
               display: 'grid',
@@ -95,6 +107,29 @@ export function MissionSection() {
             placeItems: 'center',
             gridRow: { xs: 1, md: 'auto' },
             minWidth: 0,
+            '&::before, &::after': {
+              content: '""',
+              position: 'absolute',
+              aspectRatio: '1312 / 1199',
+              background: `url(${coinAsset}) center / contain no-repeat`,
+              pointerEvents: 'none',
+            },
+            '&::before': {
+              width: { xs: '43%', md: '47%' },
+              maxWidth: 200,
+              top: '5%',
+              right: { xs: '1%', sm: '15%', md: 0 },
+              opacity: 0.3,
+              transform: 'rotate(18deg)',
+            },
+            '&::after': {
+              width: '29%',
+              maxWidth: 120,
+              bottom: '13%',
+              left: { xs: 0, sm: '15%', md: 0 },
+              opacity: 0.23,
+              transform: 'rotate(-23deg)',
+            },
           }}
         >
           <Image
@@ -107,6 +142,7 @@ export function MissionSection() {
               width: 'min(100%, clamp(180px, 32vw, 310px))',
               height: 'auto',
               position: 'relative',
+              zIndex: 1,
               filter: 'drop-shadow(0 14px 12px rgba(66,118,83,.17))',
             }}
           />

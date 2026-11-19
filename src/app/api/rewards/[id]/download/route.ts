@@ -9,7 +9,7 @@ import { buildExplorerProgress } from 'src/lib/explorer/progress';
 
 export const runtime = 'nodejs';
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const db = await createClient();
   const { data: rewardRow, error: rewardError } = await db
@@ -36,10 +36,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const image = await renderRewardCard(reward);
     // Render before returning so failures become actionable JSON for the download button.
     const bytes = await image.arrayBuffer();
+    const disposition =
+      new URL(request.url).searchParams.get('preview') === '1' ? 'inline' : 'attachment';
+    if (disposition === 'attachment') {
+      const { error: logError } = await db.from('reward_download_events').insert({ reward_id: id });
+      if (logError) console.error('Could not record reward download', logError.code);
+    }
     return new Response(bytes, {
       headers: {
         'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="loveza-${reward.id}.png"`,
+        'Content-Disposition': `${disposition}; filename="loveza-${reward.id}.png"`,
         'Cache-Control': 'private, no-store',
         'X-Content-Type-Options': 'nosniff',
       },

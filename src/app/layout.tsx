@@ -259,7 +259,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       style={{ '--site-font-family': appConfig.fontFamily } as React.CSSProperties}
       suppressHydrationWarning
     >
-      <head>
+      {/* LocatorJS can annotate the head before React hydrates in development. */}
+      <head suppressHydrationWarning={process.env.NODE_ENV === 'development'}>
         <link
           rel="icon"
           href={`${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`}

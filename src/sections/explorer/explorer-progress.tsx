@@ -1,17 +1,25 @@
 'use client';
 
+import Image from 'next/image';
+import { useState } from 'react';
+
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Skeleton from '@mui/material/Skeleton';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import DialogContent from '@mui/material/DialogContent';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import { useExplorerProgressQuery } from 'src/app/account/use-account-reports';
 
 import { Iconify } from 'src/components/iconify';
+
+const coinImage = '/assets/loveza/loveza-coin.webp';
 
 const cardSx = {
   p: { xs: 2, md: 3 },
@@ -22,6 +30,7 @@ const cardSx = {
 };
 
 export function ExplorerProgressPanel() {
+  const [coinOpen, setCoinOpen] = useState(false);
   const { data, isLoading, isError, refetch } = useExplorerProgressQuery();
   if (isLoading)
     return (
@@ -82,15 +91,20 @@ export function ExplorerProgressPanel() {
           </Box>
         </Stack>
         <Chip
-          label={`${data.points.toLocaleString('th-TH')} แต้ม ✦`}
+          clickable
+          aria-haspopup="dialog"
+          onClick={() => setCoinOpen(true)}
+          icon={<Image src={coinImage} alt="" width={40} height={37} unoptimized />}
+          label={`${data.points.toLocaleString('th-TH')} เหรียญ`}
           sx={{
             alignSelf: { xs: 'flex-start', sm: 'center' },
             bgcolor: 'background.paper',
             color: 'primary.dark',
             fontSize: 18,
             fontWeight: 900,
-            height: 44,
+            height: 48,
             borderRadius: '12px',
+            '& .MuiChip-icon': { ml: 1, mr: -0.5, objectFit: 'contain' },
           }}
         />
       </Stack>
@@ -189,8 +203,8 @@ export function ExplorerProgressPanel() {
         sx={{ mt: 2.5 }}
       >
         <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.8, maxWidth: 540 }}>
-          ร้านไม่ซ้ำที่ผ่านอนุมัติรับ 10 แต้มต่อร้าน นับประวัติเดิมด้วย
-          การแจ้งร้านเดิมซ้ำไม่เพิ่มแต้ม ภารกิจแสดงความคืบหน้าโดยไม่มีแต้มโบนัส
+          ร้านไม่ซ้ำที่ผ่านอนุมัติรับ 10 เหรียญต่อร้าน นับประวัติเดิมด้วย
+          การแจ้งร้านเดิมซ้ำไม่เพิ่มเหรียญ ภารกิจแสดงความคืบหน้าโดยไม่มีเหรียญโบนัส
         </Typography>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ flexShrink: 0 }}>
           <Button
@@ -211,6 +225,41 @@ export function ExplorerProgressPanel() {
           </Button>
         </Stack>
       </Stack>
+      <Dialog
+        open={coinOpen}
+        onClose={() => setCoinOpen(false)}
+        aria-label="ภาพเหรียญ Loveza"
+        fullWidth
+        maxWidth="xs"
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'transparent',
+              backgroundImage: 'none',
+              boxShadow: 'none',
+              overflow: 'visible',
+            },
+          },
+        }}
+      >
+        <IconButton
+          aria-label="ปิดภาพเหรียญ"
+          onClick={() => setCoinOpen(false)}
+          sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'background.paper' }}
+        >
+          <Iconify icon="ri:close-line" />
+        </IconButton>
+        <DialogContent sx={{ p: 0 }}>
+          <Image
+            src={coinImage}
+            alt="เหรียญทองลาย Loveza"
+            width={1312}
+            height={1199}
+            unoptimized
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

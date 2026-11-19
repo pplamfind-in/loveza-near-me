@@ -8,10 +8,14 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
 
+import { REWARD_CARD_HEADER } from 'src/lib/explorer/rewards';
+
 import { Iconify } from 'src/components/iconify';
 
 import { ProtectedArtwork } from 'src/sections/rewards/protected-artwork';
 import { RewardDownloadButton } from 'src/sections/rewards/download-button';
+
+const rewardPngAspectRatio = '900 / 1300';
 
 type RewardCardProps = {
   reward: ExplorerReward;
@@ -21,6 +25,7 @@ type RewardCardProps = {
 };
 
 export function RewardCard({ reward, index, status, showDetails = true }: RewardCardProps) {
+  const showExportDesign = status.unlocked && showDetails;
   const isLimited = status.schedule.state !== 'always';
   const percent = status.target > 0 ? (status.current / status.target) * 100 : 0;
   const remaining = status.target - status.current;
@@ -40,7 +45,8 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
         width: '100%',
         position: 'relative',
         ...(!status.unlocked && {
-          aspectRatio: '3 / 4',
+          aspectRatio: showDetails ? rewardPngAspectRatio : '3 / 4',
+          minHeight: showDetails ? 'min-content' : undefined,
           background: 'linear-gradient(150deg, #F1F2F3, #DDE0E3)',
           border: '5px solid white',
           borderRadius: '22px',
@@ -84,7 +90,7 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
         }),
       }}
     >
-      {isLimited && (
+      {isLimited && !showExportDesign && (
         <Chip
           size="small"
           icon={<Iconify icon="ri:vip-crown-2-line" width={17} />}
@@ -108,7 +114,15 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
         />
       )}
       {status.unlocked && (
-        <Box sx={{ position: 'absolute', top: 14, right: 14, zIndex: 3 }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: showExportDesign ? 'auto' : 14,
+            bottom: showExportDesign ? 14 : 'auto',
+            right: 14,
+            zIndex: 3,
+          }}
+        >
           <RewardDownloadButton id={reward.id} iconOnly />
         </Box>
       )}
@@ -165,7 +179,8 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
           width: '100%',
           flexShrink: 0,
           ...(isLimited &&
-            status.unlocked && {
+            status.unlocked &&
+            !showExportDesign && {
               borderColor: '#FFF6D8',
               background: `radial-gradient(ellipse at 50% 0%, #FFF0B7 0%, transparent 65%), linear-gradient(150deg, #FFFFFFBB, ${reward.color})`,
               '&::before': {
@@ -177,9 +192,36 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
                 opacity: 0.5,
               },
             }),
+          ...(showExportDesign && {
+            aspectRatio: rewardPngAspectRatio,
+            containerType: 'inline-size',
+            border: '3px solid white',
+            borderRadius: '4.44% / 3.08%',
+            background: `linear-gradient(160deg, #fff, ${reward.color})`,
+            '&::before, &::after': { display: 'none' },
+          }),
         }}
       >
-        {isLimited && (
+        {showExportDesign && (
+          <Box
+            aria-hidden="true"
+            sx={{
+              position: 'absolute',
+              top: '5cqw',
+              insetInline: '5cqw',
+              zIndex: 2,
+              display: 'flex',
+              justifyContent: 'space-between',
+              color: REWARD_CARD_HEADER.color,
+              fontSize: '2.5cqw',
+              fontWeight: 700,
+            }}
+          >
+            <span>{REWARD_CARD_HEADER.brand}</span>
+            <span>{REWARD_CARD_HEADER.label}</span>
+          </Box>
+        )}
+        {isLimited && !showExportDesign && (
           <Box
             aria-hidden="true"
             data-card-sparkles
@@ -209,11 +251,10 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
             alt={status.unlocked ? `การ์ด ${reward.name}` : 'การ์ดลับ รอคุณมาปลดล็อก'}
             fill
             sizes="(max-width: 599px) 90vw, (max-width: 1199px) 45vw, 370px"
-            unoptimized
             style={{
               objectFit: 'contain',
               objectPosition: status.unlocked ? 'center bottom' : 'center',
-              padding: status.unlocked ? '12px 12px 0' : '12px',
+              padding: showExportDesign ? '19% 1% 0' : status.unlocked ? '12px 12px 0' : '12px',
               zIndex: 1,
             }}
           />

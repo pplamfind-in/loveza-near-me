@@ -34,6 +34,7 @@ export default async function RewardsPage() {
     status: getRewardProgress(reward, progress, reports),
   }));
   const unlockedCount = cards.filter(({ status }) => status.unlocked).length;
+  const remainingCount = rewards.length - unlockedCount;
   const limitedCards = cards.filter(({ reward }) => reward.starts_at && reward.ends_at);
   return (
     <Box
@@ -59,7 +60,36 @@ export default async function RewardsPage() {
           justifyContent="space-between"
           spacing={{ xs: 4, md: 6 }}
           alignItems={{ md: 'center' }}
-          sx={{ mb: 5, py: { xs: 1, md: 2 } }}
+          sx={{
+            mb: 5,
+            py: { xs: 1, md: 2 },
+            position: 'relative',
+            isolation: 'isolate',
+            '&::before, &::after': {
+              content: '""',
+              position: 'absolute',
+              aspectRatio: '1312 / 1199',
+              zIndex: -1,
+              background: 'url(/assets/loveza/loveza-coin.webp) center / contain no-repeat',
+              pointerEvents: 'none',
+            },
+            '&::before': {
+              width: { xs: '34%', md: '22%' },
+              maxWidth: 250,
+              top: { xs: 0, md: '3%' },
+              right: { xs: 0, md: '15%' },
+              opacity: { xs: 0.14, md: 0.23 },
+              transform: 'rotate(18deg)',
+            },
+            '&::after': {
+              width: { xs: '22%', md: '12%' },
+              maxWidth: 135,
+              bottom: { xs: '14%', md: '7%' },
+              right: { xs: '4%', md: '38%' },
+              opacity: { xs: 0.13, md: 0.2 },
+              transform: 'rotate(-23deg)',
+            },
+          }}
         >
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box
@@ -107,37 +137,75 @@ export default async function RewardsPage() {
               <Box
                 sx={{
                   width: '100%',
-                  p: 2,
-                  bgcolor: '#FFFFFFBB',
-                  border: '1px solid #E7E5D8',
-                  borderRadius: '14px',
+                  p: { xs: 1.75, sm: 2 },
+                  background: 'linear-gradient(135deg, #FFFDF8, #EDF4E9)',
+                  border: '1px solid #D5E2D1',
+                  borderRadius: '18px',
                 }}
               >
                 <Stack
                   direction="row"
                   justifyContent="space-between"
                   alignItems="center"
-                  sx={{ mb: 1 }}
+                  spacing={1}
+                  sx={{ mb: 1.25 }}
                 >
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Iconify icon="ri:stack-line" width={18} sx={{ color: 'primary.main' }} />
-                    <Typography sx={{ fontWeight: 800, fontSize: 13 }}>คอลเลกชันของคุณ</Typography>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        flexShrink: 0,
+                        display: 'grid',
+                        placeItems: 'center',
+                        borderRadius: '10px',
+                        bgcolor: '#DDEBDD',
+                        color: 'primary.dark',
+                      }}
+                    >
+                      <Iconify icon="ri:stack-line" width={18} aria-hidden="true" />
+                    </Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14 }}>คอลเลกชันของคุณ</Typography>
                   </Stack>
-                  <Typography sx={{ fontWeight: 800, fontSize: 13, color: 'primary.dark' }}>
-                    {error ? 'โหลดไม่ได้' : `${unlockedCount} / ${rewards.length} ใบ`}
+                  <Typography
+                    sx={{
+                      flexShrink: 0,
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 99,
+                      bgcolor: '#DDEBDD',
+                      color: 'primary.darker',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {error || rewardsError
+                      ? 'โหลดไม่ได้'
+                      : `${unlockedCount} / ${rewards.length} ใบ`}
                   </Typography>
                 </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={rewards.length ? (unlockedCount / rewards.length) * 100 : 0}
-                  aria-label="ความคืบหน้าคอลเลกชันรางวัลทั้งหมด"
-                  sx={{ height: 8, borderRadius: '4px', bgcolor: '#E8EDDF' }}
-                />
-                <Typography sx={{ mt: 1, fontSize: 11, color: 'text.secondary' }}>
-                  {unlockedCount
-                    ? 'เก็บอีกนิด คอลเลกชันของคุณกำลังเติบโต ✦'
-                    : 'เริ่มจากหมุดแรก แล้วค่อย ๆ เติมการ์ดให้เต็มกัน ✦'}
-                </Typography>
+                {!error && !rewardsError && rewards.length > 0 && (
+                  <>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(unlockedCount / rewards.length) * 100}
+                      aria-label="ความคืบหน้าคอลเลกชันรางวัลทั้งหมด"
+                      aria-valuetext={`ปลดล็อกแล้ว ${unlockedCount} จาก ${rewards.length} ใบ`}
+                      sx={{
+                        height: 8,
+                        borderRadius: 99,
+                        bgcolor: '#D9E4D6',
+                        '& .MuiLinearProgress-bar': { borderRadius: 99, bgcolor: 'primary.main' },
+                      }}
+                    />
+                    <Typography sx={{ mt: 1, fontSize: 12, color: 'text.secondary' }}>
+                      {remainingCount
+                        ? `เหลืออีก ${remainingCount} ใบให้ปลดล็อก`
+                        : 'สะสมครบทุกใบแล้ว!'}
+                    </Typography>
+                  </>
+                )}
               </Box>
               {user && (
                 <Button
@@ -287,7 +355,7 @@ export default async function RewardsPage() {
         </Box>
         <Typography sx={{ mt: 3, color: 'text.secondary', fontSize: 12, lineHeight: 1.8 }}>
           นับจากประวัติที่ผ่านอนุมัติของคุณ รวมประวัติเดิม ร้านซ้ำไม่เพิ่มความคืบหน้า
-          รางวัลเป็นการ์ดดิจิทัลสำหรับดาวน์โหลด ไม่มีแต้มโบนัสหรือของรางวัลจัดส่ง
+          รางวัลเป็นการ์ดดิจิทัลสำหรับดาวน์โหลด ไม่มีเหรียญโบนัสหรือของรางวัลจัดส่ง
         </Typography>
         <Button
           href={user ? '/report/' : '/auth/login/?next=%2Freport%2F'}

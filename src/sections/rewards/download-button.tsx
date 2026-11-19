@@ -39,11 +39,13 @@ export function RewardDownloadButton({
 
     setPending(action);
     const filename = `loveza-${id}.png`;
-    const cached = preparedFile.current?.name === filename ? preparedFile.current : null;
+    const cached =
+      action === 'share' && preparedFile.current?.name === filename ? preparedFile.current : null;
     try {
       let file = cached;
       if (!file) {
-        const response = await fetch(`/api/rewards/${encodeURIComponent(id)}/download/`, {
+        const url = `/api/rewards/${encodeURIComponent(id)}/download/`;
+        const response = await fetch(action === 'share' ? `${url}?preview=1` : url, {
           cache: 'no-store',
         });
         if (!response.ok) {
