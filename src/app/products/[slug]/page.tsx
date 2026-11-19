@@ -90,7 +90,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <Box
       component="main"
-      data-product-screen
+      data-mobile-locked-screen
       sx={{
         pt: { xs: 'var(--layout-header-mobile-height)', md: '100px' },
         pb: {
@@ -105,8 +105,6 @@ export default async function ProductPage({ params }: Props) {
         '--product-action-height': '48px',
         '@media (max-width: 899.95px)': {
           '--product-mobile-stage-height': 'clamp(132px, calc(100dvh - 370px), 398px)',
-          height: '100dvh',
-          overflowY: 'clip',
           '& [data-product-map-action].MuiButton-root, & [data-product-like-action].MuiButton-root':
             {
               height: 'var(--product-action-height)',

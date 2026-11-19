@@ -13,6 +13,13 @@ import { Iconify } from 'src/components/iconify';
 
 type Reward = { id: string; name: string };
 
+const flipFaceSx = {
+  backfaceVisibility: 'hidden',
+  WebkitBackfaceVisibility: 'hidden',
+  transition: 'transform 240ms ease-in-out, visibility 0s linear 120ms',
+  '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+} as const;
+
 export function RewardNavigation({
   rewards,
   id,
@@ -43,7 +50,7 @@ export function RewardNavigation({
     );
   };
   return (
-    <Box aria-busy={pending} sx={{ position: 'relative', minWidth: 0 }}>
+    <Box aria-busy={pending} sx={{ position: 'relative', minWidth: 0, mt: { xs: 1, md: 0 } }}>
       <Box
         onTouchStart={(event) => {
           if (pending || event.touches.length !== 1) {
@@ -89,6 +96,11 @@ export function RewardNavigation({
           mx: { xs: -2, sm: -3, md: 0 },
           px: { xs: 2, sm: 3, md: 0 },
           overflowX: 'clip',
+          '@media (min-width: 480px) and (max-width: 899.95px) and (orientation: landscape) and (max-height: 540px)':
+            {
+              mx: 0,
+              px: 0,
+            },
           touchAction: 'pan-y',
           opacity: pending ? 0.6 : 1,
           transition: 'opacity .15s',
@@ -104,19 +116,23 @@ export function RewardNavigation({
             }
             sx={{
               position: 'relative',
-              transformStyle: 'preserve-3d',
-              transform: {
-                xs: `translateX(var(--reward-swipe-offset)) rotateY(${flipped ? 180 : 0}deg)`,
-                md: 'none',
-              },
+              transform: { xs: 'translateX(var(--reward-swipe-offset))', md: 'none' },
               transition: offset ? 'none' : 'transform 240ms ease',
               '@media (prefers-reduced-motion: reduce)': {
-                transform: { xs: `rotateY(${flipped ? 180 : 0}deg)`, md: 'none' },
+                transform: 'none',
                 transition: 'none',
               },
             }}
           >
-            <Box sx={{ backfaceVisibility: 'hidden' }}>{children}</Box>
+            <Box
+              sx={{
+                ...flipFaceSx,
+                visibility: { xs: flipped ? 'hidden' : 'visible', md: 'visible' },
+                transform: { xs: `rotateY(${flipped ? -180 : 0}deg)`, md: 'none' },
+              }}
+            >
+              {children}
+            </Box>
             <Box
               aria-hidden={!flipped}
               sx={{
@@ -138,8 +154,9 @@ export function RewardNavigation({
                 background:
                   'radial-gradient(ellipse at 50% 40%, #FFFFFFB3, transparent 72%), linear-gradient(155deg, #F5F8EA, #DFEEE2)',
                 boxShadow: '0 5px 0 #EDE4D7',
-                backfaceVisibility: 'hidden',
-                transform: 'rotateY(180deg)',
+                ...flipFaceSx,
+                visibility: flipped ? 'visible' : 'hidden',
+                transform: `rotateY(${flipped ? 0 : 180}deg)`,
               }}
             >
               {back}
@@ -168,6 +185,10 @@ export function RewardNavigation({
               bgcolor: 'transparent',
               cursor: 'pointer',
               WebkitTouchCallout: 'none',
+              '&&:focus-visible': { outlineColor: 'transparent' },
+              '@media (hover: hover) and (pointer: fine)': {
+                '&&:focus-visible': { outline: '2px solid currentColor', outlineOffset: -4 },
+              },
             }}
           />
         </Box>

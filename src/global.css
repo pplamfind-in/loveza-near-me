@@ -70,16 +70,21 @@ body {
     radial-gradient(circle at 100% 10%, rgba(124, 58, 237, 0.05), transparent 26%), #fff9fc;
 }
 @media (max-width: 899.95px) {
-  html:has([data-product-screen]),
-  body:has([data-product-screen]) {
+  html:has([data-mobile-locked-screen]),
+  body:has([data-mobile-locked-screen]) {
     overflow: hidden;
     overscroll-behavior: none;
   }
 
-  body:has([data-product-screen]) {
+  body:has([data-mobile-locked-screen]) {
     position: fixed;
     inset: 0;
     width: 100%;
+  }
+
+  [data-mobile-locked-screen] {
+    height: 100dvh;
+    overflow-y: clip;
   }
 }
 

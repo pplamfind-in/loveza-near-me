@@ -72,17 +72,17 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
   const source = reward.rule?.source ?? reward.metric;
   const countingDetail =
     source in countingDetails ? countingDetails[source as keyof typeof countingDetails] : null;
-  const mobileCardReserve = status.schedule.state === 'always' ? 376 : 450;
   const progressPercent = (status.current / status.target) * 100;
 
   return (
     <Box
       component="main"
+      data-mobile-locked-screen
       sx={{
         pt: { xs: 'calc(var(--layout-header-mobile-height) + 8px)', md: '100px' },
-        pb: { xs: 'max(12px, env(safe-area-inset-bottom, 0px))', md: 8 },
+        pb: { xs: 'calc(80px + env(safe-area-inset-bottom, 0px))', md: 8 },
         '--reward-card-max-width': {
-          xs: `clamp(156px, calc((100dvh - ${mobileCardReserve}px) * 0.75), 440px)`,
+          xs: 'calc(min(100%, clamp(156px, calc((100dvh - 376px) * 0.75), 440px)) - 16px)',
           md: '440px',
         },
         minHeight: '100dvh',
@@ -107,6 +107,12 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' },
             gap: { xs: 1, md: 7 },
             alignItems: 'center',
+            '@media (min-width: 480px) and (max-width: 899.95px) and (orientation: landscape) and (max-height: 540px)':
+              {
+                '--reward-card-max-width': 'clamp(94px, calc((100dvh - 225px) * 0.75), 440px)',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: 2,
+              },
           }}
         >
           <RewardNavigation
@@ -180,7 +186,7 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
                 border:
                   status.schedule.state !== 'always' ? '6px solid #FFF6D8' : '6px solid white',
                 outline: status.schedule.state !== 'always' ? '2px solid #D8AB42' : 'none',
-                outlineOffset: 2,
+                outlineOffset: { xs: -2, md: 2 },
                 borderRadius: '22px',
                 overflow: 'hidden',
                 background: status.unlocked
@@ -259,7 +265,18 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
               textAlign: { xs: 'center', md: 'left' },
             }}
           >
-            <Box>
+            <Box
+              sx={{
+                '@media (max-width: 899.95px)': {
+                  position: 'absolute',
+                  width: '1px',
+                  height: '1px',
+                  overflow: 'hidden',
+                  clipPath: 'inset(50%)',
+                  whiteSpace: 'nowrap',
+                },
+              }}
+            >
               <Typography
                 component="h1"
                 sx={{
@@ -336,50 +353,29 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
               </Typography>
             )}
             {status.schedule.state !== 'always' && (
-              <Stack
-                direction="row"
-                alignItems="flex-start"
-                spacing={1.25}
-                sx={{
-                  width: '100%',
-                  maxWidth: 420,
-                  p: 1.5,
-                  border: '1px solid #E8D6AD',
-                  borderRadius: '14px',
-                  bgcolor: '#FFF7E2',
-                  color: '#63461B',
-                  textAlign: 'left',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'grid',
-                    placeItems: 'center',
-                    width: 32,
-                    height: 32,
-                    flexShrink: 0,
-                    borderRadius: '9px',
-                    bgcolor: '#F6E5B8',
-                  }}
-                >
-                  <Iconify icon="ri:time-line" width={18} aria-hidden="true" />
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: 14, fontWeight: 800 }}>
-                    {status.schedule.label}
-                    {status.schedule.state !== 'ended' && ' · เวลาไทย'}
-                  </Typography>
-                  <Typography sx={{ mt: 0.25, fontSize: 12, lineHeight: 1.65 }}>
-                    การ์ดพิเศษนี้นับเฉพาะภารกิจในช่วงกิจกรรม
-                  </Typography>
-                </Box>
-              </Stack>
+              <Box>
+                <Typography sx={{ color: '#73501C', fontSize: 13, fontWeight: 800 }}>
+                  {status.schedule.label}
+                  {status.schedule.state !== 'ended' && ' · เวลาไทย'}
+                </Typography>
+                <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 12 }}>
+                  การ์ดพิเศษนี้นับเฉพาะภารกิจในช่วงกิจกรรม
+                </Typography>
+              </Box>
             )}
             {error && <Alert severity="error">โหลดความคืบหน้าไม่สำเร็จ กรุณาลองใหม่</Alert>}
             <Stack
               spacing={{ xs: 1, md: 1.5 }}
               sx={{
                 width: '100%',
+                '@media (max-width: 899.95px)': {
+                  position: 'fixed',
+                  insetInline: 0,
+                  bottom: 'calc(max(12px, env(safe-area-inset-bottom, 0px)) + 16px)',
+                  width: 'min(calc(100% - 32px), 420px)',
+                  mx: 'auto',
+                  zIndex: 'appBar',
+                },
                 '& .MuiButton-root': {
                   alignSelf: { xs: 'center', md: 'flex-start' },
                   width: 'auto',
