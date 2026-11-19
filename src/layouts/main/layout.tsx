@@ -180,6 +180,15 @@ export function MainLayout({
                   fontSize: 12,
                   fontWeight: 700,
                   lineHeight: 1.5,
+                  ...(hideBottomNav && {
+                    width: 44,
+                    p: 0,
+                    justifyContent: 'center',
+                    border: 0,
+                    bgcolor: 'transparent',
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: 'transparent' },
+                  }),
                   [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
                 })}
               >
@@ -188,16 +197,20 @@ export function MainLayout({
                   sx={{
                     display: 'grid',
                     placeItems: 'center',
-                    width: 30,
-                    height: 30,
-                    borderRadius: '9px',
+                    width: hideBottomNav ? 36 : 30,
+                    height: hideBottomNav ? 36 : 30,
+                    borderRadius: hideBottomNav ? '50%' : '9px',
+                    border: hideBottomNav ? '2px solid #fff' : 0,
                     bgcolor: 'primary.lighter',
                     flexShrink: 0,
                   }}
                 >
-                  <Iconify icon="ri:login-circle-line" width={20} />
+                  <Iconify
+                    icon={hideBottomNav ? 'ri:user-3-line' : 'ri:login-circle-line'}
+                    width={20}
+                  />
                 </Box>
-                เข้าสู่ระบบ
+                {!hideBottomNav && 'เข้าสู่ระบบ'}
               </Button>
             )}
             {/** @slot Settings button */}
@@ -241,6 +254,16 @@ export function MainLayout({
                 },
               ]
             : [{ bgcolor: 'background.default' }]),
+          ...(isProductDetailPage
+            ? [
+                {
+                  '@media (max-width: 899.95px)': {
+                    bgcolor: 'transparent',
+                    boxShadow: 'none',
+                  },
+                },
+              ]
+            : []),
           ...(Array.isArray(slotProps?.header?.sx) ? slotProps.header.sx : [slotProps?.header?.sx]),
         ]}
       />

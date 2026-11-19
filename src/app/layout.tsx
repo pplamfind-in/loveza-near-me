@@ -85,6 +85,11 @@ export const metadata: Metadata = {
     path: '/',
   }),
   applicationName: SITE_NAME,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+  },
+  other: { 'apple-mobile-web-app-capable': 'yes' },
   manifest: '/manifest.webmanifest',
   keywords: [
     'Loveza',

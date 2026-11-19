@@ -8,7 +8,7 @@ export function layoutSectionVars(theme: Theme) {
     '--layout-nav-mobile-width': '288px',
     '--layout-header-blur': '8px',
     '--layout-header-zIndex': theme.zIndex.appBar + 1,
-    '--layout-header-mobile-height': '64px',
+    '--layout-header-mobile-height': 'calc(64px + var(--layout-safe-top, 0px))',
     '--layout-header-desktop-height': '72px',
   };
 }

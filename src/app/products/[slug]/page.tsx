@@ -82,7 +82,6 @@ export default async function ProductPage({ params }: Props) {
   const mobileCanShift = canBounds
     ? ((canBounds.bottom * mobileCanScale - referenceCan.bottom) / 1774) * 100
     : 0;
-  const lockMobileScroll = product.slug === 'honey-lemon';
   const flavorIcon = getProductFlavorIcon(product);
   const loginHref = `/auth/login/?next=${encodeURIComponent(`/products/${product.slug}/`)}`;
   const flavors = flavorRows ?? [{ slug: product.slug, thai_name: product.thai_name }];
@@ -91,6 +90,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <Box
       component="main"
+      data-product-screen
       sx={{
         pt: { xs: 'var(--layout-header-mobile-height)', md: '100px' },
         pb: {
@@ -105,7 +105,8 @@ export default async function ProductPage({ params }: Props) {
         '--product-action-height': '48px',
         '@media (max-width: 899.95px)': {
           '--product-mobile-stage-height': 'clamp(132px, calc(100dvh - 370px), 398px)',
-          ...(lockMobileScroll && { height: '100dvh', overflowY: 'clip' }),
+          height: '100dvh',
+          overflowY: 'clip',
           '& [data-product-map-action].MuiButton-root, & [data-product-like-action].MuiButton-root':
             {
               height: 'var(--product-action-height)',
@@ -152,7 +153,7 @@ export default async function ProductPage({ params }: Props) {
           startIcon={<Iconify icon="ri:arrow-left-line" />}
           sx={{ alignSelf: 'flex-start', mb: { xs: 0, md: 2 } }}
         >
-          ทุกรสชาติ
+          ย้อนกลับ
         </Button>
         <Box
           sx={{

@@ -40,6 +40,12 @@
   background: #fff9fc;
 }
 
+@media (display-mode: standalone) {
+  :root {
+    --layout-safe-top: env(safe-area-inset-top, 0px);
+  }
+}
+
 html {
   height: 100%;
   -webkit-overflow-scrolling: touch;
@@ -63,6 +69,20 @@ body {
     radial-gradient(circle at 0% 0%, rgba(229, 0, 126, 0.05), transparent 28%),
     radial-gradient(circle at 100% 10%, rgba(124, 58, 237, 0.05), transparent 26%), #fff9fc;
 }
+@media (max-width: 899.95px) {
+  html:has([data-product-screen]),
+  body:has([data-product-screen]) {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body:has([data-product-screen]) {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+  }
+}
+
 ::selection {
   color: #ffffff;
   background: #e5007e;

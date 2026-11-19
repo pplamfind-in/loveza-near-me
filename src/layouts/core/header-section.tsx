@@ -141,7 +141,11 @@ const HeaderContainer = styled(Container, {
   alignItems: 'center',
   color: 'var(--color)',
   height: 'var(--layout-header-mobile-height)',
-  [theme.breakpoints.up(layoutQuery)]: { height: 'var(--layout-header-desktop-height)' },
+  paddingTop: 'var(--layout-safe-top, 0px)',
+  [theme.breakpoints.up(layoutQuery)]: {
+    height: 'var(--layout-header-desktop-height)',
+    paddingTop: 0,
+  },
 }));
 
 const HeaderCenterArea = styled('div')(() => ({
