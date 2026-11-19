@@ -62,6 +62,7 @@ export function MainLayout({
 
   const isHomePage = pathname === '/';
   const normalizedPathname = pathname.replace(/\/$/, '');
+  const hideBottomNav = /^\/products\/[^/]+$/.test(normalizedPathname);
   const isExplorerLevelsPage = normalizedPathname === '/mapza/leaderboard/levels';
   const hasHeroHeader =
     normalizedPathname === '/mapza/leaderboard' ||
@@ -149,7 +150,7 @@ export function MainLayout({
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
             {headerUser ? (
-              <LovezaHeaderAccount user={headerUser} />
+              <LovezaHeaderAccount user={headerUser} avatarOnlyOnMobile={hideBottomNav} />
             ) : (
               <Button
                 href="/auth/login"
@@ -259,7 +260,7 @@ export function MainLayout({
       {...slotProps?.main}
       sx={[
         {
-          pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', md: 0 },
+          pb: { xs: hideBottomNav ? 0 : 'calc(80px + env(safe-area-inset-bottom))', md: 0 },
           bgcolor: 'background.default',
           '& .MuiButton-root': { borderRadius: '12px' },
           '& .MuiButton-containedPrimary': { boxShadow: '0 4px 0 var(--palette-primary-darker)' },
@@ -307,7 +308,7 @@ export function MainLayout({
       sx={sx}
     >
       {renderMain()}
-      <LovezaBottomNav user={headerUser} />
+      {!hideBottomNav && <LovezaBottomNav user={headerUser} />}
     </LayoutSection>
   );
 }

@@ -189,22 +189,37 @@ export function FlavorLikeButton({
         aria-label={`${count.toLocaleString('th-TH')} หัวใจ`}
         title={count.toLocaleString('th-TH')}
         sx={{
-          display: { xs: 'none', md: 'flex' },
+          display: 'flex',
           gridArea: 'hearts',
+          position: { xs: 'absolute', md: 'static' },
+          top: 2,
+          insetInlineEnd: '24px',
+          minHeight: { xs: 32, md: 'auto' },
+          px: { xs: 1, md: 0 },
+          py: { xs: 0.25, md: 0 },
+          borderRadius: 99,
+          border: { xs: '1px solid #EDBED1', md: 0 },
+          bgcolor: { xs: '#FFF5F8', md: 'transparent' },
           alignItems: 'center',
           justifySelf: 'end',
-          gap: 1,
+          gap: { xs: 0.5, md: 1 },
           color: '#AD2452',
-          fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+          fontSize: { xs: 16, md: 'clamp(2rem, 4vw, 3.5rem)' },
           fontWeight: 900,
           lineHeight: 1,
           fontVariantNumeric: 'tabular-nums',
         }}
       >
-        <Image src={heartImage} alt="" width={44} height={40} unoptimized />
+        <Box
+          component="span"
+          sx={{ display: 'flex', '& img': { width: { xs: 24, md: 44 }, height: 'auto' } }}
+        >
+          <Image src={heartImage} alt="" width={44} height={40} unoptimized />
+        </Box>
         {formatCompactCount(count)}
       </Box>
       <Button
+        data-product-like-action
         href={signedIn ? undefined : loginHref}
         onClick={signedIn ? addLike : undefined}
         aria-label={signedIn ? `ส่งหัวใจให้ ${name}` : `เข้าสู่ระบบเพื่อส่งหัวใจให้ ${name}`}
@@ -221,14 +236,14 @@ export function FlavorLikeButton({
           />
         }
         sx={{
-          gridArea: { xs: 'hearts', md: 'like' },
+          gridArea: 'like',
           justifySelf: { xs: 'center', md: 'start' },
           flexShrink: 0,
           minHeight: 44,
-          minWidth: 72,
+          minWidth: { xs: 44, md: 72 },
           py: 0.625,
           pl: 0.625,
-          pr: 1.5,
+          pr: { xs: 0.625, md: 1.5 },
           borderRadius: '999px',
           bgcolor: liked ? '#FAD6E5' : '#FFF0F5',
           color: '#AD2452',
@@ -242,7 +257,7 @@ export function FlavorLikeButton({
             width: 34,
             height: 34,
             ml: 0,
-            mr: 0.75,
+            mr: { xs: 0, md: 0.75 },
             borderRadius: '50%',
             bgcolor: '#FFFBFD',
           },
@@ -257,9 +272,6 @@ export function FlavorLikeButton({
           },
         }}
       >
-        <Box component="span" sx={{ display: { xs: 'inline', md: 'none' } }}>
-          {formatCompactCount(count)}
-        </Box>
         <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
           {signedIn ? 'ส่งหัวใจ' : 'เข้าสู่ระบบเพื่อส่งหัวใจ'}
         </Box>

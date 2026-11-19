@@ -25,9 +25,14 @@ export type LovezaHeaderUser = {
 type LovezaHeaderAccountProps = {
   user: LovezaHeaderUser;
   mobile?: boolean;
+  avatarOnlyOnMobile?: boolean;
 };
 
-export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccountProps) {
+export function LovezaHeaderAccount({
+  user,
+  mobile = false,
+  avatarOnlyOnMobile = false,
+}: LovezaHeaderAccountProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
@@ -56,17 +61,49 @@ export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccoun
             boxShadow: '0 2px 0 var(--palette-grey-200)',
           },
           '&:focus-visible': { outline: '2px solid var(--palette-primary-main)', outlineOffset: 3 },
+          ...(avatarOnlyOnMobile && {
+            '@media (max-width: 899.95px)': {
+              width: 44,
+              p: 0,
+              justifyContent: 'center',
+              border: 0,
+              bgcolor: 'transparent',
+              boxShadow: 'none',
+              '&:hover': { bgcolor: 'transparent', boxShadow: 'none' },
+            },
+          }),
         }}
       >
         <Avatar
           src={user.photoURL || undefined}
           alt={user.displayName}
           imgProps={{ referrerPolicy: 'no-referrer' }}
-          sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontWeight: 800, fontSize: 14 }}
+          sx={{
+            width: 32,
+            height: 32,
+            bgcolor: 'primary.main',
+            fontWeight: 800,
+            fontSize: 14,
+            ...(avatarOnlyOnMobile && {
+              '@media (max-width: 899.95px)': {
+                width: 36,
+                height: 36,
+                boxSizing: 'border-box',
+                border: '2px solid #fff',
+              },
+            }),
+          }}
         >
           {user.displayName.charAt(0).toUpperCase()}
         </Avatar>
-        <span style={{ minWidth: 0, textAlign: 'left' }}>
+        <Box
+          component="span"
+          sx={{
+            minWidth: 0,
+            textAlign: 'left',
+            display: avatarOnlyOnMobile ? { xs: 'none', md: 'block' } : 'block',
+          }}
+        >
           <Typography
             noWrap
             sx={{
@@ -89,7 +126,7 @@ export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccoun
           >
             {user.email}
           </Typography>
-        </span>
+        </Box>
       </Button>
       <IconButton
         onClick={() => setDrawerOpen(true)}
@@ -97,7 +134,7 @@ export function LovezaHeaderAccount({ user, mobile = false }: LovezaHeaderAccoun
         aria-expanded={drawerOpen}
         aria-controls={drawerOpen ? 'account-settings-drawer' : undefined}
         sx={{
-          display: { xs: 'inline-flex', md: 'none' },
+          display: { xs: avatarOnlyOnMobile ? 'none' : 'inline-flex', md: 'none' },
           width: 40,
           height: 40,
           flexShrink: 0,
