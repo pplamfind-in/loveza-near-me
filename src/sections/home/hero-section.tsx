@@ -58,8 +58,8 @@ export function HeroSection() {
               ค้นพบร้านใหม่
               <br />
               ตามหา{' '}
-              <Box component="span" sx={{ color: 'var(--palette-primary-main)' }}>
-                Loveza
+              <Box component="span" sx={{ color: '#FC0868', }}>
+                LOVE ZA
               </Box>
               <br />
               ใกล้คุณ
@@ -73,7 +73,7 @@ export function HeroSection() {
                 color: 'var(--palette-text-secondary)',
               }}
             >
-              Loveza (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านจากแผนที่ชุมชน
+              Love Za (เลิฟซ่า) ซื้อที่ไหน? ค้นหาร้านจากแผนที่ชุมชน
               <br />
               เช็กพิกัด ดูสถานะสินค้า แล้วออกไปเจอความซ่า
             </Typography>

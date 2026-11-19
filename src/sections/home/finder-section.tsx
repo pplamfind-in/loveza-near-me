@@ -336,7 +336,7 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
                   letterSpacing: '-.03em',
                 }}
               >
-                ตามหา Loveza
+                ตามหา LOVE ZA
                 <Box
                   component="span"
                   sx={{ display: 'block', color: 'var(--palette-primary-main)' }}
