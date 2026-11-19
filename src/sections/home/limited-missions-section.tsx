@@ -1,5 +1,7 @@
 import type { createClient } from 'src/lib/supabase/server';
 
+import Image from 'next/image';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -43,16 +45,41 @@ export async function LimitedMissionsSection({
         aria-labelledby="limited-missions-title"
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 410px)' },
-          gridTemplateAreas: { xs: '"card" "details"', md: '"details card"' },
+          gridTemplateColumns: {
+            xs: 'minmax(0, 1fr)',
+            md: 'minmax(0, 145px) minmax(0, 1fr) minmax(0, 280px)',
+            lg: 'minmax(0, 210px) minmax(0, 1fr) minmax(0, 360px)',
+          },
+          gridTemplateAreas: { xs: '"card" "details"', md: '"artwork details card"' },
           alignItems: 'center',
-          gap: { xs: 4, md: 5 },
+          gap: { xs: 3, md: 3, lg: 4 },
           p: { xs: 2.5, sm: 4, md: 5 },
           border: '1px solid #E6CE96',
           borderRadius: '28px',
           background: 'linear-gradient(125deg, #FFF8E9 20%, #FFE9AD 100%)',
         }}
       >
+        <Box
+          sx={{
+            gridArea: { xs: 'card', md: 'artwork' },
+            position: 'relative',
+            zIndex: 2,
+            justifySelf: 'end',
+            alignSelf: { xs: 'end', md: 'center' },
+            width: { xs: 'clamp(120px, 40%, 168px)', md: 'calc(100% + 64px)' },
+            transform: { xs: 'translateY(12px)', md: 'none' },
+            pointerEvents: 'none',
+          }}
+        >
+          <Image
+            src="/assets/illustrations/p-card-heart-hands.webp"
+            alt=""
+            width={1295}
+            height={1214}
+            unoptimized
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          />
+        </Box>
         <Box sx={{ gridArea: 'details' }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#805613' }}>
             <Iconify icon="ri:time-line" width={18} />
@@ -70,45 +97,82 @@ export async function LimitedMissionsSection({
           <Typography sx={{ mt: 1.5, fontSize: { xs: 15, sm: 17 }, color: 'text.secondary' }}>
             ทำภารกิจให้ครบเพื่อปลดล็อกการ์ดตัวละครลิมิเต็ด แล้วดาวน์โหลดเก็บเข้าคอลเลกชันของคุณ
           </Typography>
-          <Box
+          <Stack
+            direction="row"
+            spacing={1.25}
+            alignItems="flex-start"
             sx={{
-              mt: 2.5,
-              p: { xs: 1.5, sm: 2 },
-              borderRadius: '16px',
-              border: '1px solid #EAD8AE',
-              bgcolor: '#FFFDFA',
+              mt: 2,
+              p: 1.5,
+              borderRadius: '14px',
+              border: '1px solid #E8D3A1',
+              bgcolor: '#FAEDCA',
             }}
           >
-            <Stack direction="row" spacing={1} alignItems="flex-start">
-              <Iconify icon="ri:map-pin-add-line" width={22} sx={{ color: 'primary.dark' }} />
-              <Box>
-                <Typography sx={{ fontSize: 15, fontWeight: 800 }}>ต้องทำอะไร</Typography>
-                <Typography sx={{ mt: 0.5, fontSize: 14 }}>{status.condition}</Typography>
-                <Typography sx={{ mt: 0.75, fontSize: 12, color: 'text.secondary' }}>
-                  ระบบนับความคืบหน้าจากรายงานที่ผ่านการอนุมัติ
-                </Typography>
-              </Box>
-            </Stack>
-          </Box>
+            <Box
+              sx={{
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                width: 32,
+                height: 32,
+                borderRadius: '9px',
+                bgcolor: '#F3DFA7',
+                color: '#73501C',
+              }}
+            >
+              <Iconify icon="ri:map-pin-add-line" width={18} aria-hidden="true" />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#73501C' }}>
+                วิธีทำภารกิจ
+              </Typography>
+              <Typography sx={{ mt: 0.25, fontSize: 14, fontWeight: 800 }}>
+                {status.condition}
+              </Typography>
+              <Typography sx={{ mt: 0.5, fontSize: 12, color: 'text.secondary' }}>
+                นับเฉพาะรายงานที่ผ่านอนุมัติ
+              </Typography>
+            </Box>
+          </Stack>
           <Typography sx={{ mt: 2, color: '#805613', fontSize: 13, fontWeight: 800 }}>
             {status.schedule.label}
             {status.schedule.state !== 'ended' && ' · เวลาไทย'}
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 2 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: 'minmax(0, 1fr)',
+                sm: canStart ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+              },
+              width: { sm: 'fit-content' },
+              maxWidth: '100%',
+              gap: 1.25,
+              mt: 2,
+              '& .MuiButton-root.MuiButton-root': {
+                minWidth: 0,
+                minHeight: 48,
+                px: 1.5,
+                boxShadow: 'none',
+                '&:hover, &:active': { boxShadow: 'none' },
+              },
+            }}
+          >
             {canStart && (
               <Button
                 href="/report/"
                 variant="contained"
+                disableElevation
                 endIcon={<Iconify icon="ri:arrow-right-line" />}
-                sx={{ minHeight: 48, px: 2.5 }}
               >
                 แจ้งพิกัดเพื่อทำภารกิจ
               </Button>
             )}
-            <Button href="/rewards/" variant="outlined" sx={{ minHeight: 48, bgcolor: '#FFFDFA' }}>
+            <Button href="/rewards/" variant="outlined" sx={{ bgcolor: '#FFFDFA' }}>
               ดูรางวัลทั้งหมด
             </Button>
-          </Stack>
+          </Box>
         </Box>
 
         <Box
