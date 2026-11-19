@@ -277,9 +277,44 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
               </Typography>
             )}
             {status.schedule.state !== 'always' && (
-              <Alert severity={status.schedule.state === 'active' ? 'success' : 'info'}>
-                ✦ การ์ดพิเศษ · {status.schedule.label} (เวลาไทย) · นับเฉพาะภารกิจในช่วงกิจกรรม
-              </Alert>
+              <Stack
+                direction="row"
+                alignItems="flex-start"
+                spacing={1.25}
+                sx={{
+                  width: '100%',
+                  maxWidth: 420,
+                  p: 1.5,
+                  border: '1px solid #E8D6AD',
+                  borderRadius: '14px',
+                  bgcolor: '#FFF7E2',
+                  color: '#63461B',
+                  textAlign: 'left',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'grid',
+                    placeItems: 'center',
+                    width: 32,
+                    height: 32,
+                    flexShrink: 0,
+                    borderRadius: '9px',
+                    bgcolor: '#F6E5B8',
+                  }}
+                >
+                  <Iconify icon="ri:time-line" width={18} aria-hidden="true" />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 800 }}>
+                    {status.schedule.label}
+                    {status.schedule.state !== 'ended' && ' · เวลาไทย'}
+                  </Typography>
+                  <Typography sx={{ mt: 0.25, fontSize: 12, lineHeight: 1.65 }}>
+                    การ์ดพิเศษนี้นับเฉพาะภารกิจในช่วงกิจกรรม
+                  </Typography>
+                </Box>
+              </Stack>
             )}
             {error && <Alert severity="error">โหลดความคืบหน้าไม่สำเร็จ กรุณาลองใหม่</Alert>}
             <Stack
