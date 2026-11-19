@@ -62,7 +62,8 @@ export function MainLayout({
 
   const isHomePage = pathname === '/';
   const normalizedPathname = pathname.replace(/\/$/, '');
-  const hideBottomNav = /^\/products\/[^/]+$/.test(normalizedPathname);
+  const isProductDetailPage = /^\/products\/[^/]+$/.test(normalizedPathname);
+  const hideBottomNav = isProductDetailPage || /^\/rewards\/[^/]+$/.test(normalizedPathname);
   const isExplorerLevelsPage = normalizedPathname === '/mapza/leaderboard/levels';
   const hasHeroHeader =
     normalizedPathname === '/mapza/leaderboard' ||

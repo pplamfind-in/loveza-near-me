@@ -21,6 +21,15 @@ import { ProductCan } from 'src/sections/home/product-can';
 import { FlavorNavigation } from 'src/sections/products/flavor-navigation';
 import { FlavorLikeButton } from 'src/sections/products/flavor-like-button';
 
+// Measured visible bounds of the current 1774px-tall mobile can assets.
+const mobileCanBounds: Record<string, { height: number; bottom: number }> = {
+  'honey-lemon': { height: 1621, bottom: 87 },
+  lychee: { height: 1628, bottom: 57 },
+  'kyoho-grape': { height: 1744, bottom: 20 },
+  yoghurt: { height: 1696, bottom: 38 },
+  yogurt: { height: 1696, bottom: 38 },
+};
+
 const getProduct = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -67,6 +76,13 @@ export default async function ProductPage({ params }: Props) {
       .maybeSingle(),
     supabase.auth.getUser(),
   ]);
+  const canBounds = mobileCanBounds[product.slug];
+  const referenceCan = mobileCanBounds['kyoho-grape'];
+  const mobileCanScale = canBounds ? referenceCan.height / canBounds.height : 1;
+  const mobileCanShift = canBounds
+    ? ((canBounds.bottom * mobileCanScale - referenceCan.bottom) / 1774) * 100
+    : 0;
+  const lockMobileScroll = product.slug === 'honey-lemon';
   const flavorIcon = getProductFlavorIcon(product);
   const loginHref = `/auth/login/?next=${encodeURIComponent(`/products/${product.slug}/`)}`;
   const flavors = flavorRows ?? [{ slug: product.slug, thai_name: product.thai_name }];
@@ -88,6 +104,8 @@ export default async function ProductPage({ params }: Props) {
         '--product-action-bottom': 'max(10px, env(safe-area-inset-bottom, 0px))',
         '--product-action-height': '48px',
         '@media (max-width: 899.95px)': {
+          '--product-mobile-stage-height': 'clamp(132px, calc(100dvh - 370px), 398px)',
+          ...(lockMobileScroll && { height: '100dvh', overflowY: 'clip' }),
           '& [data-product-map-action].MuiButton-root, & [data-product-like-action].MuiButton-root':
             {
               height: 'var(--product-action-height)',
@@ -112,6 +130,9 @@ export default async function ProductPage({ params }: Props) {
             '& .MuiButton-startIcon': { bgcolor: 'transparent' },
             animation: 'product-actions-slide-up 300ms ease-out both',
           },
+        },
+        '@media (min-width: 560px) and (max-width: 899.95px) and (max-height: 620px)': {
+          '--product-mobile-stage-height': 'clamp(132px, calc(100dvh - 216px), 398px)',
         },
         background: `radial-gradient(ellipse at 25% 32%, #fff7dc 0%, transparent 48%), linear-gradient(180deg, ${color}35 0%, ${color}12 60%, #FBF6ED 100%)`,
       }}
@@ -234,7 +255,9 @@ export default async function ProductPage({ params }: Props) {
                   position: 'relative',
                   pt: { xs: 3, md: 2 },
                   pb: { xs: 2, md: 3 },
-                  '& > div > div': { height: { xs: 398, md: 430 } },
+                  '& > div > div': {
+                    height: { xs: 'var(--product-mobile-stage-height, 398px)', md: 430 },
+                  },
                   '&::before': {
                     content: '""',
                     position: 'absolute',
@@ -249,8 +272,14 @@ export default async function ProductPage({ params }: Props) {
                   },
                   background: `radial-gradient(ellipse at center, #ffffff90, transparent 68%)`,
                   '& > div img': {
-                    height: { xs: 392, md: 400 },
+                    height: {
+                      xs: 'calc(var(--product-mobile-stage-height, 398px) - 6px)',
+                      md: 400,
+                    },
                     maxWidth: 340,
+                    transformOrigin: { xs: 'center bottom', md: 'center' },
+                    scale: { xs: mobileCanScale, md: 1 },
+                    translate: { xs: `0 ${mobileCanShift}%`, md: 'none' },
                     filter: `drop-shadow(0 18px 18px ${color}35)`,
                     transition: 'transform .2s ease',
                     '&:hover': { transform: 'rotate(-4deg) translateY(-4px)' },

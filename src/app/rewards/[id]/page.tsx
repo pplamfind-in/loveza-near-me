@@ -72,14 +72,19 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
   const source = reward.rule?.source ?? reward.metric;
   const countingDetail =
     source in countingDetails ? countingDetails[source as keyof typeof countingDetails] : null;
+  const mobileCardReserve = status.schedule.state === 'always' ? 376 : 450;
   const progressPercent = (status.current / status.target) * 100;
 
   return (
     <Box
       component="main"
       sx={{
-        pt: '100px',
-        pb: { xs: 12, md: 8 },
+        pt: { xs: 'calc(var(--layout-header-mobile-height) + 8px)', md: '100px' },
+        pb: { xs: 'max(12px, env(safe-area-inset-bottom, 0px))', md: 8 },
+        '--reward-card-max-width': {
+          xs: `clamp(156px, calc((100dvh - ${mobileCardReserve}px) * 0.75), 440px)`,
+          md: '440px',
+        },
         minHeight: '100dvh',
         overflowX: 'clip',
         background: status.unlocked
@@ -92,15 +97,15 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
           href="/rewards/"
           color="inherit"
           startIcon={<Iconify icon="ri:arrow-left-line" />}
-          sx={{ mb: 3 }}
+          sx={{ mb: { xs: 0.75, md: 3 } }}
         >
-          รางวัลทั้งหมด
+          ย้อนกลับ
         </Button>
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' },
-            gap: { xs: 2.5, md: 7 },
+            gap: { xs: 1, md: 7 },
             alignItems: 'center',
           }}
         >
@@ -109,22 +114,66 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
             rewards={rewards.map((item) => ({ id: item.id, name: item.name }))}
             id={id}
             back={
-              <>
-                <Typography sx={{ color: 'primary.dark', fontWeight: 900, fontSize: 22 }}>
+              <Stack spacing={1} alignItems="center" sx={{ width: '100%', maxWidth: 224 }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 1,
+                    py: 0.375,
+                    borderRadius: 99,
+                    bgcolor: '#DCEDE0',
+                    color: '#28583A',
+                    fontSize: 11,
+                    fontWeight: 800,
+                  }}
+                >
+                  <Iconify
+                    icon={status.unlocked ? 'ri:trophy-line' : 'ri:lock-2-line'}
+                    width={14}
+                    aria-hidden="true"
+                  />
+                  {status.unlocked ? 'ปลดล็อกแล้ว' : 'ยังไม่ปลดล็อก'}
+                </Box>
+                <Typography
+                  sx={{
+                    color: '#21452F',
+                    fontWeight: 900,
+                    fontSize: 'clamp(16px, 8cqw, 28px)',
+                    lineHeight: 1.2,
+                    textWrap: 'balance',
+                  }}
+                >
                   {reward.name}
                 </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{status.condition}</Typography>
-                <Typography sx={{ color: 'primary.dark', fontWeight: 800 }}>
-                  {status.current} / {status.target} {status.unit}
+                <Typography sx={{ color: '#526455', fontSize: 12, lineHeight: 1.5 }}>
+                  {status.condition}
                 </Typography>
-              </>
+                <Box sx={{ width: '100%', pt: 0.5 }}>
+                  <Typography sx={{ color: '#28583A', fontSize: 14, fontWeight: 900, mb: 0.5 }}>
+                    {status.current} / {status.target} {status.unit}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={progressPercent}
+                    aria-label="ความคืบหน้าภารกิจ"
+                    sx={{
+                      height: 5,
+                      borderRadius: 99,
+                      bgcolor: '#D6E1D2',
+                      '& .MuiLinearProgress-bar': { bgcolor: '#427653', borderRadius: 99 },
+                    }}
+                  />
+                </Box>
+              </Stack>
             }
           >
             <Box
               sx={{
                 position: 'relative',
                 width: '100%',
-                maxWidth: 440,
+                maxWidth: 'var(--reward-card-max-width)',
                 mx: 'auto',
                 aspectRatio: '3 / 4',
                 containerType: 'inline-size',
@@ -203,7 +252,7 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
             </Box>
           </RewardNavigation>
           <Stack
-            spacing={{ xs: 1.5, md: 2 }}
+            spacing={{ xs: 1, md: 2 }}
             sx={{
               minWidth: 0,
               alignItems: { xs: 'center', md: 'stretch' },
@@ -214,7 +263,7 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
               <Typography
                 component="h1"
                 sx={{
-                  fontSize: { xs: 34, md: 44 },
+                  fontSize: { xs: 27, md: 44 },
                   lineHeight: 1.16,
                   fontWeight: 900,
                   color: 'primary.darker',
@@ -224,8 +273,8 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
                     content: '""',
                     display: 'block',
                     width: 40,
-                    height: 4,
-                    mt: 1.25,
+                    height: { xs: 3, md: 4 },
+                    mt: { xs: 0.75, md: 1.25 },
                     mx: { xs: 'auto', md: 0 },
                     borderRadius: 99,
                     bgcolor: 'primary.main',
@@ -234,7 +283,15 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
               >
                 {reward.name}
               </Typography>
-              <Typography sx={{ mt: 1.75, color: 'text.secondary', fontSize: 16, fontWeight: 500 }}>
+              <Typography
+                sx={{
+                  display: { xs: 'none', md: 'block' },
+                  mt: 1.75,
+                  color: 'text.secondary',
+                  fontSize: 16,
+                  fontWeight: 500,
+                }}
+              >
                 {status.condition}
               </Typography>
             </Box>
@@ -243,7 +300,8 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
               alignItems="center"
               spacing={0.75}
               sx={{
-                alignSelf: { xs: 'center', md: 'flex-start' },
+                display: { xs: 'none', md: 'flex' },
+                alignSelf: 'flex-start',
                 px: 1,
                 py: 0.5,
                 border: '1px solid currentColor',
@@ -263,9 +321,10 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
             {countingDetail && (
               <Typography
                 sx={{
+                  display: { xs: 'none', md: 'block' },
                   maxWidth: '46ch',
                   color: 'text.secondary',
-                  lineHeight: { xs: 1.6, md: 1.75 },
+                  lineHeight: 1.75,
                 }}
               >
                 {countingDetail}
@@ -318,7 +377,7 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
             )}
             {error && <Alert severity="error">โหลดความคืบหน้าไม่สำเร็จ กรุณาลองใหม่</Alert>}
             <Stack
-              spacing={1.5}
+              spacing={{ xs: 1, md: 1.5 }}
               sx={{
                 width: '100%',
                 '& .MuiButton-root': {
@@ -328,7 +387,7 @@ export default async function RewardDetailPage({ params }: { params: Promise<{ i
                 },
               }}
             >
-              <Box sx={{ width: '100%', maxWidth: 320, mx: { xs: 'auto', md: 0 } }}>
+              <Box sx={{ display: { xs: 'none', md: 'block' }, width: '100%', maxWidth: 320 }}>
                 <Stack
                   direction="row"
                   alignItems="baseline"

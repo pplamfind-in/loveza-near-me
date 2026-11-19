@@ -179,7 +179,10 @@ export function RewardDownloadButton({
         )}
       </Stack>
       {shareEnabled && !shareNotice && (
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+        <Typography
+          variant="caption"
+          sx={{ display: { xs: 'none', md: 'block' }, mt: 1, color: 'text.secondary' }}
+        >
           ถ้าไม่มี Facebook หรือ Instagram ในเมนูแชร์ ให้ดาวน์โหลด PNG แล้วแนบรูปในแอป
         </Typography>
       )}

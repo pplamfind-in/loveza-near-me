@@ -14,16 +14,16 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'th',
     icons: [
       {
-        src: `/icons/icon-192.png?v=${BRAND_ASSET_VERSION}`,
+        src: `/favicon/android-chrome-192x192.png?v=${BRAND_ASSET_VERSION}`,
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: `/icons/icon-512.png?v=${BRAND_ASSET_VERSION}`,
+        src: `/favicon/android-chrome-512x512.png?v=${BRAND_ASSET_VERSION}`,
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'maskable',
+        purpose: 'any',
       },
     ],
   };

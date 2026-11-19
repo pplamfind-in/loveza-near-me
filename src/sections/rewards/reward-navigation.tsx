@@ -1,5 +1,7 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useTransition } from 'react';
 
@@ -26,14 +28,16 @@ export function RewardNavigation({
   const start = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
   const [offset, setOffset] = useState(0);
+  const [exitOffset, setExitOffset] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [pending, startTransition] = useTransition();
   const index = rewards.findIndex((reward) => reward.id === id);
   const canNavigate = rewards.length > 1 && index >= 0;
   const previous = rewards[(index - 1 + rewards.length) % rewards.length];
   const next = rewards[(index + 1) % rewards.length];
-  const navigate = (reward: Reward | undefined) => {
+  const navigate = (reward: Reward | undefined, destinationOffset = 0) => {
     if (!canNavigate || pending || !reward) return;
+    setExitOffset(destinationOffset);
     startTransition(() =>
       router.push(`/rewards/${encodeURIComponent(reward.id)}/`, { scroll: false })
     );
@@ -42,20 +46,25 @@ export function RewardNavigation({
     <Box aria-busy={pending} sx={{ position: 'relative', minWidth: 0 }}>
       <Box
         onTouchStart={(event) => {
+          if (pending || event.touches.length !== 1) {
+            start.current = null;
+            moved.current = true;
+            setOffset(0);
+            return;
+          }
           const touch = event.touches[0];
           moved.current = false;
           start.current = { x: touch.clientX, y: touch.clientY };
         }}
         onTouchMove={(event) => {
           const origin = start.current;
-          if (!origin) return;
+          if (!origin || event.touches.length !== 1) return;
           const touch = event.touches[0];
           const dx = touch.clientX - origin.x;
           const dy = touch.clientY - origin.y;
           if (Math.hypot(dx, dy) > 10) moved.current = true;
-          if (canNavigate && !pending && Math.abs(dx) > Math.abs(dy) * 1.5) {
-            setOffset(Math.max(-72, Math.min(72, dx * 0.45)));
-          }
+          const horizontal = Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.5;
+          setOffset(canNavigate && horizontal ? Math.max(-72, Math.min(72, dx * 0.58)) : 0);
         }}
         onTouchCancel={() => {
           start.current = null;
@@ -71,28 +80,40 @@ export function RewardNavigation({
           const dx = touch.clientX - origin.x;
           const dy = touch.clientY - origin.y;
           if (Math.hypot(dx, dy) > 10) moved.current = true;
-          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5)
-            navigate(dx < 0 ? next : previous);
+          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            navigate(dx < 0 ? next : previous, Math.sign(dx) * event.currentTarget.clientWidth);
+          }
         }}
         sx={{
           position: 'relative',
+          mx: { xs: -2, sm: -3, md: 0 },
+          px: { xs: 2, sm: 3, md: 0 },
+          overflowX: 'clip',
           touchAction: 'pan-y',
           opacity: pending ? 0.6 : 1,
           transition: 'opacity .15s',
           '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
         }}
       >
-        <Box sx={{ perspective: '1000px' }}>
+        <Box sx={{ position: 'relative', perspective: '1000px' }}>
           <Box
+            style={
+              {
+                '--reward-swipe-offset': `${pending ? exitOffset : offset}px`,
+              } as CSSProperties
+            }
             sx={{
               position: 'relative',
               transformStyle: 'preserve-3d',
               transform: {
-                xs: `translateX(${offset}px) rotateY(${flipped ? 180 : 0}deg)`,
+                xs: `translateX(var(--reward-swipe-offset)) rotateY(${flipped ? 180 : 0}deg)`,
                 md: 'none',
               },
               transition: offset ? 'none' : 'transform 240ms ease',
-              '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+              '@media (prefers-reduced-motion: reduce)': {
+                transform: { xs: `rotateY(${flipped ? 180 : 0}deg)`, md: 'none' },
+                transition: 'none',
+              },
             }}
           >
             <Box sx={{ backfaceVisibility: 'hidden' }}>{children}</Box>
@@ -103,17 +124,19 @@ export function RewardNavigation({
                 position: 'absolute',
                 inset: 0,
                 width: '100%',
-                maxWidth: 440,
+                maxWidth: 'var(--reward-card-max-width, 440px)',
                 mx: 'auto',
-                placeContent: 'center',
-                gap: 1.5,
-                p: 3,
+                containerType: 'inline-size',
+                placeItems: 'center',
+                alignContent: 'center',
+                p: 1.5,
                 textAlign: 'center',
                 overflowWrap: 'anywhere',
                 overflowY: 'auto',
                 border: '6px solid white',
                 borderRadius: '22px',
-                bgcolor: '#EDF3E9',
+                background:
+                  'radial-gradient(ellipse at 50% 40%, #FFFFFFB3, transparent 72%), linear-gradient(155deg, #F5F8EA, #DFEEE2)',
                 boxShadow: '0 5px 0 #EDE4D7',
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)',
@@ -137,7 +160,7 @@ export function RewardNavigation({
               position: 'absolute',
               inset: 0,
               width: '100%',
-              maxWidth: 440,
+              maxWidth: 'var(--reward-card-max-width, 440px)',
               mx: 'auto',
               p: 0,
               border: 0,
@@ -203,8 +226,8 @@ export function RewardNavigation({
               justifyContent: 'center',
               alignItems: 'center',
               flexWrap: 'wrap',
-              columnGap: { xs: 0, sm: 1 },
-              mt: 1.5,
+              columnGap: { xs: 0, md: 1 },
+              mt: { xs: 0.5, md: 1.5 },
             }}
           >
             {rewards.map((reward) => (
@@ -220,8 +243,8 @@ export function RewardNavigation({
                   p: 0,
                   border: 0,
                   cursor: 'pointer',
-                  width: { xs: 24, sm: 28 },
-                  height: 28,
+                  width: { xs: 20, md: 28 },
+                  height: { xs: 24, md: 28 },
                   display: 'grid',
                   placeItems: 'center',
                   bgcolor: 'transparent',

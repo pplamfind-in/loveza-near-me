@@ -131,14 +131,26 @@ export const metadata: Metadata = {
       {
         rel: 'icon',
         type: 'image/png',
+        sizes: '16x16',
+        url: `${CONFIG.assetsDir}/favicon/favicon-16x16.png?v=${BRAND_ASSET_VERSION}`,
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        url: `${CONFIG.assetsDir}/favicon/favicon-32x32.png?v=${BRAND_ASSET_VERSION}`,
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
         sizes: '192x192',
-        url: `${CONFIG.assetsDir}/icons/icon-192.png?v=${BRAND_ASSET_VERSION}`,
+        url: `${CONFIG.assetsDir}/favicon/android-chrome-192x192.png?v=${BRAND_ASSET_VERSION}`,
       },
       {
         rel: 'icon',
         type: 'image/png',
         sizes: '512x512',
-        url: `${CONFIG.assetsDir}/icons/icon-512.png?v=${BRAND_ASSET_VERSION}`,
+        url: `${CONFIG.assetsDir}/favicon/android-chrome-512x512.png?v=${BRAND_ASSET_VERSION}`,
       },
     ],
     shortcut: `${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`,
@@ -146,7 +158,7 @@ export const metadata: Metadata = {
       {
         type: 'image/png',
         sizes: '180x180',
-        url: `${CONFIG.assetsDir}/apple-touch-icon.png?v=${BRAND_ASSET_VERSION}`,
+        url: `${CONFIG.assetsDir}/favicon/apple-touch-icon.png?v=${BRAND_ASSET_VERSION}`,
       },
     ],
   },
@@ -260,13 +272,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       suppressHydrationWarning
     >
       {/* LocatorJS can annotate the head before React hydrates in development. */}
-      <head suppressHydrationWarning={process.env.NODE_ENV === 'development'}>
-        <link
-          rel="icon"
-          href={`${CONFIG.assetsDir}/favicon.ico?v=${BRAND_ASSET_VERSION}`}
-          sizes="any"
-        />
-      </head>
+      <head suppressHydrationWarning={process.env.NODE_ENV === 'development'} />
       <body style={{ fontFamily: appConfig.fontFamily }}>
         <script
           type="application/ld+json"
