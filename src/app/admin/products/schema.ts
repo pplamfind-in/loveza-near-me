@@ -14,6 +14,10 @@ export const productSchema = z.object({
     .union([z.literal(''), z.url('URL รูปภาพไม่ถูกต้อง')])
     .nullable()
     .optional(),
+  icon_url: z
+    .url({ protocol: /^https?:$/ })
+    .nullable()
+    .optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'สีต้องอยู่ในรูปแบบ #RRGGBB'),
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'สีต้องอยู่ในรูปแบบ #RRGGBB'),
   fruit: z.string().trim().min(1).max(12),

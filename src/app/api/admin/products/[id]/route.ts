@@ -6,7 +6,7 @@ import { requireAdminClient } from 'src/lib/supabase/require-admin';
 import { getProductImagePath, PRODUCT_IMAGE_BUCKET } from 'src/lib/supabase/product-image';
 
 const PRODUCT_FIELDS =
-  'id, name, thai_name, slug, description, image_url, color, accent, fruit, meta, sort_order, is_active, is_new, created_at, updated_at';
+  'id, name, thai_name, slug, description, image_url, icon_url, color, accent, fruit, meta, sort_order, is_active, is_new, created_at, updated_at';
 
 type ProductRouteContext = {
   params: Promise<{ id: string }>;
@@ -29,7 +29,7 @@ export async function PATCH(request: Request, { params }: ProductRouteContext) {
   const values = parsed.data;
   const { data: currentProduct, error: currentProductError } = await supabase
     .from('products')
-    .select('image_url')
+    .select('image_url, icon_url, slug')
     .eq('id', id)
     .single();
 
@@ -63,10 +63,16 @@ export async function PATCH(request: Request, { params }: ProductRouteContext) {
     return NextResponse.json({ error: 'แก้ไขสินค้าไม่สำเร็จ' }, { status: 500 });
   }
 
-  if (oldImagePath && oldImagePath !== newImagePath) {
-    await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([oldImagePath]);
+  const currentPaths = [newImagePath, getProductImagePath(data.icon_url)];
+  const obsoletePaths = [oldImagePath, getProductImagePath(currentProduct.icon_url)].filter(
+    (path): path is string => Boolean(path && !currentPaths.includes(path))
+  );
+  if (obsoletePaths.length) {
+    await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([...new Set(obsoletePaths)]);
   }
 
+  revalidatePath(`/products/${currentProduct.slug}`);
+  if (data.slug !== currentProduct.slug) revalidatePath(`/products/${data.slug}`);
   revalidatePath('/');
   revalidatePath('/admin/products');
 
@@ -81,7 +87,7 @@ export async function DELETE(_request: Request, { params }: ProductRouteContext)
   const { id } = await params;
   const { data: product, error: productError } = await supabase
     .from('products')
-    .select('image_url')
+    .select('image_url, icon_url, slug')
     .eq('id', id)
     .single();
 
@@ -93,9 +99,13 @@ export async function DELETE(_request: Request, { params }: ProductRouteContext)
 
   if (error) return NextResponse.json({ error: 'ลบสินค้าไม่สำเร็จ' }, { status: 500 });
 
-  const imagePath = getProductImagePath(product.image_url);
-  if (imagePath) await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([imagePath]);
+  const paths = [
+    getProductImagePath(product.image_url),
+    getProductImagePath(product.icon_url),
+  ].filter((path): path is string => Boolean(path));
+  if (paths.length) await supabase.storage.from(PRODUCT_IMAGE_BUCKET).remove([...new Set(paths)]);
 
+  revalidatePath(`/products/${product.slug}`);
   revalidatePath('/');
   revalidatePath('/admin/products');
 

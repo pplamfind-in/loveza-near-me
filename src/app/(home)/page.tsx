@@ -23,30 +23,38 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   const supabase = await createClient();
-  const [productsResult, bannersResult, storesResult, acknowledgementResult] = await Promise.all([
-    supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true }),
-    supabase
-      .from('landing_banners')
-      .select('id, title, image_url, mobile_image_url, alt_text, sort_order, is_active')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('stores')
-      .select('id, name, address, province, current_status, estimated_quantity, last_reported_at')
-      .eq('is_active', true)
-      .order('last_reported_at', { ascending: false, nullsFirst: false })
-      .limit(2),
-    supabase.rpc('get_brand_owner_acknowledged'),
-  ]);
+  const [productsResult, likesResult, bannersResult, storesResult, acknowledgementResult] =
+    await Promise.all([
+      supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true }),
+      supabase.from('product_like_counts').select('product_id, like_count'),
+      supabase
+        .from('landing_banners')
+        .select('id, title, image_url, mobile_image_url, alt_text, sort_order, is_active')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('stores')
+        .select('id, name, address, province, current_status, estimated_quantity, last_reported_at')
+        .eq('is_active', true)
+        .order('last_reported_at', { ascending: false, nullsFirst: false })
+        .limit(2),
+      supabase.rpc('get_brand_owner_acknowledged'),
+    ]);
 
-  const products = productsResult.error
+  const catalog = productsResult.error
     ? DEFAULT_LOVEZA_PRODUCTS
     : ((productsResult.data ?? []) as LovezaProduct[]);
+  const likeCounts = new Map(
+    (likesResult.data ?? []).map(({ product_id, like_count }) => [product_id, Number(like_count)])
+  );
+  const products = likesResult.error
+    ? catalog
+    : catalog.map((product) => ({ ...product, like_count: likeCounts.get(product.id) ?? 0 }));
   const banners = bannersResult.error
     ? DEFAULT_LANDING_BANNERS
     : ((bannersResult.data ?? []) as LandingBanner[]);

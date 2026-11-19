@@ -6,7 +6,7 @@ import { requireAdminClient } from 'src/lib/supabase/require-admin';
 import { getProductImagePath, PRODUCT_IMAGE_BUCKET } from 'src/lib/supabase/product-image';
 
 const PRODUCT_FIELDS =
-  'id, name, thai_name, slug, description, image_url, color, accent, fruit, meta, sort_order, is_active, is_new, created_at, updated_at';
+  'id, name, thai_name, slug, description, image_url, icon_url, color, accent, fruit, meta, sort_order, is_active, is_new, created_at, updated_at';
 
 export async function GET() {
   const { supabase, user } = await requireAdminClient();

@@ -28,35 +28,53 @@ export function useSaveProductMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, image, values }: { id?: string; image?: File | null; values: ProductInput }) => {
-      let uploadedUrl: string | null = null;
-
-      if (image) {
-        const formData = new FormData();
-        formData.set('image', image);
-        const uploadResponse = await fetch('/api/admin/products/image', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!uploadResponse.ok) throw new Error(await readError(uploadResponse));
-
-        const uploadPayload = (await uploadResponse.json()) as { url: string };
-        uploadedUrl = uploadPayload.url;
+    mutationFn: async ({
+      id,
+      image,
+      icon,
+      values,
+    }: {
+      id?: string;
+      image?: File | null;
+      icon?: File | null;
+      values: ProductInput;
+    }) => {
+      const uploads: string[] = [];
+      const upload = async (file: File) => {
+        const body = new FormData();
+        body.set('image', file);
+        const response = await fetch('/api/admin/products/image', { method: 'POST', body });
+        if (!response.ok) throw new Error(await readError(response));
+        const { url } = (await response.json()) as { url: string };
+        uploads.push(url);
+        return url;
+      };
+      const cleanup = () =>
+        Promise.allSettled(
+          uploads.map((url) =>
+            fetch('/api/admin/products/image', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url }),
+            })
+          )
+        );
+      let imageUrl: ProductInput['image_url'];
+      let iconUrl: ProductInput['icon_url'];
+      try {
+        imageUrl = image ? await upload(image) : values.image_url;
+        iconUrl = icon ? await upload(icon) : values.icon_url;
+      } catch (error) {
+        await cleanup();
+        throw error;
       }
-
       const response = await fetch(id ? `/api/admin/products/${id}` : '/api/admin/products', {
         method: id ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, image_url: uploadedUrl ?? values.image_url }),
+        body: JSON.stringify({ ...values, image_url: imageUrl, icon_url: iconUrl }),
       });
       if (!response.ok) {
-        if (uploadedUrl) {
-          await fetch('/api/admin/products/image', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: uploadedUrl }),
-          }).catch(() => undefined);
-        }
+        await cleanup();
         throw new Error(await readError(response));
       }
       return (await response.json()) as { product: LovezaProduct };

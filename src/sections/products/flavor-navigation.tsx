@@ -5,7 +5,6 @@ import { useRef, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -102,50 +101,6 @@ export function FlavorNavigation({
           >
             <Iconify icon="ri:arrow-right-s-line" width={26} />
           </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: 1,
-              mt: 1.5,
-            }}
-          >
-            {flavors.map((flavor) => (
-              <Box
-                key={flavor.slug}
-                component="button"
-                type="button"
-                aria-label={flavor.thai_name}
-                aria-current={flavor.slug === slug ? 'page' : undefined}
-                disabled={pending}
-                onClick={() => navigate(flavor)}
-                sx={{
-                  p: 0,
-                  border: 0,
-                  cursor: 'pointer',
-                  width: 28,
-                  height: 28,
-                  display: 'grid',
-                  placeItems: 'center',
-                  bgcolor: 'transparent',
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    width: flavor.slug === slug ? 20 : 8,
-                    height: 8,
-                    borderRadius: '8px',
-                    bgcolor: flavor.slug === slug ? 'primary.main' : 'grey.300',
-                  }}
-                />
-              </Box>
-            ))}
-          </Box>
-          <Typography sx={{ textAlign: 'center', color: 'text.secondary', fontSize: 11 }}>
-            รสที่ {index + 1} / {flavors.length} · ปัดหรือกดลูกศรเพื่อดูรสอื่น
-          </Typography>
         </>
       )}
     </Box>

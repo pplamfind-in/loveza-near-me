@@ -95,6 +95,9 @@ export function ProductsPanel() {
   const [deleteProduct, setDeleteProduct] = useState<LovezaProduct | null>(null);
   const [editingProduct, setEditingProduct] = useState<LovezaProduct | null>(null);
   const [form, setForm] = useState<ProductFormValue>(EMPTY_PRODUCT);
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState('');
+  const [iconError, setIconError] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [imageError, setImageError] = useState<string | null>(null);
@@ -104,8 +107,16 @@ export function ProductsPanel() {
     return () => URL.revokeObjectURL(imagePreview);
   }, [imagePreview]);
 
+  useEffect(() => {
+    if (!iconPreview.startsWith('blob:')) return undefined;
+    return () => URL.revokeObjectURL(iconPreview);
+  }, [iconPreview]);
+
   const openCreate = () => {
     setEditingProduct(null);
+    setIconFile(null);
+    setIconPreview('');
+    setIconError('');
     setForm({ ...EMPTY_PRODUCT, sort_order: products.length + 1 });
     setImageFile(null);
     setImagePreview('');
@@ -116,6 +127,9 @@ export function ProductsPanel() {
 
   const openEdit = (product: LovezaProduct) => {
     setEditingProduct(product);
+    setIconFile(null);
+    setIconPreview(product.icon_url ?? '');
+    setIconError('');
     setForm(toFormValue(product));
     setImageFile(null);
     setImagePreview(product.image_url ?? '');
@@ -144,10 +158,12 @@ export function ProductsPanel() {
       {
         id: editingProduct?.id,
         image: imageFile,
+        icon: iconFile,
         values: {
           ...form,
           description: form.description || null,
           image_url: form.image_url || null,
+          icon_url: iconPreview.startsWith('blob:') ? null : iconPreview || null,
         },
       },
       { onSuccess: () => setDialogOpen(false) }
@@ -498,6 +514,55 @@ export function ProductsPanel() {
               {saveMutation.isError ? (
                 <Alert severity="error">{saveMutation.error.message}</Alert>
               ) : null}
+              <Stack spacing={1}>
+                <Typography sx={{ fontSize: 13, fontWeight: 800 }}>ไอคอนรสชาติ</Typography>
+                <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+                  {iconPreview && (
+                    <Box
+                      component="img"
+                      src={iconPreview}
+                      alt="ตัวอย่างไอคอนรสชาติ"
+                      sx={{ width: 48, height: 48, objectFit: 'contain' }}
+                    />
+                  )}
+                  <Button component="label" variant="outlined">
+                    {iconPreview ? 'เปลี่ยนไอคอน' : 'อัปโหลดไอคอน'}
+                    <input
+                      hidden
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = '';
+                        if (!file) return;
+                        if (
+                          !PRODUCT_IMAGE_TYPES.includes(file.type) ||
+                          file.size > MAX_PRODUCT_IMAGE_SIZE
+                        ) {
+                          setIconError('เลือกไฟล์ JPG, PNG หรือ WEBP ขนาดไม่เกิน 5MB');
+                          return;
+                        }
+                        setIconError('');
+                        setIconFile(file);
+                        setIconPreview(URL.createObjectURL(file));
+                      }}
+                    />
+                  </Button>
+                  {iconPreview && (
+                    <Button
+                      color="error"
+                      onClick={() => {
+                        setIconFile(null);
+                        setIconPreview('');
+                        setIconError('');
+                      }}
+                    >
+                      ลบไอคอนที่อัปโหลด
+                    </Button>
+                  )}
+                </Stack>
+                {iconError && <Alert severity="error">{iconError}</Alert>}
+              </Stack>
               <Box
                 sx={{
                   display: 'grid',

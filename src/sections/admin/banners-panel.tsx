@@ -11,15 +11,21 @@ import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
 import Dialog from '@mui/material/Dialog';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import TableContainer from '@mui/material/TableContainer';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -162,70 +168,113 @@ export function BannersPanel() {
           <CircularProgress />
         </Stack>
       ) : (
-        <Box
-          sx={{
-            display: 'grid',
-            gap: 2,
-            gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, minmax(0, 1fr))' },
-          }}
-        >
-          {banners.map((banner) => (
-            <Paper key={banner.id} elevation={0} sx={{ overflow: 'hidden', borderRadius: '16px' }}>
-              <Box sx={{ position: 'relative', aspectRatio: '16 / 6', bgcolor: '#f4f5f5' }}>
-                <Image
-                  fill
-                  src={banner.image_url}
-                  alt={banner.alt_text || banner.title}
-                  sizes="(max-width: 1199px) 100vw, 50vw"
-                  style={{ objectFit: 'cover' }}
-                />
-              </Box>
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2.25 }}>
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography noWrap sx={{ fontSize: 18, fontWeight: 900 }}>
-                      {banner.title}
-                    </Typography>
+        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '16px' }}>
+          <Table aria-label="รายการแบนเนอร์" size="small" sx={{ minWidth: 720 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>แบนเนอร์</TableCell>
+                <TableCell>ภาพมือถือ</TableCell>
+                <TableCell align="center">ลำดับ</TableCell>
+                <TableCell>สถานะ</TableCell>
+                <TableCell align="right">จัดการ</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {banners.map((banner) => (
+                <TableRow key={banner.id} hover>
+                  <TableCell component="th" scope="row">
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          width: 112,
+                          height: 48,
+                          flexShrink: 0,
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          bgcolor: 'background.neutral',
+                        }}
+                      >
+                        <Image
+                          fill
+                          src={banner.image_url}
+                          alt=""
+                          sizes="112px"
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </Box>
+                      <Box sx={{ minWidth: 0, maxWidth: 280, overflowWrap: 'anywhere' }}>
+                        <Typography variant="subtitle2">{banner.title}</Typography>
+                        {banner.alt_text && (
+                          <Typography variant="caption" color="text.secondary">
+                            {banner.alt_text}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    {banner.mobile_image_url ? (
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          width: 64,
+                          height: 48,
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          bgcolor: 'background.neutral',
+                        }}
+                      >
+                        <Image
+                          fill
+                          src={banner.mobile_image_url}
+                          alt=""
+                          sizes="64px"
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </Box>
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">
+                        ใช้ภาพเดียวทุกจอ
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">{banner.sort_order}</TableCell>
+                  <TableCell>
                     <Chip
                       size="small"
                       color={banner.is_active ? 'success' : 'default'}
                       label={banner.is_active ? 'แสดงบนเว็บ' : 'ซ่อน'}
                     />
-                  </Stack>
-                  <Typography sx={{ mt: 0.5, color: 'text.secondary', fontSize: 13 }}>
-                    ลำดับ {banner.sort_order} ·{' '}
-                    {banner.mobile_image_url ? 'มีภาพ Mobile' : 'ใช้ภาพเดียวทุกจอ'}
-                  </Typography>
-                </Box>
-                <Stack direction="row">
-                  <IconButton aria-label={`แก้ไข ${banner.title}`} onClick={() => openEdit(banner)}>
-                    <Iconify icon="ri:edit-2-line" />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    aria-label={`ลบ ${banner.title}`}
-                    disabled={deleteMutation.isPending}
-                    onClick={() => handleDelete(banner)}
-                  >
-                    <Iconify icon="ri:delete-bin-6-line" />
-                  </IconButton>
-                </Stack>
-              </Stack>
-            </Paper>
-          ))}
-
-          {banners.length === 0 ? (
-            <Paper
-              elevation={0}
-              sx={{ gridColumn: '1 / -1', p: 8, textAlign: 'center', borderRadius: '16px' }}
-            >
-              <Iconify icon="ri:image-line" width={46} sx={{ mb: 1, color: 'text.disabled' }} />
-              <Typography color="text.secondary">
-                ยังไม่มี แบนเนอร์ กด “เพิ่ม แบนเนอร์” เพื่อเริ่มต้น
-              </Typography>
-            </Paper>
-          ) : null}
-        </Box>
+                  </TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                    <IconButton
+                      aria-label={`แก้ไข ${banner.title}`}
+                      onClick={() => openEdit(banner)}
+                    >
+                      <Iconify icon="ri:edit-2-line" />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      aria-label={`ลบ ${banner.title}`}
+                      disabled={deleteMutation.isPending}
+                      onClick={() => handleDelete(banner)}
+                    >
+                      <Iconify icon="ri:delete-bin-6-line" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!banners.length && !isError && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 5, color: 'text.secondary' }}>
+                    ยังไม่มีแบนเนอร์ กด “เพิ่มแบนเนอร์” เพื่อเริ่มต้น
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="md">

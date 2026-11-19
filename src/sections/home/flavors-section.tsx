@@ -5,18 +5,40 @@ import Image from 'next/image';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+
+import { formatCompactCount } from 'src/utils/format-compact-count';
+
+import { getProductFlavorIcon } from 'src/lib/product-flavor-icon';
 
 import { Iconify } from 'src/components/iconify';
 
 import { ProductCan } from './product-can';
-import { explorerCardSx, explorerLabelSx } from './explorer-styles';
+import { explorerLabelSx } from './explorer-styles';
 
 type FlavorsSectionProps = {
   products: LovezaProduct[];
 };
 
+function FlavorIcon({ product }: { product: LovezaProduct }) {
+  const icon = getProductFlavorIcon(product);
+  if (!icon) return null;
+
+  return (
+    <Image
+      src={icon}
+      alt=""
+      width={30}
+      height={30}
+      unoptimized
+      style={{ flexShrink: 0, objectFit: 'contain' }}
+    />
+  );
+}
+
 export function FlavorsSection({ products }: FlavorsSectionProps) {
+  const desktopColumns = products.length === 5 ? 3 : Math.min(Math.max(products.length, 1), 4);
   return (
     <Container maxWidth="lg">
       <Box component="section" id="flavors" sx={{ py: { xs: 4, md: 6 } }}>
@@ -85,7 +107,7 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
               gridTemplateColumns: {
                 xs: '1fr',
                 sm: 'repeat(2, minmax(0, 1fr))',
-                lg: 'repeat(4, minmax(0, 1fr))',
+                lg: `repeat(${desktopColumns}, minmax(0, 1fr))`,
               },
               gap: { xs: 2, md: 2.5 },
             }}
@@ -98,13 +120,51 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                   position: 'relative',
                   display: 'flex',
                   flexDirection: 'column',
-                  ...explorerCardSx,
-                  border: '5px solid var(--palette-background-paper)',
-                  borderRadius: '18px',
-                  transition: 'transform 180ms ease',
-                  '&:hover': { transform: 'translateY(-4px)' },
+                  background: /^#[0-9a-f]{6}$/i.test(product.color)
+                    ? `linear-gradient(165deg, ${product.color}14, ${product.color}26)`
+                    : '#F5F1EA',
+                  border: '1px solid var(--palette-grey-200)',
+                  borderRadius: '22px',
+                  boxShadow: '0 3px 0 #EDE4D7',
+                  transition: 'transform 180ms ease, box-shadow 180ms ease',
+                  '@media (hover: hover) and (prefers-reduced-motion: no-preference)': {
+                    '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 7px 14px #523B2514' },
+                  },
                 }}
               >
+                {product.like_count !== undefined && (
+                  <Button
+                    href={`/products/${encodeURIComponent(product.slug)}/`}
+                    aria-label={`ดู ${product.thai_name} · ${product.like_count} หัวใจ`}
+                    startIcon={
+                      <Image
+                        src="/assets/loveza/loveza-heart.webp"
+                        alt=""
+                        width={30}
+                        height={27}
+                        unoptimized
+                      />
+                    }
+                    sx={{
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
+                      zIndex: 2,
+                      minWidth: 44,
+                      minHeight: 44,
+                      px: 1.25,
+                      '&&': { borderRadius: '999px' },
+                      bgcolor: 'transparent',
+                      color: '#AD2452',
+                      fontWeight: 800,
+                      fontVariantNumeric: 'tabular-nums',
+                      '& .MuiButton-startIcon': { ml: 0, mr: 0.5 },
+                      '&:hover': { bgcolor: 'transparent', color: '#8E1940' },
+                    }}
+                  >
+                    {formatCompactCount(product.like_count)}
+                  </Button>
+                )}
                 {product.is_new ? (
                   <Box
                     sx={{
@@ -132,6 +192,8 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                   aria-label={`ดูรายละเอียด Loveza ${product.thai_name}`}
                   sx={{
                     display: 'block',
+                    position: 'relative',
+                    pt: 2,
                     textDecoration: 'none',
                     color: 'inherit',
                     '&:focus-visible': {
@@ -153,52 +215,51 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                 </Box>
                 <Box
                   sx={{
-                    p: 2.5,
-                    pt: 2,
-                    borderTop: '1px solid var(--palette-grey-200)',
+                    px: 2,
+                    py: 2,
                     flex: 1,
                     display: 'flex',
-                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: 'text.secondary',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                    }}
-                  >
-                    LOVEZA SODA
-                  </Typography>
-                  <Typography
-                    component="h3"
-                    sx={{ mt: 0.75, fontSize: 22, fontWeight: 800, lineHeight: 1.4 }}
-                  >
-                    {product.thai_name}
-                  </Typography>
-                  <Typography sx={{ mt: 0.5, mb: 2.5, color: 'text.secondary', fontSize: 13 }}>
-                    {product.name}
-                  </Typography>
-                  <Button
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      component="h3"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        fontSize: { xs: 22, lg: 20 },
+                        fontWeight: 900,
+                        lineHeight: 1.35,
+                        color: /^#[0-9a-f]{6}$/i.test(product.color)
+                          ? `color-mix(in srgb, ${product.color} 67%, #241C22)`
+                          : 'text.primary',
+                      }}
+                    >
+                      <FlavorIcon product={product} />
+                      {product.thai_name}
+                    </Typography>
+                    <Typography sx={{ mt: 0.25, color: 'text.secondary', fontSize: 13 }}>
+                      {product.name}
+                    </Typography>
+                  </Box>
+                  <IconButton
                     href={`/products/${encodeURIComponent(product.slug)}/`}
-                    variant="outlined"
-                    fullWidth
-                    endIcon={<Iconify icon="ri:arrow-right-line" width={18} />}
+                    aria-label={`ดูรายละเอียด ${product.thai_name}`}
                     sx={{
-                      mt: 'auto',
-                      py: 1.2,
-                      borderRadius: '12px',
-                      justifyContent: 'space-between',
-                      px: 2,
-                      color: 'primary.dark',
-                      borderColor: 'divider',
-                      bgcolor: 'background.default',
-                      '&:hover': { bgcolor: 'primary.lighter', borderColor: 'primary.main' },
+                      flexShrink: 0,
+                      width: 44,
+                      height: 44,
+                      color: 'primary.darker',
+                      bgcolor: 'transparent',
+                      '&:hover': { bgcolor: 'transparent', color: 'primary.main' },
                     }}
                   >
-                    ดูรายละเอียดรสนี้
-                  </Button>
+                    <Iconify icon="ri:arrow-right-line" width={20} />
+                  </IconButton>
                 </Box>
               </Box>
             ))}

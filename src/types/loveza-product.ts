@@ -5,6 +5,7 @@ export type LovezaProduct = {
   slug: string;
   description: string | null;
   image_url: string | null;
+  icon_url?: string | null;
   color: string;
   accent: string;
   fruit: string;
@@ -12,6 +13,7 @@ export type LovezaProduct = {
   sort_order: number;
   is_active: boolean;
   is_new?: boolean;
+  like_count?: number;
   created_at?: string;
   updated_at?: string;
 };
