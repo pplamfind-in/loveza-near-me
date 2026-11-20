@@ -14,6 +14,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 
 import { Iconify } from 'src/components/iconify';
+import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button';
 
 export type LovezaHeaderUser = {
   displayName: string;
@@ -25,13 +26,13 @@ export type LovezaHeaderUser = {
 type LovezaHeaderAccountProps = {
   user: LovezaHeaderUser;
   mobile?: boolean;
-  avatarOnlyOnMobile?: boolean;
+  hideSettingsOnMobile?: boolean;
 };
 
 export function LovezaHeaderAccount({
   user,
   mobile = false,
-  avatarOnlyOnMobile = false,
+  hideSettingsOnMobile = false,
 }: LovezaHeaderAccountProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   return (
@@ -61,17 +62,15 @@ export function LovezaHeaderAccount({
             boxShadow: '0 2px 0 var(--palette-grey-200)',
           },
           '&:focus-visible': { outline: '2px solid var(--palette-primary-main)', outlineOffset: 3 },
-          ...(avatarOnlyOnMobile && {
-            '@media (max-width: 899.95px)': {
-              width: 44,
-              p: 0,
-              justifyContent: 'center',
-              border: 0,
-              bgcolor: 'transparent',
-              boxShadow: 'none',
-              '&:hover': { bgcolor: 'transparent', boxShadow: 'none' },
-            },
-          }),
+          '@media (max-width: 899.95px)': {
+            width: 44,
+            p: 0,
+            justifyContent: 'center',
+            border: 0,
+            bgcolor: 'transparent',
+            boxShadow: 'none',
+            '&:hover': { bgcolor: 'transparent', boxShadow: 'none' },
+          },
         }}
       >
         <Avatar
@@ -79,19 +78,13 @@ export function LovezaHeaderAccount({
           alt={user.displayName}
           imgProps={{ referrerPolicy: 'no-referrer' }}
           sx={{
-            width: 32,
-            height: 32,
             bgcolor: 'primary.main',
             fontWeight: 800,
             fontSize: 14,
-            ...(avatarOnlyOnMobile && {
-              '@media (max-width: 899.95px)': {
-                width: 36,
-                height: 36,
-                boxSizing: 'border-box',
-                border: '2px solid #fff',
-              },
-            }),
+            width: { xs: 36, md: 32 },
+            height: { xs: 36, md: 32 },
+            boxSizing: 'border-box',
+            border: { xs: '2px solid #fff', md: 0 },
           }}
         >
           {user.displayName.charAt(0).toUpperCase()}
@@ -101,7 +94,7 @@ export function LovezaHeaderAccount({
           sx={{
             minWidth: 0,
             textAlign: 'left',
-            display: avatarOnlyOnMobile ? { xs: 'none', md: 'block' } : 'block',
+            display: { xs: 'none', md: 'block' },
           }}
         >
           <Typography
@@ -134,7 +127,7 @@ export function LovezaHeaderAccount({
         aria-expanded={drawerOpen}
         aria-controls={drawerOpen ? 'account-settings-drawer' : undefined}
         sx={{
-          display: { xs: avatarOnlyOnMobile ? 'none' : 'inline-flex', md: 'none' },
+          display: { xs: hideSettingsOnMobile ? 'none' : 'inline-flex', md: 'none' },
           width: 40,
           height: 40,
           flexShrink: 0,
@@ -210,6 +203,15 @@ export function LovezaHeaderAccount({
               <Iconify icon="ri:arrow-right-s-line" width={18} />
             </ListItemButton>
           </List>
+          <LovezaSignOutButton
+            confirm
+            buttonProps={{
+              fullWidth: true,
+              variant: 'outlined',
+              color: 'inherit',
+              sx: { mt: 2, minHeight: 44, borderRadius: '12px', borderColor: 'divider' },
+            }}
+          />
         </Box>
       </Drawer>
     </Box>

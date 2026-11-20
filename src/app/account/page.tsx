@@ -50,6 +50,7 @@ export default async function AccountPage() {
       <Container maxWidth="lg">
         <Box
           sx={{
+            display: { xs: 'none', md: 'block' },
             mb: { xs: 3, md: 4 },
             p: { xs: 3, md: 5 },
             border: '5px solid var(--palette-background-paper)',

@@ -16,6 +16,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { ProductCan } from './product-can';
 import { explorerLabelSx } from './explorer-styles';
+import { MobileCardCarousel } from './mobile-card-carousel';
 
 type FlavorsSectionProps = {
   products: LovezaProduct[];
@@ -100,16 +101,17 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
             </Box>
           </Box>
 
-          <Box
-            sx={{
+          <MobileCardCarousel
+            label="สไลด์รสชาติ Loveza"
+            count={products.length}
+            gridSx={{
               mt: { xs: 3, md: 5 },
-              display: 'grid',
               gridTemplateColumns: {
-                xs: '1fr',
+                xs: 'minmax(0, 1fr)',
                 sm: 'repeat(2, minmax(0, 1fr))',
                 lg: `repeat(${desktopColumns}, minmax(0, 1fr))`,
               },
-              gap: { xs: 2, md: 2.5 },
+              gap: { xs: 0, sm: 2, md: 2.5 },
             }}
           >
             {products.map((product) => (
@@ -117,6 +119,7 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                 key={product.id}
                 sx={{
                   overflow: 'hidden',
+                  minWidth: 0,
                   position: 'relative',
                   display: 'flex',
                   flexDirection: 'column',
@@ -269,7 +272,7 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                 กำลังเตรียมสินค้าใหม่ พบกันเร็ว ๆ นี้
               </Typography>
             ) : null}
-          </Box>
+          </MobileCardCarousel>
           {products.length > 0 ? (
             <Typography
               sx={{

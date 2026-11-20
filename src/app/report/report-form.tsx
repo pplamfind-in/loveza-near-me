@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
@@ -31,6 +32,7 @@ import { useReportStoreCandidates, type ReportStoreCandidate } from './use-repor
 import {
   reportSchema,
   MAX_PHOTO_SIZE,
+  MAX_STORE_LOGO_SIZE,
   type ReportFormState,
   INVALID_PHOTO_MESSAGE,
   type ReportFormValues,
@@ -71,6 +73,7 @@ const defaultValues: ReportFormInput = {
   estimatedQuantity: '',
   flavors: [],
   photo: null,
+  storeLogo: null,
   note: '',
   storeId: undefined,
 };
@@ -96,6 +99,9 @@ function buildFormData(data: ReportFormValues, storeId = data.storeId) {
   }
   data.flavors.forEach((flavor) => formData.append('flavors', flavor));
   if (data.photo) formData.set('photo', data.photo);
+  if (data.storeLogo && data.storeType === 'other' && !storeId) {
+    formData.set('storeLogo', data.storeLogo);
+  }
   if (data.note) formData.set('note', data.note);
   if (storeId) formData.set('storeId', storeId);
   return formData;
@@ -208,12 +214,20 @@ export function ReportForm() {
     formState: { errors },
   } = methods;
 
-  const [latitude, longitude, province, selectedStoreId] = watch([
+  const [latitude, longitude, province, selectedStoreId, storeType] = watch([
     'latitude',
     'longitude',
     'province',
     'storeId',
+    'storeType',
   ]);
+  const canUploadStoreLogo = storeType === 'other' && !selectedStoreId;
+  useEffect(() => {
+    if (!canUploadStoreLogo) {
+      setValue('storeLogo', null, { shouldValidate: true });
+    }
+  }, [canUploadStoreLogo, setValue]);
+
   const hasCoordinates = latitude !== undefined && longitude !== undefined;
   const hasLocationError = Boolean(errors.latitude || errors.longitude);
   const candidatesQuery = useReportStoreCandidates(
@@ -446,6 +460,14 @@ export function ReportForm() {
                             bgcolor: 'var(--palette-background-paper)',
                           }}
                         >
+                          {candidate.logoUrl ? (
+                            <Avatar
+                              src={candidate.logoUrl}
+                              alt=""
+                              variant="rounded"
+                              sx={{ bgcolor: 'common.white', '& img': { objectFit: 'contain' } }}
+                            />
+                          ) : null}
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography sx={{ fontSize: 13, fontWeight: 1000 }}>
                               {candidate.storeName}
@@ -516,6 +538,42 @@ export function ReportForm() {
                   helperText={selectedStoreId ? 'ล็อกชื่อร้านเพื่อป้องกันข้อมูลสะกดผิด' : undefined}
                 />
               </Box>
+              {hasCoordinates && canUploadStoreLogo ? (
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    โลโก้ร้าน (ถ้ามี)
+                  </Typography>
+                  <Field.Upload
+                    name="storeLogo"
+                    accept={{
+                      'image/jpeg': ['.jpeg', '.jpg'],
+                      'image/png': ['.png'],
+                      'image/webp': ['.webp'],
+                    }}
+                    maxSize={MAX_STORE_LOGO_SIZE}
+                    hideFilesRejected
+                    helperText="JPG, PNG หรือ WEBP ไม่เกิน 2MB"
+                    sx={{ p: 2, '& .iconify': { width: 32, height: 32 } }}
+                    onDrop={([file], rejections) => {
+                      const reason = rejections[0]?.errors[0]?.code;
+                      if (reason) {
+                        setError('storeLogo', {
+                          type: reason,
+                          message:
+                            reason === 'file-too-large'
+                              ? 'ไฟล์โลโก้ต้องไม่เกิน 2MB'
+                              : reason === 'too-many-files'
+                                ? 'เลือกได้ครั้งละ 1 รูป'
+                                : 'รองรับเฉพาะไฟล์ JPG, PNG หรือ WEBP',
+                        });
+                      } else if (file) {
+                        setValue('storeLogo', file, { shouldValidate: true });
+                      }
+                    }}
+                    onDelete={() => setValue('storeLogo', null, { shouldValidate: true })}
+                  />
+                </Box>
+              ) : null}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Field.Autocomplete
                   name="province"

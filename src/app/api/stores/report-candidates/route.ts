@@ -47,18 +47,38 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Candidate query failed' }, { status: 500 });
   }
 
-  const candidates = (data ?? []).map((candidate: CandidateRow) => ({
+  const rows: CandidateRow[] = data ?? [];
+  const otherStoreIds = rows.filter((row) => row.store_type === 'other').map((row) => row.store_id);
+  const logos = new Map<string, string>();
+  if (otherStoreIds.length) {
+    const { data: stores, error: logoError } = await supabase
+      .from('stores')
+      .select('id, logo_path')
+      .in('id', otherStoreIds)
+      .not('logo_path', 'is', null);
+
+    if (logoError) {
+      console.error('[api/stores/report-candidates] logo query failed', logoError);
+    }
+
+    for (const store of stores ?? []) {
+      if (store.logo_path) {
+        const { data: logo } = supabase.storage.from('store-logos').getPublicUrl(store.logo_path);
+        logos.set(store.id, logo.publicUrl);
+      }
+    }
+  }
+
+  const candidates = rows.map((candidate) => ({
     storeId: candidate.store_id,
     storeName: candidate.store_name,
     storeType: candidate.store_type,
     address: candidate.address,
     province: candidate.province,
     district: candidate.district,
+    logoUrl: logos.get(candidate.store_id) ?? null,
     distanceM: Math.max(0, Math.round(Number(candidate.distance_m))),
   }));
 
-  return NextResponse.json(
-    { candidates },
-    { headers: { 'Cache-Control': 'private, no-store' } }
-  );
+  return NextResponse.json({ candidates }, { headers: { 'Cache-Control': 'private, no-store' } });
 }

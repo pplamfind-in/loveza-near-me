@@ -14,6 +14,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
 
+import { MobileCardCarousel } from './mobile-card-carousel';
 import { explorerCardSx, explorerLabelSx } from './explorer-styles';
 
 const finderSteps = [
@@ -451,6 +452,7 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
 
           <Box id="how-it-works" sx={{ pt: { xs: 8, md: 10 } }}>
             <Typography
+              component="h2"
               sx={{
                 textAlign: 'center',
                 color: 'var(--palette-primary-main)',
@@ -461,11 +463,12 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
             >
               HOW IT WORKS
             </Typography>
-            <Box
+            <MobileCardCarousel
               id="community"
-              sx={{
+              label="วิธีใช้งาน Loveza"
+              count={finderSteps.length}
+              gridSx={{
                 mt: 3,
-                display: 'grid',
                 gap: 2,
                 gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
               }}
@@ -488,7 +491,7 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
                   <Typography sx={{ color: step.color, fontSize: 13, fontWeight: 900 }}>
                     QUEST / {step.number}
                   </Typography>
-                  <Typography sx={{ mt: 3, fontSize: 22, fontWeight: 900 }}>
+                  <Typography component="h3" sx={{ mt: 3, fontSize: 22, fontWeight: 900 }}>
                     {step.title}
                   </Typography>
                   <Typography
@@ -498,7 +501,7 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
                   </Typography>
                 </Box>
               ))}
-            </Box>
+            </MobileCardCarousel>
           </Box>
         </Box>
       </Box>

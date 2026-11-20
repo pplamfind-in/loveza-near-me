@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
 
+import { MobileCardCarousel } from './mobile-card-carousel';
 import { explorerCardSx, explorerLabelSx } from './explorer-styles';
 
 const highlights = [
@@ -29,15 +30,17 @@ const highlights = [
 
 export function HighlightsSection() {
   return (
-    <Container maxWidth="lg" sx={{ position: 'relative', mt: { xs: -3, md: -7 }, zIndex: 1 }}>
-      <Box
-        component="section"
-        aria-label="เริ่มต้นใช้งาน Loveza Hunt"
-        sx={{
-          display: 'grid',
+    <Container
+      component="section"
+      maxWidth="lg"
+      sx={{ mt: { sm: 2, md: 4 }, pb: { xs: 3, md: 4 } }}
+    >
+      <MobileCardCarousel
+        label="เริ่มต้นใช้งาน Loveza Hunt"
+        count={highlights.length}
+        gridSx={{
           gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
           gap: 2,
-          pb: { xs: 3, md: 4 },
         }}
       >
         {highlights.map((item, index) => (
@@ -84,7 +87,7 @@ export function HighlightsSection() {
             </Box>
           </Box>
         ))}
-      </Box>
+      </MobileCardCarousel>
     </Container>
   );
 }

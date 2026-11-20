@@ -3,6 +3,7 @@ import { z } from 'zod';
 // ----------------------------------------------------------------------
 
 export const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+export const MAX_STORE_LOGO_SIZE = 2 * 1024 * 1024;
 export const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export const INVALID_PHOTO_MESSAGE = 'เปิดไฟล์ภาพไม่ได้ กรุณาเลือกรูปใหม่';
@@ -51,6 +52,15 @@ export const reportSchema = z.object({
     .refine((file) => file !== null, 'กรุณาแนบรูปหลักฐาน 1 รูป')
     .refine((file) => !file || file.size > 0, INVALID_PHOTO_MESSAGE)
     .refine((file) => !file || file.size <= MAX_PHOTO_SIZE, 'ไฟล์รูปต้องไม่เกิน 5MB')
+    .refine(
+      (file) => !file || ALLOWED_PHOTO_TYPES.includes(file.type),
+      'รองรับเฉพาะไฟล์ JPG, PNG หรือ WEBP'
+    ),
+  storeLogo: z
+    .instanceof(File)
+    .nullish()
+    .refine((file) => !file || file.size > 0, INVALID_PHOTO_MESSAGE)
+    .refine((file) => !file || file.size <= MAX_STORE_LOGO_SIZE, 'ไฟล์โลโก้ต้องไม่เกิน 2MB')
     .refine(
       (file) => !file || ALLOWED_PHOTO_TYPES.includes(file.type),
       'รองรับเฉพาะไฟล์ JPG, PNG หรือ WEBP'

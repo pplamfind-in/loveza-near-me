@@ -23,11 +23,6 @@ export function AdminAccount({ displayName, email, photoURL }: AdminAccountProps
         py: 0.75,
         pl: 0.75,
         pr: 1,
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: '12px',
-        bgcolor: 'background.paper',
-        boxShadow: '0 2px 0 var(--palette-grey-200)',
       }}
     >
       <Avatar

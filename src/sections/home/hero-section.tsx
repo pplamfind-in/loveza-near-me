@@ -12,12 +12,12 @@ export function HeroSection() {
       <Box
         sx={{
           position: 'relative',
-          overflow: 'hidden',
+          isolation: 'isolate',
           bgcolor: 'background.default',
-          minHeight: { md: '66.6667vw' },
+          minHeight: { md: 'clamp(580px, 60vw, 900px)' },
         }}
       >
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+        <Container maxWidth="lg">
           <Box
             sx={{
               maxWidth: 560,
@@ -25,7 +25,7 @@ export function HeroSection() {
                 xs: 'calc(var(--layout-header-mobile-height) + 24px)',
                 md: 'calc(var(--layout-header-desktop-height) + 64px)',
               },
-              pb: { xs: 3, md: 18 },
+              pb: { xs: 'clamp(120px, 35vw, 210px)', md: 8 },
             }}
           >
             <Stack
@@ -58,7 +58,7 @@ export function HeroSection() {
               ค้นพบร้านใหม่
               <br />
               ตามหา{' '}
-              <Box component="span" sx={{ color: '#FC0868', }}>
+              <Box component="span" sx={{ color: '#FC0868' }}>
                 LOVE ZA
               </Box>
               <br />
@@ -124,11 +124,6 @@ export function HeroSection() {
               sx={{
                 mt: { xs: 1.5, md: 2.5 },
                 color: 'var(--palette-text-secondary)',
-                bgcolor: { xs: 'rgba(251,246,237,.88)', md: 'transparent' },
-                width: 'fit-content',
-                px: { xs: 1, md: 0 },
-                py: { xs: 0.5, md: 0 },
-                borderRadius: '8px',
               }}
             >
               <Iconify icon="ri:shield-check-line" width={17} />
@@ -144,27 +139,30 @@ export function HeroSection() {
           width={1536}
           height={1024}
           sx={{
-            display: 'block',
-            position: { md: 'absolute' },
-            inset: { md: 0 },
+            position: 'absolute',
+            inset: 0,
+            zIndex: -2,
             width: 1,
-            height: { xs: 'auto', md: '100%' },
-            objectFit: { md: 'cover' },
-            objectPosition: { md: 'center bottom' },
+            height: 1,
+            objectFit: 'cover',
+            objectPosition: { xs: '65% bottom', md: 'center bottom' },
             maskImage: {
-              xs: 'linear-gradient(to bottom, transparent, black 8%, black 94%, transparent)',
-              md: 'linear-gradient(to bottom, black 90%, transparent)',
+              xs: 'linear-gradient(to bottom, #000 calc(100% - 56px), transparent)',
+              md: 'linear-gradient(to bottom, #000 calc(100% - 80px), transparent)',
             },
           }}
         />
         <Box
           aria-hidden="true"
           sx={{
-            display: { xs: 'none', md: 'block' },
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(90deg, rgba(251,246,237,.65) 0%, rgba(251,246,237,.36) 32%, transparent 58%)',
+            zIndex: -1,
+            pointerEvents: 'none',
+            background: {
+              xs: 'linear-gradient(180deg, rgba(251,246,237,.98) 0%, rgba(251,246,237,.92) 58%, rgba(251,246,237,.58) 76%, transparent 100%)',
+              md: 'linear-gradient(90deg, rgba(251,246,237,.98) 0%, rgba(251,246,237,.89) 38%, transparent 71%)',
+            },
           }}
         />
       </Box>

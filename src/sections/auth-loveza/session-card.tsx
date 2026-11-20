@@ -143,7 +143,10 @@ export function SessionCard({ user, role, compact = false, avatarOptions = [] }:
       <Stack
         direction={compact ? 'column' : { xs: 'column', sm: 'row' }}
         spacing={1.5}
-        sx={{ mt: compact ? 2.5 : 4 }}
+        sx={{
+          mt: compact ? 2.5 : 4,
+          ...(compact && !isAdmin && { display: { xs: 'none', md: 'flex' } }),
+        }}
       >
         <LovezaSignOutButton
           confirm={compact && !isAdmin}

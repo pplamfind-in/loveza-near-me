@@ -53,7 +53,7 @@ const SETTINGS_SECTION_SX = {
   border: '5px solid var(--palette-background-paper)',
   borderRadius: '16px',
   bgcolor: 'background.paper',
-  boxShadow: '0 4px 0 var(--palette-grey-200)',
+  boxShadow: 'var(--card-shadow, var(--customShadows-card))',
 };
 
 function getClosestOptionIndex(options: readonly number[], value: number) {
@@ -385,7 +385,6 @@ export function AdminSettingsPanel({
           position: 'relative',
           borderRadius: '16px',
           bgcolor: 'primary.lighter',
-          boxShadow: '0 4px 0 var(--palette-grey-200)',
           '&::after': {
             content: '""',
             width: 180,

@@ -60,6 +60,32 @@ export async function POST(request: Request) {
     };
   }
 
+  let logo: Buffer | undefined;
+  if (values.storeLogo && values.storeType === 'other' && !values.storeId) {
+    const file = values.storeLogo;
+    const format = file.type === 'image/jpg' ? 'jpeg' : file.type.slice('image/'.length);
+
+    try {
+      const image = sharp(Buffer.from(await file.arrayBuffer()), {
+        limitInputPixels: 16_000_000,
+      });
+      const metadata = await image.metadata();
+      if (metadata.format !== format) throw new Error(INVALID_PHOTO_MESSAGE);
+
+      logo = await image
+        .rotate()
+        .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 85 })
+        .toBuffer();
+    } catch {
+      return NextResponse.json(
+        { status: 'error', message: 'เปิดไฟล์โลโก้ไม่ได้ กรุณาเลือกรูปใหม่' },
+        { status: 400 }
+      );
+    }
+  }
+
+  let logoPath: string | undefined;
   let photoUrl: string | null = null;
   let photoPath: string | null = null;
 
@@ -95,9 +121,35 @@ export async function POST(request: Request) {
     photoUrl = supabase.storage.from('report-images').getPublicUrl(photoPath).data.publicUrl;
   }
 
-  const { data, error } = await supabase.rpc('submit_store_report_v2', {
+  const cleanupUploads = async () => {
+    if (photoPath) {
+      const { error } = await supabase.storage.from('report-images').remove([photoPath]);
+      if (error) console.error('[api/reports] failed to clean up orphaned photo', error);
+    }
+    if (logoPath) {
+      const { error } = await supabase.storage.from('store-logos').remove([logoPath]);
+      if (error) console.error('[api/reports] failed to clean up orphaned logo', error);
+    }
+  };
+
+  if (logo) {
+    const path = `${user.id}/${randomUUID()}.webp`;
+    const { error: uploadError } = await supabase.storage
+      .from('store-logos')
+      .upload(path, logo, { contentType: 'image/webp' });
+
+    if (uploadError) {
+      await cleanupUploads();
+      return NextResponse.json(
+        { status: 'error', message: 'อัปโหลดโลโก้ไม่สำเร็จ กรุณาลองอีกครั้ง' },
+        { status: 500 }
+      );
+    }
+    logoPath = path;
+  }
+
+  const reportArgs = {
     p_store_name: values.storeName,
-    p_store_type: values.storeType,
     p_address: values.address || null,
     p_province: values.province,
     p_district: values.district,
@@ -108,18 +160,17 @@ export async function POST(request: Request) {
     p_estimated_quantity: values.estimatedQuantity,
     p_photo_url: photoUrl,
     p_note: values.note || null,
-    p_store_id: values.storeId ?? null,
-  });
+  };
+  const { data, error } = logoPath
+    ? await supabase.rpc('submit_store_report_with_logo', { ...reportArgs, p_logo_path: logoPath })
+    : await supabase.rpc('submit_store_report_v2', {
+        ...reportArgs,
+        p_store_type: values.storeType,
+        p_store_id: values.storeId ?? null,
+      });
 
   if (error) {
-    if (photoPath) {
-      const { error: removeError } = await supabase.storage
-        .from('report-images')
-        .remove([photoPath]);
-      if (removeError) {
-        console.error('[api/reports] failed to clean up orphaned photo', removeError);
-      }
-    }
+    await cleanupUploads();
     console.error('[api/reports] atomic report submission failed', error);
     if (error.message.includes('Invalid report data')) {
       return NextResponse.json(
@@ -150,14 +201,7 @@ export async function POST(request: Request) {
   } | null;
 
   if (result?.duplicate) {
-    if (photoPath) {
-      const { error: removeError } = await supabase.storage
-        .from('report-images')
-        .remove([photoPath]);
-      if (removeError) {
-        console.error('[api/reports] failed to clean up orphaned photo', removeError);
-      }
-    }
+    await cleanupUploads();
 
     const distance = Math.max(0, Math.round(result.distanceM ?? 0));
 

@@ -11,17 +11,27 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
 
   return [
     {
-      subheader: 'จัดการข้อมูล',
+      subheader: 'ภาพรวม',
       items: [
         {
           title: 'ภาพรวม',
           path: '/admin',
-          icon: navIcon('ri:dashboard-3-fill'),
+          icon: navIcon('ri:dashboard-3-line'),
         },
+        {
+          title: 'สถิติการเข้าใช้งาน',
+          path: '/admin/analytics',
+          icon: navIcon('ri:line-chart-line'),
+        },
+      ],
+    },
+    {
+      subheader: 'พิกัดและร้านค้า',
+      items: [
         {
           title: 'ตรวจสอบพิกัด',
           path: '/admin/reports',
-          icon: navIcon('ri:map-pin-user-fill'),
+          icon: navIcon('ri:map-pin-user-line'),
           info:
             pendingReportsCount > 0 ? (
               <Label
@@ -36,7 +46,22 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
         {
           title: 'พิกัดทั้งหมด',
           path: '/admin/locations',
-          icon: navIcon('ri:map-2-fill'),
+          icon: navIcon('ri:map-2-line'),
+        },
+        {
+          title: 'ร้านค้า',
+          path: '/admin/store-types',
+          icon: navIcon('ri:store-3-line'),
+        },
+      ],
+    },
+    {
+      subheader: 'นักสำรวจและรางวัล',
+      items: [
+        {
+          title: 'เลเวลนักสำรวจ',
+          path: '/admin/explorer-levels',
+          icon: navIcon('ri:medal-line'),
         },
         {
           title: 'รางวัลนักสำรวจ',
@@ -44,65 +69,65 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           icon: navIcon('ri:gift-2-line'),
         },
         {
-          title: 'ประวัติดาวน์โหลดการ์ด',
-          path: '/admin/reward-downloads',
-          icon: navIcon('ri:download-2-line'),
-        },
-        {
           title: 'เงื่อนไขรางวัล',
           path: '/admin/reward-rules',
           icon: navIcon('ri:list-check-3'),
         },
         {
-          title: 'เลเวลนักสำรวจ',
-          path: '/admin/explorer-levels',
-          icon: navIcon('ri:bar-chart-box-line'),
+          title: 'ประวัติดาวน์โหลดการ์ด',
+          path: '/admin/reward-downloads',
+          icon: navIcon('ri:download-2-line'),
         },
+      ],
+    },
+    {
+      subheader: 'สินค้าและแบนเนอร์',
+      items: [
         {
           title: 'จัดการสินค้า',
           path: '/admin/products',
-          icon: navIcon('ri:drinks-2-fill'),
+          icon: navIcon('ri:shopping-bag-3-line'),
         },
         {
           title: 'จัดการแบนเนอร์',
           path: '/admin/banners',
-          icon: navIcon('ri:image-2-fill'),
+          icon: navIcon('ri:image-2-line'),
         },
-        {
-          title: 'ร้านค้า',
-          path: '/admin/store-types',
-          icon: navIcon('ri:store-3-fill'),
-        },
+      ],
+    },
+    {
+      subheader: 'ผู้ใช้และชุมชน',
+      items: [
         {
           title: 'ผู้ใช้งาน',
           path: '/admin/users',
-          icon: navIcon('ri:group-fill'),
+          icon: navIcon('ri:group-line'),
         },
         {
           title: 'จัดการกระทู้',
           path: '/admin/forum',
           deepMatch: true,
-          icon: navIcon('ri:chat-3-fill'),
+          icon: navIcon('ri:discuss-line'),
         },
         {
           title: 'ข้อความติดต่อ',
           path: '/admin/messages',
-          icon: navIcon('ri:mail-unread-fill'),
+          icon: navIcon('ri:mail-line'),
         },
-        {
-          title: 'สถิติการเข้าใช้งาน',
-          path: '/admin/analytics',
-          icon: navIcon('ri:line-chart-fill'),
-        },
+      ],
+    },
+    {
+      subheader: 'ระบบ',
+      items: [
         {
           title: 'ตั้งค่าระบบ',
           path: '/admin/settings',
-          icon: navIcon('ri:settings-3-fill'),
+          icon: navIcon('ri:settings-3-line'),
         },
         {
           title: 'คู่มือระบบ',
           path: '/admin/guide',
-          icon: navIcon('ri:book-2-fill'),
+          icon: navIcon('ri:book-open-line'),
         },
       ],
     },

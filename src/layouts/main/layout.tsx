@@ -151,7 +151,7 @@ export function MainLayout({
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
             {headerUser ? (
-              <LovezaHeaderAccount user={headerUser} avatarOnlyOnMobile={hideBottomNav} />
+              <LovezaHeaderAccount user={headerUser} hideSettingsOnMobile={hideBottomNav} />
             ) : (
               <Button
                 href="/auth/login"

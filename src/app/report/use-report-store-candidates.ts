@@ -10,13 +10,13 @@ export type ReportStoreCandidate = {
   province: string;
   district: string | null;
   distanceM: number;
+  logoUrl: string | null;
 };
 
 async function fetchReportStoreCandidates(latitude: number, longitude: number) {
-  const response = await fetch(
-    `/api/stores/report-candidates?lat=${latitude}&lng=${longitude}`,
-    { cache: 'no-store' }
-  );
+  const response = await fetch(`/api/stores/report-candidates?lat=${latitude}&lng=${longitude}`, {
+    cache: 'no-store',
+  });
   if (!response.ok) throw new Error('request failed');
 
   const payload = (await response.json()) as { candidates: ReportStoreCandidate[] };

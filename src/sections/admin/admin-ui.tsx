@@ -6,9 +6,9 @@ import GlobalStyles from '@mui/material/GlobalStyles';
 // Keep portal dialogs in the same visual system as the admin workspace.
 export function AdminUI({ children }: { children: React.ReactNode }) {
   return (
-    <Box data-loveza-admin sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
+    <Box data-loveza-admin sx={{ minHeight: '100dvh', bgcolor: 'common.white' }}>
       <GlobalStyles
-        styles={{
+        styles={(theme) => ({
           'body:has([data-loveza-admin])': {
             '& .MuiButton-root': {
               borderRadius: 10,
@@ -50,11 +50,11 @@ export function AdminUI({ children }: { children: React.ReactNode }) {
           '[data-loveza-admin] main .MuiPaper-root:not(.MuiAlert-root):not(.MuiPopover-paper)': {
             border: '5px solid #FFFDFA',
             borderRadius: 16,
-            boxShadow: '0 4px 0 #F2EADF',
+            boxShadow: `var(--card-shadow, ${theme.vars.customShadows.card})`,
             backgroundImage: 'none',
           },
           '[data-loveza-admin] main h1': { fontSize: 'clamp(26px, 3vw, 36px)', lineHeight: 1.4 },
-        }}
+        })}
       />
       {children}
     </Box>

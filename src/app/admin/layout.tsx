@@ -40,6 +40,10 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <AdminUI>
       <DashboardLayout
+        cssVars={{
+          '--layout-nav-bg': '#fff',
+          '--layout-nav-horizontal-bg': '#fff',
+        }}
         slotProps={{
           nav: {
             data: getAdminNavData(pendingReportsCount ?? 0),
@@ -59,7 +63,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
           },
           main: {
             sx: {
-              background: 'linear-gradient(180deg, #F4F2E8 0%, #FBF6ED 300px)',
+              bgcolor: 'common.white',
             },
           },
         }}
