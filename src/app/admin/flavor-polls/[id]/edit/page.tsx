@@ -24,7 +24,7 @@ export default async function EditFlavorPollPage({ params }: { params: Promise<{
     supabase
       .from('flavor_polls')
       .select(
-        'id, activity_type, title, slug, description_html, options, option_details, starts_at, ends_at, source_url, theme_color, theme_text_color, is_active, is_published'
+        'id, activity_type, title, slug, description_html, options, option_details, starts_at, ends_at, source_url, theme_color, theme_text_color, background_image_url, is_active, is_published'
       )
       .eq('id', id)
       .maybeSingle(),

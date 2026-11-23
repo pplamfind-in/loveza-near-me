@@ -9,6 +9,7 @@ export type EditorProps = UseEditorOptions & {
   value?: string;
   error?: boolean;
   fullItem?: boolean;
+  enableFontSize?: boolean;
   className?: string;
   sx?: SxProps<Theme>;
   resetValue?: boolean;
@@ -26,6 +27,7 @@ export type EditorToolbarProps = {
   fullscreen: boolean;
   onToggleFullscreen: () => void;
   fullItem?: EditorProps['fullItem'];
+  enableFontSize?: boolean;
 };
 
 export type EditorToolbarItemProps = ButtonBaseProps & {

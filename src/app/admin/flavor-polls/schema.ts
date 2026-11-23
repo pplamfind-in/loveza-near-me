@@ -8,7 +8,7 @@ const dateTimeSchema = z.iso.datetime('กรุณาระบุวันแ�
 
 export const flavorPollSchema = z
   .object({
-    activityType: z.enum(['poll', 'matching'], { error: 'กรุณาเลือกประเภทกิจกรรม' }),
+    activityType: z.enum(['poll', 'matching', 'photo'], { error: 'กรุณาเลือกประเภทกิจกรรม' }),
     title: z.string().trim().min(1, 'กรุณากรอกหัวข้อ').max(140, 'หัวข้อต้องไม่เกิน 140 ตัวอักษร'),
     slug: z
       .string()
@@ -23,6 +23,7 @@ export const flavorPollSchema = z
     themeColor: z
       .string()
       .refine((color) => !color || activityColorPattern.test(color), 'กรุณาเลือกสีที่ถูกต้อง'),
+    backgroundImageUrl: z.string().max(500),
     themeTextColor: z
       .string()
       .refine(
@@ -42,19 +43,14 @@ export const flavorPollSchema = z
     options: z
       .array(
         z.object({
-          label: z
-            .string()
-            .trim()
-            .min(1, 'กรุณากรอกชื่อตัวเลือก')
-            .max(80, 'ชื่อตัวเลือกต้องไม่เกิน 80 ตัวอักษร'),
+          label: z.string().trim().max(80, 'ชื่อตัวเลือกต้องไม่เกิน 80 ตัวอักษร'),
           description: z.string().trim().max(500, 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร'),
           imageUrl: z.string().max(500),
         })
       )
-      .min(2, 'กรุณาระบุอย่างน้อย 2 ตัวเลือก')
       .max(12, 'เพิ่มได้ไม่เกิน 12 ตัวเลือก'),
   })
-  .superRefine(({ publication, startsAt, endsAt, options }, ctx) => {
+  .superRefine(({ activityType, publication, startsAt, endsAt, options }, ctx) => {
     if (publication === 'scheduled' && !startsAt) {
       ctx.addIssue({ code: 'custom', path: ['startsAt'], message: 'กรุณาเลือกวันเริ่มกิจกรรม' });
     }
@@ -68,13 +64,18 @@ export const flavorPollSchema = z
     if (publication !== 'now' && startsAt && endsAt && Date.parse(endsAt) <= Date.parse(startsAt)) {
       ctx.addIssue({ code: 'custom', path: ['endsAt'], message: 'วันสิ้นสุดต้องอยู่หลังวันเริ่ม' });
     }
+    if (activityType === 'photo') return;
+
+    if (options.length < 2) {
+      ctx.addIssue({ code: 'custom', path: ['options'], message: 'กรุณาระบุอย่างน้อย 2 ตัวเลือก' });
+    }
     const labels = new Set<string>();
     options.forEach(({ label }, index) => {
-      if (label && labels.has(label)) {
+      if (!label || labels.has(label)) {
         ctx.addIssue({
           code: 'custom',
           path: ['options', index, 'label'],
-          message: 'ชื่อตัวเลือกนี้ซ้ำกัน',
+          message: label ? 'ชื่อตัวเลือกนี้ซ้ำกัน' : 'กรุณากรอกชื่อตัวเลือก',
         });
       }
       labels.add(label);

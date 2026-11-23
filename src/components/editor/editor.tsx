@@ -21,6 +21,7 @@ import FormHelperText from '@mui/material/FormHelperText';
 import { EditorRoot } from './styles';
 import { editorClasses } from './classes';
 import { Toolbar } from './components/toolbar';
+import { EditorFontSize } from './extension/font-size';
 import { BubbleToolbar } from './components/bubble-toolbar';
 import { CodeHighlightBlock } from './components/code-highlight-block';
 import { ClearFormat as ClearFormatExtension } from './extension/clear-format';
@@ -38,6 +39,7 @@ export function Editor({
   className,
   editable = true,
   fullItem = false,
+  enableFontSize = false,
   immediatelyRender = false,
   ref: contentRef,
   value: initialContent = '',
@@ -93,6 +95,7 @@ export function Editor({
       // Custom extensions
       TextTransformExtension,
       ClearFormatExtension,
+      ...(enableFontSize ? [EditorFontSize] : []),
     ],
     ...other,
   });
@@ -167,6 +170,7 @@ export function Editor({
               <Toolbar
                 editor={editor}
                 fullItem={fullItem}
+                enableFontSize={enableFontSize}
                 fullscreen={fullscreen}
                 onToggleFullscreen={handleToggleFullscreen}
               />

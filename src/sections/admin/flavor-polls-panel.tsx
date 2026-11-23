@@ -43,6 +43,10 @@ const feedback = {
   scheduled: { severity: 'success', text: 'สร้างกิจกรรมและบันทึกกำหนดเผยแพร่แล้ว' },
   closed: { severity: 'success', text: 'ปิดกิจกรรมแล้ว' },
   updated: { severity: 'success', text: 'อัปเดตกิจกรรมแล้ว' },
+  'has-photo-submissions': {
+    severity: 'warning',
+    text: 'กิจกรรมนี้มีภาพที่ส่งแล้ว สามารถปิดกิจกรรมเพื่อเก็บภาพไว้ได้',
+  },
   deleted: { severity: 'success', text: 'ลบกิจกรรมแล้ว' },
   'confirm-delete': { severity: 'warning', text: 'กรุณายืนยันก่อนลบกิจกรรม' },
 } as const;
@@ -50,7 +54,7 @@ const feedback = {
 type Poll = {
   id: string;
   title: string;
-  type: 'poll' | 'matching';
+  type: 'poll' | 'matching' | 'photo';
   active: boolean;
   status: keyof typeof flavorPollPublicationLabel;
   startsAt: string | null;
@@ -101,7 +105,7 @@ export function FlavorPollsPanel({
             จัดการกิจกรรม
           </Typography>
           <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-            จัดการโพลและเกมจับคู่บนหน้าแรก
+            จัดการโพล เกมจับคู่ และกิจกรรมส่งภาพถ่าย
           </Typography>
         </Box>
         <Button
@@ -137,15 +141,19 @@ export function FlavorPollsPanel({
                 >
                   {poll.title}
                   <Typography variant="caption" color="text.secondary" display="block">
-                    {poll.type === 'matching' ? 'เกมจับคู่' : 'โพล'}
+                    {poll.type === 'matching'
+                      ? 'เกมจับคู่'
+                      : poll.type === 'photo'
+                        ? 'ส่งภาพถ่าย'
+                        : 'โพล'}
                   </Typography>
                 </TableCell>
                 <TableCell align="center">
-                  {poll.options.length}
+                  {poll.type === 'photo' ? '—' : poll.options.length}
                   {poll.type === 'matching' ? ' คู่' : ''}
                 </TableCell>
                 <TableCell align="center">
-                  {totalsError || poll.type === 'matching'
+                  {totalsError || poll.type !== 'poll'
                     ? '—'
                     : poll.options
                         .reduce((sum, option) => sum + option.votes, 0)
@@ -174,9 +182,13 @@ export function FlavorPollsPanel({
                         ? poll.active
                           ? 'เล่นได้'
                           : 'ปิดเกม'
-                        : poll.active
-                          ? 'เปิดโหวต'
-                          : 'ปิดโหวต'}
+                        : poll.type === 'photo'
+                          ? poll.active
+                            ? 'เปิดรับภาพ'
+                            : 'ปิดรับภาพ'
+                          : poll.active
+                            ? 'เปิดโหวต'
+                            : 'ปิดโหวต'}
                     </Typography>
                   )}
                   {(poll.startsAt || poll.endsAt) && (
@@ -198,9 +210,9 @@ export function FlavorPollsPanel({
                   <Stack direction="row" justifyContent="flex-end">
                     {[
                       {
-                        action: 'results',
-                        icon: 'ri:bar-chart-box-line',
-                        label: 'ดูผลโหวต',
+                        action: poll.type === 'photo' ? 'submissions' : 'results',
+                        icon: poll.type === 'photo' ? 'ri:image-line' : 'ri:bar-chart-box-line',
+                        label: poll.type === 'photo' ? 'ดูภาพที่ส่ง' : 'ดูผลโหวต',
                         color: 'default',
                       },
                       { action: 'edit', icon: 'ri:edit-2-line', label: 'แก้ไข', color: 'default' },
@@ -222,8 +234,8 @@ export function FlavorPollsPanel({
                         <IconButton
                           component={Link}
                           href={
-                            item.action === 'edit'
-                              ? `${adminPath}${encodeURIComponent(poll.id)}/edit/`
+                            item.action === 'edit' || item.action === 'submissions'
+                              ? `${adminPath}${encodeURIComponent(poll.id)}/${item.action}/`
                               : `${adminPath}?action=${item.action}&id=${encodeURIComponent(poll.id)}`
                           }
                           prefetch={false}
@@ -231,6 +243,7 @@ export function FlavorPollsPanel({
                           onClick={(event) => {
                             if (
                               item.action === 'edit' ||
+                              item.action === 'submissions' ||
                               event.metaKey ||
                               event.ctrlKey ||
                               event.shiftKey ||

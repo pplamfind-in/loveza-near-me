@@ -3,6 +3,7 @@ import type { EditorToolbarProps } from '../types';
 
 import { varAlpha } from 'minimal-shared/utils';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import { styled } from '@mui/material/styles';
@@ -14,6 +15,7 @@ import { ToolbarItem } from './toolbar-item';
 import { HeadingBlock } from './heading-block';
 import { toolbarIcons } from './toolbar-icons';
 import { useToolbarState } from './use-toolbar-state';
+import { editorFontSizes } from '../extension/font-size';
 
 // ----------------------------------------------------------------------
 
@@ -21,6 +23,7 @@ export function Toolbar({
   sx,
   editor,
   fullItem,
+  enableFontSize,
   fullscreen,
   onToggleFullscreen,
   ...other
@@ -37,6 +40,36 @@ export function Toolbar({
       {...other}
     >
       <HeadingBlock editor={editor} isActive={toolbarState.isTextLevel} />
+      {enableFontSize && (
+        <Box
+          component="select"
+          aria-label="ขนาดตัวอักษร"
+          value={toolbarState.fontSize}
+          onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+            const size = event.target.value;
+            const command = chainCommands();
+            if (size) command.setMark('editorFontSize', { size }).run();
+            else command.unsetMark('editorFontSize').run();
+          }}
+          sx={{
+            px: 1,
+            height: 32,
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 1,
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            typography: 'body2',
+          }}
+        >
+          <option value="">ขนาดตัวอักษร</option>
+          {editorFontSizes.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </Box>
+      )}
 
       {/* Text styles */}
       <ToolbarBlock>

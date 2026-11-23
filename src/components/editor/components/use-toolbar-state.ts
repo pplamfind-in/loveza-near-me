@@ -9,6 +9,7 @@ import { useEditorState } from '@tiptap/react';
 export type TextAlignValue = 'left' | 'center' | 'right' | 'justify';
 
 export type UseToolbarStateReturn = {
+  fontSize: string;
   isBold: boolean;
   isCode: boolean;
   isLink: boolean;
@@ -33,6 +34,7 @@ export function useToolbarState(editor: Editor): UseToolbarStateReturn {
       const canRun = ctx.editor.can().chain().focus();
 
       return {
+        fontSize: ctx.editor.getAttributes('editorFontSize').size ?? '',
         isBold: ctx.editor.isActive('bold'),
         isCode: ctx.editor.isActive('code'),
         isLink: ctx.editor.isActive('link'),

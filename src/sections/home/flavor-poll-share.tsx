@@ -49,7 +49,8 @@ async function createShareImage(
   flavor: string,
   imageUrl: string | null,
   background: string,
-  foreground: string
+  foreground: string,
+  isPhoto: boolean
 ) {
   const [logo, can] = await Promise.all([
     loadImage('/logo/logo-email.png'),
@@ -90,16 +91,18 @@ async function createShareImage(
   ctx.textAlign = 'center';
   ctx.fillStyle = foreground;
   ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
-  ctx.fillText('โหวตสำเร็จ!', 540, 324, 920);
+  ctx.fillText(isPhoto ? 'ขอบคุณที่ร่วมกิจกรรม!' : 'โหวตสำเร็จ!', 540, 324, 920);
 
-  const bounds = getVisibleImageBounds(can);
-  const scale = Math.min(475 / bounds.width, 710 / bounds.height, 1);
+  const bounds = isPhoto
+    ? { x: 0, y: 0, width: can.naturalWidth, height: can.naturalHeight }
+    : getVisibleImageBounds(can);
+  const scale = Math.min((isPhoto ? 850 : 475) / bounds.width, 710 / bounds.height, 1);
   const width = bounds.width * scale;
   const height = bounds.height * scale;
   ctx.save();
   ctx.imageSmoothingQuality = 'high';
   ctx.translate(540, 704);
-  ctx.rotate((-8 * Math.PI) / 180);
+  if (!isPhoto) ctx.rotate((-8 * Math.PI) / 180);
   ctx.drawImage(
     can,
     bounds.x,
@@ -114,23 +117,27 @@ async function createShareImage(
   ctx.restore();
 
   ctx.font = '38px "LINE Seed Sans TH", sans-serif';
-  ctx.fillText('รสที่ฉันเลือก', 540, 1125, 920);
+  if (!isPhoto) ctx.fillText('รสที่ฉันเลือก', 540, 1125, 920);
   ctx.font = 'bold 72px "LINE Seed Sans TH", sans-serif';
   ctx.fillText(flavor, 540, 1210, 940);
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('Cannot export vote image');
-  return new File([blob], 'loveza-hunt-vote.png', { type: 'image/png' });
+  return new File([blob], isPhoto ? 'loveza-hunt-photo.png' : 'loveza-hunt-vote.png', {
+    type: 'image/png',
+  });
 }
 
 export function FlavorPollShare({
   flavor,
   imageUrl,
   secondaryAction,
+  isPhoto = false,
 }: {
   flavor: string;
   imageUrl: string | null;
   secondaryAction: ReactNode;
+  isPhoto?: boolean;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [failed, setFailed] = useState(false);
@@ -139,7 +146,7 @@ export function FlavorPollShare({
     let active = true;
     const main = document.querySelector('main[data-activity-page]');
     const styles = main ? getComputedStyle(main) : getComputedStyle(document.body);
-    createShareImage(flavor, imageUrl, styles.backgroundColor, styles.color)
+    createShareImage(flavor, imageUrl, styles.backgroundColor, styles.color, isPhoto)
       .then((image) => {
         if (active) setFile(image);
       })
@@ -149,7 +156,7 @@ export function FlavorPollShare({
     return () => {
       active = false;
     };
-  }, [flavor, imageUrl]);
+  }, [flavor, imageUrl, isPhoto]);
 
   const downloadImage = () => {
     if (!file) return;

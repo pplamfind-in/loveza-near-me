@@ -46,6 +46,7 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
       >
         {activities.map((activity) => {
           const matching = activity.activity_type === 'matching';
+          const photoActivity = activity.activity_type === 'photo';
           const status = getFlavorPollStatus(activity, now.getTime());
           const draft = !activity.is_published;
           const open = !draft && status === 'active';
@@ -99,11 +100,19 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                     }}
                   >
                     <Iconify
-                      icon={matching ? 'ri:gamepad-line' : 'ri:bar-chart-box-line'}
+                      icon={
+                        matching
+                          ? 'ri:gamepad-line'
+                          : photoActivity
+                            ? 'ri:camera-line'
+                            : 'ri:bar-chart-box-line'
+                      }
                       width={20}
                     />
                   </Box>
-                  <Typography variant="subtitle2">{matching ? 'เกมจับคู่' : 'โพลชุมชน'}</Typography>
+                  <Typography variant="subtitle2">
+                    {matching ? 'เกมจับคู่' : photoActivity ? 'กิจกรรมส่งภาพถ่าย' : 'โพลชุมชน'}
+                  </Typography>
                 </Stack>
                 <Chip
                   size="small"
@@ -113,7 +122,9 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                       ? 'ตัวอย่างกิจกรรม'
                       : matching && open
                         ? 'เล่นได้'
-                        : flavorPollStatusLabel[status]
+                        : photoActivity && open
+                          ? 'เปิดรับภาพ'
+                          : flavorPollStatusLabel[status]
                   }
                   sx={{ fontWeight: 700 }}
                 />
@@ -136,7 +147,13 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                 sx={{ color: 'primary.dark' }}
               >
                 <Typography variant="subtitle2">
-                  {open ? (matching ? 'เล่นเกม' : 'ร่วมโหวต') : 'ดูกิจกรรม'}
+                  {open
+                    ? matching
+                      ? 'เล่นเกม'
+                      : photoActivity
+                        ? 'ส่งภาพ'
+                        : 'ร่วมโหวต'
+                    : 'ดูกิจกรรม'}
                 </Typography>
                 <Iconify icon="ri:arrow-right-line" width={18} />
               </Stack>

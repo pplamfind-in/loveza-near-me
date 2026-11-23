@@ -15,6 +15,7 @@ import { paths } from 'src/routes/paths';
 
 import { isActivitySlug } from 'src/lib/activity-slug';
 import { createClient } from 'src/lib/supabase/server';
+import { getGuestVoterId } from 'src/lib/flavor-poll-guest';
 import { getFlavorPollOptionDetails } from 'src/lib/flavor-poll-options';
 import { activityTheme, activityColorPattern } from 'src/lib/activity-theme';
 import { sanitizeFlavorPollDescription } from 'src/lib/flavor-poll-description';
@@ -31,6 +32,7 @@ import { MatchingGame } from 'src/sections/home/matching-game';
 import { FlavorPollShare } from 'src/sections/home/flavor-poll-share';
 import { FlavorPollPicker } from 'src/sections/home/flavor-poll-picker';
 import { FlavorPollSubmit } from 'src/sections/home/flavor-poll-submit';
+import { ActivityPhotoForm } from 'src/sections/home/activity-photo-form';
 
 import { voteForFlavor, previewFlavorVote } from '../vote-action';
 
@@ -69,7 +71,10 @@ export default async function ActivityPage({
   const now = new Date();
   const columns =
     'id, slug, activity_type, title, description_html, options, is_published, is_active, option_details, starts_at, ends_at, source_url, theme_color';
-  const query = db.from('flavor_polls').select(`${columns}, theme_text_color`).eq(lookupColumn, id);
+  const query = db
+    .from('flavor_polls')
+    .select(`${columns}, theme_text_color, background_image_url`)
+    .eq(lookupColumn, id);
   const visible = `and(is_published.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
   const isDevelopment = process.env.NODE_ENV === 'development';
   const [result, adminSession] = await Promise.all([
@@ -84,34 +89,51 @@ export default async function ActivityPage({
   if (error) throw new Error('โหลดกิจกรรมไม่สำเร็จ');
   if (!poll) notFound();
 
+  const backgroundImage =
+    'background_image_url' in poll && typeof poll.background_image_url === 'string'
+      ? poll.background_image_url
+      : null;
   const textColor = 'theme_text_color' in poll ? poll.theme_text_color : null;
   const activityTextColor =
     typeof textColor === 'string' && activityColorPattern.test(textColor)
       ? textColor
       : 'var(--activity-contrast)';
   const matching = poll.activity_type === 'matching';
+  const photoActivity = poll.activity_type === 'photo';
   const pollStatus = getFlavorPollStatus(poll, now.getTime());
   const preview =
     adminPreview || (isDevelopment && (!poll.is_published || pollStatus !== 'active'));
-  const user = matching || preview ? null : (await db.auth.getUser()).data.user;
-  const vote = user
-    ? await db
-        .from('flavor_poll_votes')
-        .select('option_label')
-        .eq('voter_id', user.id)
-        .eq('poll_id', poll.id)
-        .maybeSingle()
-    : null;
+  const communityPoll = !matching && !photoActivity;
+  const [user, guestId] = await Promise.all([
+    matching || preview ? null : db.auth.getUser().then(({ data }) => data.user),
+    communityPoll && !preview ? getGuestVoterId() : null,
+  ]);
+  const [vote, guestVote] = await Promise.all([
+    user && communityPoll
+      ? db
+          .from('flavor_poll_votes')
+          .select('option_label')
+          .eq('voter_id', user.id)
+          .eq('poll_id', poll.id)
+          .maybeSingle()
+      : null,
+    guestId
+      ? db
+          .rpc('get_guest_flavor_vote', { target_poll_id: poll.id, browser_id: guestId })
+          .maybeSingle<{ option_label: string }>()
+      : null,
+  ]);
+  const voteError = vote?.error || guestVote?.error;
   const simulatedVote =
-    adminPreview && poll.options.includes(previewVote) ? previewVote : undefined;
-  const chosen = simulatedVote ?? vote?.data?.option_label;
+    adminPreview && !photoActivity && poll.options.includes(previewVote) ? previewVote : undefined;
+  const chosen = simulatedVote ?? vote?.data?.option_label ?? guestVote?.data?.option_label;
   const chosenImage = chosen
     ? getFlavorPollOptionDetails(poll.option_details, chosen).imageUrl
     : null;
 
   const open = preview ? matching : pollStatus === 'active';
   const playing = matching && open && step === 'play';
-  const canVote = !chosen && (adminPreview || (open && Boolean(user) && !vote?.error));
+  const canVote = !chosen && (adminPreview || (open && !voteError));
   const href = paths.activity.details(poll.slug ?? poll.id);
   const previewHref = adminPreview ? `${href}?preview=1` : href;
   const backHref = adminPreview
@@ -128,6 +150,12 @@ export default async function ActivityPage({
         minHeight: '100dvh',
         ...activityTheme(poll.theme_color),
         bgcolor: 'var(--activity-primary)',
+        ...(backgroundImage && {
+          backgroundImage: `url(${JSON.stringify(backgroundImage)})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }),
         color: activityTextColor,
         pt: { xs: 'calc(env(safe-area-inset-top) + 16px)', md: 3 },
         pb: matching
@@ -141,7 +169,7 @@ export default async function ActivityPage({
         }),
       }}
     >
-      {!matching && (
+      {!matching && !backgroundImage && (
         <Box
           aria-hidden="true"
           sx={{
@@ -198,7 +226,7 @@ export default async function ActivityPage({
           {!chosen && flavorVote === 'duplicate' && (
             <Alert severity="info">คุณโหวตกิจกรรมนี้แล้ว</Alert>
           )}
-          {(flavorVote === 'error' || vote?.error) && (
+          {(flavorVote === 'error' || voteError) && (
             <Alert severity="error">ส่งหรือโหลดข้อมูลโหวตไม่สำเร็จ กิจกรรมอาจปิดแล้ว</Alert>
           )}
           {chosen ? (
@@ -326,7 +354,25 @@ export default async function ActivityPage({
                     useFlexGap
                     flexWrap="wrap"
                   >
-                    {!matching && <Typography variant="subtitle2">โพลชุมชน</Typography>}
+                    {!matching && (
+                      <Typography
+                        variant="subtitle2"
+                        sx={
+                          photoActivity
+                            ? {
+                                px: 2,
+                                py: 0.5,
+                                borderRadius: '999px',
+                                border: '1px solid var(--activity-primary)',
+                                bgcolor: 'common.white',
+                                color: 'var(--activity-primary)',
+                              }
+                            : undefined
+                        }
+                      >
+                        {photoActivity ? 'กิจกรรมส่งภาพถ่าย' : 'โพลชุมชน'}
+                      </Typography>
+                    )}
                     {(matching || !preview) && (
                       <Chip
                         size="small"
@@ -357,7 +403,11 @@ export default async function ActivityPage({
                               ? open
                                 ? 'เล่นได้'
                                 : 'ปิดแล้ว'
-                              : flavorPollStatusLabel[pollStatus]
+                              : photoActivity && (open || pollStatus === 'closed')
+                                ? open
+                                  ? 'เปิดรับภาพ'
+                                  : 'ปิดรับภาพ'
+                                : flavorPollStatusLabel[pollStatus]
                         }
                       />
                     )}
@@ -391,20 +441,6 @@ export default async function ActivityPage({
                   <Typography variant="body2" color="inherit" sx={{ mt: 1 }}>
                     สิ้นสุด {formatBangkokPollDate(poll.ends_at)} น.
                   </Typography>
-                )}
-                {source && !playing && (
-                  <Button
-                    href={source}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="text"
-                    color="inherit"
-                    size="small"
-                    endIcon={<Iconify icon="ri:external-link-line" />}
-                    sx={{ mt: 1, alignSelf: 'center' }}
-                  >
-                    ดูโพสต์ต้นทาง
-                  </Button>
                 )}
                 {matching && open && !playing && (
                   <Button
@@ -475,6 +511,35 @@ export default async function ActivityPage({
                       }))}
                     />
                   )
+                ) : photoActivity ? (
+                  <Box sx={{ width: 1, maxWidth: 580, mx: 'auto', py: 2 }}>
+                    {preview || (open && user) ? (
+                      <ActivityPhotoForm
+                        activityId={poll.id}
+                        title={poll.title}
+                        preview={preview}
+                      />
+                    ) : open ? (
+                      <Button
+                        href={`/auth/login?next=${encodeURIComponent(href)}`}
+                        variant="contained"
+                        startIcon={<Iconify icon="ri:login-box-line" />}
+                        sx={{
+                          display: 'flex',
+                          mx: 'auto',
+                          width: 'fit-content',
+                          minHeight: 48,
+                          bgcolor: 'common.white',
+                          color: 'var(--activity-primary)',
+                          '&:hover': { bgcolor: 'common.white' },
+                        }}
+                      >
+                        เข้าสู่ระบบเพื่อส่งภาพ
+                      </Button>
+                    ) : (
+                      <Typography align="center">กิจกรรมนี้ปิดรับภาพแล้ว</Typography>
+                    )}
+                  </Box>
                 ) : (
                   <Stack
                     component="form"
@@ -499,42 +564,25 @@ export default async function ActivityPage({
                       }))}
                       canVote={canVote}
                     />
-                    {preview || (open && user) ? (
-                      <FlavorPollSubmit disabled={!canVote} />
-                    ) : open ? (
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        alignItems={{ sm: 'center' }}
-                        justifyContent="space-between"
-                        spacing={1.5}
-                        sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 1.5 }}
-                      >
-                        <Typography variant="body2" color="inherit">
-                          เข้าสู่ระบบเพื่อเลือกคำตอบและส่งโหวต
-                        </Typography>
-                        <Button
-                          href={`/auth/login?next=${encodeURIComponent(href)}`}
-                          variant="contained"
-                          startIcon={<Iconify icon="ri:login-box-line" />}
-                          sx={{
-                            bgcolor: 'var(--activity-contrast)',
-                            color: 'var(--activity-primary)',
-                            '&:hover': {
-                              bgcolor: 'var(--activity-contrast)',
-                              filter: 'brightness(.94)',
-                            },
-                            flexShrink: 0,
-                            minHeight: 48,
-                          }}
-                        >
-                          เข้าสู่ระบบเพื่อโหวต
-                        </Button>
-                      </Stack>
-                    ) : null}
+                    {(preview || open) && <FlavorPollSubmit disabled={!canVote} />}
                   </Stack>
                 )}
               </Box>
             </Stack>
+          )}
+          {source && !playing && (
+            <Button
+              href={source}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="text"
+              color="inherit"
+              size="small"
+              endIcon={<Iconify icon="ri:external-link-line" />}
+              sx={{ alignSelf: 'center', minHeight: 44 }}
+            >
+              ดูโพสต์ต้นทาง
+            </Button>
           )}
         </Stack>
       </Container>

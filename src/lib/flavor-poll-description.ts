@@ -38,6 +38,7 @@ export function sanitizeFlavorPollDescription(html: string) {
     },
     allowedStyles: {
       '*': { 'text-align': [/^(left|center|right|justify)$/] },
+      span: { 'font-size': [/^(12|14|16|18|20|24|28|32)px$/] },
     },
     allowedSchemes: ['https'],
     allowProtocolRelative: false,

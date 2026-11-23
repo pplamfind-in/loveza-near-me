@@ -57,6 +57,7 @@ type FlavorPollFormProps = {
     source_url: string | null;
     theme_color: string | null;
     theme_text_color: string | null;
+    background_image_url: string | null;
     is_active: boolean;
     status: keyof typeof flavorPollPublicationLabel;
   };
@@ -110,6 +111,7 @@ export function FlavorPollForm({
               : 'now',
       themeColor: poll?.theme_color ?? '',
       themeTextColor: poll?.theme_text_color ?? '',
+      backgroundImageUrl: poll?.background_image_url ?? '',
       startsAt: poll?.starts_at ? dayjs(poll.starts_at).toISOString() : null,
       endsAt: poll?.ends_at ? dayjs(poll.ends_at).toISOString() : null,
       sourceUrl: poll?.source_url ?? '',
@@ -132,13 +134,14 @@ export function FlavorPollForm({
   const activityType = useWatch({ control, name: 'activityType' });
   const themeColor = useWatch({ control, name: 'themeColor' });
   const themeTextColor = useWatch({ control, name: 'themeTextColor' });
+  const backgroundImageUrl = useWatch({ control, name: 'backgroundImageUrl' });
   const automaticTextColor = activityTheme(themeColor || theme.palette.primary.main)[
     '--activity-contrast'
   ];
   const isMatching = activityType === 'matching';
   const startsAt = useWatch({ control, name: 'startsAt' });
   const options = useWatch({ control, name: 'options' });
-  const [uploading, setUploading] = useState<number | null>(null);
+  const [uploading, setUploading] = useState<number | 'background' | null>(null);
   const optionError = errors.options?.root?.message ?? errors.options?.message;
 
   const submit = handleSubmit(async (values) => {
@@ -153,16 +156,19 @@ export function FlavorPollForm({
     }
   });
 
-  async function uploadOptionImage(id: number, file: File) {
-    clearErrors(`options.${id}.imageUrl`);
+  async function uploadImage(target: number | 'background', file: File) {
+    const field =
+      target === 'background' ? 'backgroundImageUrl' : (`options.${target}.imageUrl` as const);
+    clearErrors(field);
     if (file.size > MAX_FLAVOR_POLL_IMAGE_BYTES) {
-      setError(`options.${id}.imageUrl`, { message: 'รูปตัวเลือกต้องมีขนาดไม่เกิน 4 MB' });
+      setError(field, { message: 'รูปภาพต้องมีขนาดไม่เกิน 4 MB' });
       return;
     }
-    setUploading(id);
+    setUploading(target);
     try {
       const data = new FormData();
       data.set('image', file);
+      if (target === 'background') data.set('purpose', 'background');
       const response = await fetch('/api/admin/flavor-polls/image/', {
         method: 'POST',
         body: data,
@@ -171,12 +177,11 @@ export function FlavorPollForm({
         url?: string;
         error?: string;
       } | null;
-      if (!response.ok || !result?.url)
-        throw new Error(result?.error ?? 'อัปโหลดรูปตัวเลือกไม่สำเร็จ');
-      setValue(`options.${id}.imageUrl`, result.url, { shouldDirty: true, shouldValidate: true });
+      if (!response.ok || !result?.url) throw new Error(result?.error ?? 'อัปโหลดรูปภาพไม่สำเร็จ');
+      setValue(field, result.url, { shouldDirty: true, shouldValidate: true });
     } catch (cause) {
-      setError(`options.${id}.imageUrl`, {
-        message: cause instanceof Error ? cause.message : 'อัปโหลดรูปตัวเลือกไม่สำเร็จ',
+      setError(field, {
+        message: cause instanceof Error ? cause.message : 'อัปโหลดรูปภาพไม่สำเร็จ',
       });
     } finally {
       setUploading(null);
@@ -260,6 +265,7 @@ export function FlavorPollForm({
                   >
                     <MenuItem value="poll">สร้างโพล</MenuItem>
                     <MenuItem value="matching">เกมจับคู่</MenuItem>
+                    <MenuItem value="photo">ส่งภาพถ่าย</MenuItem>
                   </Field.Text>
                   <Field.Text
                     name="title"
@@ -291,7 +297,7 @@ export function FlavorPollForm({
                 }}
               >
                 <Typography id="activity-colors-heading" component="h2" variant="subtitle1">
-                  สีของหน้ากิจกรรม
+                  รูปลักษณ์หน้ากิจกรรม
                 </Typography>
                 <Box
                   sx={{
@@ -382,12 +388,62 @@ export function FlavorPollForm({
                       textAlign: 'center',
                       borderRadius: 1.5,
                       bgcolor: themeColor || theme.palette.primary.main,
+                      backgroundImage: backgroundImageUrl
+                        ? `url(${JSON.stringify(backgroundImageUrl)})`
+                        : undefined,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
                       color: themeTextColor || automaticTextColor,
                     }}
                   >
                     <Typography variant="subtitle2">ตัวอย่างสีข้อความ</Typography>
                   </Stack>
                 </Box>
+                <Stack alignItems="flex-start" spacing={1}>
+                  <Typography variant="subtitle2">ภาพพื้นหลัง</Typography>
+                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<Iconify icon="ri:image-add-line" />}
+                      loading={uploading === 'background'}
+                      disabled={saving || uploading !== null}
+                    >
+                      {backgroundImageUrl ? 'เปลี่ยนภาพพื้นหลัง' : 'อัปโหลดภาพพื้นหลัง'}
+                      <input
+                        hidden
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = '';
+                          if (file) void uploadImage('background', file);
+                        }}
+                      />
+                    </Button>
+                    {backgroundImageUrl && (
+                      <Button
+                        color="error"
+                        disabled={saving || uploading !== null}
+                        onClick={() => {
+                          clearErrors('backgroundImageUrl');
+                          setValue('backgroundImageUrl', '', {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                        }}
+                      >
+                        ลบภาพพื้นหลัง
+                      </Button>
+                    )}
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    รองรับ JPG, PNG และ WebP ขนาดไม่เกิน 4 MB
+                  </Typography>
+                  {errors.backgroundImageUrl?.message && (
+                    <Alert severity="error">{errors.backgroundImageUrl.message}</Alert>
+                  )}
+                </Stack>
               </Stack>
               <Stack spacing={1}>
                 <Typography id="activity-description-label" component="h2" variant="subtitle1">
@@ -405,6 +461,8 @@ export function FlavorPollForm({
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message}
                       placeholder="เขียนคำอธิบาย วิธีร่วมกิจกรรม หรือกติกา"
+                      enableFontSize
+                      sx={{ '& .tiptap p': { fontSize: '0.875rem' } }}
                       editorProps={{
                         attributes: { 'aria-labelledby': 'activity-description-label' },
                       }}
@@ -519,211 +577,225 @@ export function FlavorPollForm({
                   slotProps={{ htmlInput: { maxLength: 2048 } }}
                 />
               </Stack>
-              <Stack component="section" aria-labelledby="flavor-options-title" spacing={2}>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  gap={1}
-                  flexWrap="wrap"
-                >
-                  <Box>
-                    <Typography id="flavor-options-title" component="h2" variant="h6">
-                      {isMatching ? 'คู่การ์ด' : 'ตัวเลือก'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {optionsLocked
-                        ? votesError
-                          ? 'โหลดผลโหวตไม่สำเร็จ'
-                          : 'มีผลโหวตแล้ว แก้ไขได้เฉพาะรูปและรายละเอียด'
-                        : isMatching
-                          ? `${fields.length} คู่ · ระบบสร้างการ์ดสองใบต่อรายการ`
-                          : `มี ${fields.length} ตัวเลือก · กำหนดได้ 2–12 ตัวเลือก`}
-                    </Typography>
-                  </Box>
-                  {!optionsLocked && (
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      disabled={saving || fields.length >= 12}
-                      startIcon={<Iconify icon="ri:add-line" />}
-                      onClick={() => append({ label: '', imageUrl: '', description: '' })}
-                    >
-                      {isMatching ? 'เพิ่มคู่การ์ด' : 'เพิ่มตัวเลือก'}
-                    </Button>
-                  )}
-                </Stack>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gap: 2,
-                    gridTemplateColumns: {
-                      xs: 'minmax(0, 1fr)',
-                      md: 'repeat(2, minmax(0, 1fr))',
-                      lg: isMatching ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
-                    },
-                  }}
-                >
-                  {fields.map(({ id }, index) => {
-                    const imageUrl = options[index]?.imageUrl;
-                    return (
-                      <Stack
-                        key={id}
-                        spacing={1.5}
-                        sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+              {activityType !== 'photo' && (
+                <Stack component="section" aria-labelledby="flavor-options-title" spacing={2}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={1}
+                    flexWrap="wrap"
+                  >
+                    <Box>
+                      <Typography id="flavor-options-title" component="h2" variant="h6">
+                        {isMatching ? 'คู่การ์ด' : 'ตัวเลือก'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {optionsLocked
+                          ? votesError
+                            ? 'โหลดผลโหวตไม่สำเร็จ'
+                            : 'มีผลโหวตแล้ว แก้ไขได้เฉพาะรูปและรายละเอียด'
+                          : isMatching
+                            ? `${fields.length} คู่ · ระบบสร้างการ์ดสองใบต่อรายการ`
+                            : `มี ${fields.length} ตัวเลือก · กำหนดได้ 2–12 ตัวเลือก`}
+                      </Typography>
+                    </Box>
+                    {!optionsLocked && (
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        disabled={saving || fields.length >= 12}
+                        startIcon={<Iconify icon="ri:add-line" />}
+                        onClick={() => append({ label: '', imageUrl: '', description: '' })}
                       >
-                        {isMatching && (
-                          <TextField
-                            select
-                            size="small"
-                            label="เติมจากสินค้า"
-                            value=""
-                            disabled={
-                              optionsLocked || saving || uploading !== null || !cardProducts.length
-                            }
-                            helperText={
-                              cardProductsError
-                                ? 'โหลดรายการสินค้าไม่สำเร็จ'
-                                : !cardProducts.length
-                                  ? 'ยังไม่มีสินค้าที่เปิดแสดง'
-                                  : undefined
-                            }
-                            onChange={(event) => {
-                              const product = cardProducts.find(
-                                ({ id: productId }) => productId === event.target.value
-                              );
-                              if (!product) return;
-                              setValue(
-                                `options.${index}`,
-                                {
-                                  label: product.label,
-                                  description: product.description,
-                                  imageUrl: product.imageUrl,
-                                },
-                                { shouldDirty: true, shouldValidate: true }
-                              );
-                            }}
-                          >
-                            {cardProducts.map((product) => (
-                              <MenuItem key={product.id} value={product.id}>
-                                <Stack direction="row" spacing={1.25} alignItems="center">
-                                  {product.imageUrl && (
-                                    <Box
-                                      component="img"
-                                      src={product.imageUrl}
-                                      alt=""
-                                      sx={{ width: 30, height: 30, objectFit: 'contain' }}
-                                    />
-                                  )}
-                                  {product.label}
-                                </Stack>
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        )}
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Field.Text
-                            name={`options.${index}.label`}
-                            label={`${isMatching ? 'คู่การ์ด' : 'ตัวเลือก'}ที่ ${index + 1}`}
-                            fullWidth
-                            size="small"
-                            required
-                            slotProps={{ htmlInput: { maxLength: 80, readOnly: optionsLocked } }}
-                          />
-                          {!optionsLocked && (
-                            <IconButton
-                              type="button"
-                              aria-label={`ลบตัวเลือกที่ ${index + 1}`}
-                              color="error"
-                              disabled={saving || uploading !== null || fields.length <= 2}
-                              onClick={() => remove(index)}
-                            >
-                              <Iconify icon="ri:delete-bin-6-line" />
-                            </IconButton>
-                          )}
-                        </Stack>
-                        <Field.Text
-                          name={`options.${index}.description`}
-                          label="รายละเอียด (ไม่บังคับ)"
-                          multiline
-                          minRows={2}
-                          slotProps={{ htmlInput: { maxLength: 500 } }}
-                        />
-                        {imageUrl && (
-                          <Box
-                            component="img"
-                            src={imageUrl}
-                            alt={`รูปตัวเลือกที่ ${index + 1}`}
-                            sx={{
-                              width: 1,
-                              height: 160,
-                              objectFit: 'contain',
-                              bgcolor: 'background.neutral',
-                              borderRadius: 1,
-                            }}
-                          />
-                        )}
-                        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                          <Button
-                            component="label"
-                            variant="outlined"
-                            size="small"
-                            disabled={saving || uploading !== null}
-                            startIcon={<Iconify icon="ri:image-add-line" />}
-                            sx={{ '&:focus-within': { outline: '2px solid', outlineOffset: 2 } }}
-                          >
-                            {uploading === index
-                              ? 'กำลังอัปโหลด'
-                              : imageUrl
-                                ? 'เปลี่ยนรูป'
-                                : 'เพิ่มรูป'}
-                            <Box
-                              component="input"
-                              type="file"
-                              sx={{
-                                position: 'absolute',
-                                width: '1px',
-                                height: '1px',
-                                p: 0,
-                                overflow: 'hidden',
-                                clipPath: 'inset(50%)',
-                              }}
-                              accept="image/jpeg,image/png,image/webp"
-                              disabled={saving || uploading !== null}
-                              aria-label={`อัปโหลดรูปตัวเลือกที่ ${index + 1}`}
+                        {isMatching ? 'เพิ่มคู่การ์ด' : 'เพิ่มตัวเลือก'}
+                      </Button>
+                    )}
+                  </Stack>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: {
+                        xs: 'minmax(0, 1fr)',
+                        md: 'repeat(2, minmax(0, 1fr))',
+                        lg: isMatching ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
+                      },
+                    }}
+                  >
+                    {fields.map(({ id }, index) => {
+                      const imageUrl = options[index]?.imageUrl;
+                      return (
+                        <Stack
+                          key={id}
+                          spacing={1.5}
+                          sx={{
+                            p: 2,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 2,
+                          }}
+                        >
+                          {isMatching && (
+                            <TextField
+                              select
+                              size="small"
+                              label="เติมจากสินค้า"
+                              value=""
+                              disabled={
+                                optionsLocked ||
+                                saving ||
+                                uploading !== null ||
+                                !cardProducts.length
+                              }
+                              helperText={
+                                cardProductsError
+                                  ? 'โหลดรายการสินค้าไม่สำเร็จ'
+                                  : !cardProducts.length
+                                    ? 'ยังไม่มีสินค้าที่เปิดแสดง'
+                                    : undefined
+                              }
                               onChange={(event) => {
-                                const file = event.target.files?.[0];
-                                event.target.value = '';
-                                if (file) void uploadOptionImage(index, file);
+                                const product = cardProducts.find(
+                                  ({ id: productId }) => productId === event.target.value
+                                );
+                                if (!product) return;
+                                setValue(
+                                  `options.${index}`,
+                                  {
+                                    label: product.label,
+                                    description: product.description,
+                                    imageUrl: product.imageUrl,
+                                  },
+                                  { shouldDirty: true, shouldValidate: true }
+                                );
+                              }}
+                            >
+                              {cardProducts.map((product) => (
+                                <MenuItem key={product.id} value={product.id}>
+                                  <Stack direction="row" spacing={1.25} alignItems="center">
+                                    {product.imageUrl && (
+                                      <Box
+                                        component="img"
+                                        src={product.imageUrl}
+                                        alt=""
+                                        sx={{ width: 30, height: 30, objectFit: 'contain' }}
+                                      />
+                                    )}
+                                    {product.label}
+                                  </Stack>
+                                </MenuItem>
+                              ))}
+                            </TextField>
+                          )}
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Field.Text
+                              name={`options.${index}.label`}
+                              label={`${isMatching ? 'คู่การ์ด' : 'ตัวเลือก'}ที่ ${index + 1}`}
+                              fullWidth
+                              size="small"
+                              required
+                              slotProps={{ htmlInput: { maxLength: 80, readOnly: optionsLocked } }}
+                            />
+                            {!optionsLocked && (
+                              <IconButton
+                                type="button"
+                                aria-label={`ลบตัวเลือกที่ ${index + 1}`}
+                                color="error"
+                                disabled={saving || uploading !== null || fields.length <= 2}
+                                onClick={() => remove(index)}
+                              >
+                                <Iconify icon="ri:delete-bin-6-line" />
+                              </IconButton>
+                            )}
+                          </Stack>
+                          <Field.Text
+                            name={`options.${index}.description`}
+                            label="รายละเอียด (ไม่บังคับ)"
+                            multiline
+                            minRows={2}
+                            slotProps={{ htmlInput: { maxLength: 500 } }}
+                          />
+                          {imageUrl && (
+                            <Box
+                              component="img"
+                              src={imageUrl}
+                              alt={`รูปตัวเลือกที่ ${index + 1}`}
+                              sx={{
+                                width: 1,
+                                height: 160,
+                                objectFit: 'contain',
+                                bgcolor: 'background.neutral',
+                                borderRadius: 1,
                               }}
                             />
-                          </Button>
-                          {imageUrl && (
+                          )}
+                          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                             <Button
-                              type="button"
-                              color="error"
+                              component="label"
+                              variant="outlined"
                               size="small"
                               disabled={saving || uploading !== null}
-                              onClick={() =>
-                                setValue(`options.${index}.imageUrl`, '', {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                })
-                              }
+                              startIcon={<Iconify icon="ri:image-add-line" />}
+                              sx={{ '&:focus-within': { outline: '2px solid', outlineOffset: 2 } }}
                             >
-                              นำรูปออก
+                              {uploading === index
+                                ? 'กำลังอัปโหลด'
+                                : imageUrl
+                                  ? 'เปลี่ยนรูป'
+                                  : 'เพิ่มรูป'}
+                              <Box
+                                component="input"
+                                type="file"
+                                sx={{
+                                  position: 'absolute',
+                                  width: '1px',
+                                  height: '1px',
+                                  p: 0,
+                                  overflow: 'hidden',
+                                  clipPath: 'inset(50%)',
+                                }}
+                                accept="image/jpeg,image/png,image/webp"
+                                disabled={saving || uploading !== null}
+                                aria-label={`อัปโหลดรูปตัวเลือกที่ ${index + 1}`}
+                                onChange={(event) => {
+                                  const file = event.target.files?.[0];
+                                  event.target.value = '';
+                                  if (file) void uploadImage(index, file);
+                                }}
+                              />
                             </Button>
+                            {imageUrl && (
+                              <Button
+                                type="button"
+                                color="error"
+                                size="small"
+                                disabled={saving || uploading !== null}
+                                onClick={() =>
+                                  setValue(`options.${index}.imageUrl`, '', {
+                                    shouldDirty: true,
+                                    shouldValidate: true,
+                                  })
+                                }
+                              >
+                                นำรูปออก
+                              </Button>
+                            )}
+                          </Stack>
+                          {errors.options?.[index]?.imageUrl?.message && (
+                            <Alert severity="error">
+                              {errors.options[index]?.imageUrl?.message}
+                            </Alert>
                           )}
                         </Stack>
-                        {errors.options?.[index]?.imageUrl?.message && (
-                          <Alert severity="error">{errors.options[index]?.imageUrl?.message}</Alert>
-                        )}
-                      </Stack>
-                    );
-                  })}
-                </Box>
-              </Stack>
-              {optionError && <Alert severity="error">{optionError}</Alert>}
+                      );
+                    })}
+                  </Box>
+                </Stack>
+              )}
+              {activityType !== 'photo' && optionError && (
+                <Alert severity="error">{optionError}</Alert>
+              )}
               {errors.root?.save?.message && (
                 <Alert severity="error">{errors.root.save.message}</Alert>
               )}

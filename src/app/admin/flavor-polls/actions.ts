@@ -30,23 +30,26 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
     publication,
     themeColor,
     themeTextColor,
+    backgroundImageUrl,
     startsAt,
     endsAt,
     sourceUrl,
-    options,
   } = parsed.data;
+  const options = activityType === 'photo' ? [] : parsed.data.options;
   const imageBase = supabase.storage
     .from(FLAVOR_POLL_IMAGE_BUCKET)
     .getPublicUrl('placeholder')
     .data.publicUrl.replace(/placeholder$/, '');
+  const isUploadedImage = (url: string) =>
+    url.startsWith(imageBase) &&
+    /^[\da-f-]{36}\/[\da-f-]{36}\.webp$/i.test(url.slice(imageBase.length));
+
+  if (backgroundImageUrl && !isUploadedImage(backgroundImageUrl)) {
+    return 'กรุณาอัปโหลดภาพพื้นหลังผ่านฟอร์มกิจกรรม';
+  }
   const catalogImages = options
     .map(({ imageUrl }) => imageUrl)
-    .filter(
-      (url) =>
-        url &&
-        (!url.startsWith(imageBase) ||
-          !/^[\da-f-]{36}\/[\da-f-]{36}\.webp$/i.test(url.slice(imageBase.length)))
-    );
+    .filter((url) => url && !isUploadedImage(url));
   if (catalogImages.length) {
     const [catalog, existing] = await Promise.all([
       getFlavorPollCardProducts(supabase),
@@ -80,6 +83,7 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
     is_published: publication !== 'draft',
     theme_color: themeColor || null,
     theme_text_color: themeTextColor || null,
+    background_image_url: backgroundImageUrl || null,
     options: options.map(({ label }) => label),
     option_details: Object.fromEntries(
       options.map(({ label, description, imageUrl }) => [label, { description, imageUrl }])
@@ -135,5 +139,7 @@ export async function deleteFlavorPoll(id: string, formData: FormData) {
   }
 
   const { error } = await supabase.from('flavor_polls').delete().eq('id', id).select('id').single();
-  redirect(`${adminPath}?status=${error ? 'error' : 'deleted'}`);
+  redirect(
+    `${adminPath}?status=${error?.code === '23503' ? 'has-photo-submissions' : error ? 'error' : 'deleted'}`
+  );
 }

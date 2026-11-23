@@ -13,6 +13,7 @@ export async function POST(request: Request) {
 
   const form = await request.formData().catch(() => null);
   const image = form?.get('image');
+  const maxDimension = form?.get('purpose') === 'background' ? 1920 : 1200;
   if (
     !(image instanceof File) ||
     !image.size ||
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
   try {
     content = await sharp(Buffer.from(await image.arrayBuffer()), { limitInputPixels: 40_000_000 })
       .rotate()
-      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 85 })
       .toBuffer();
   } catch {
