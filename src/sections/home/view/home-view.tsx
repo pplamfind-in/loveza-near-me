@@ -4,7 +4,6 @@ import type { LandingBanner } from 'src/types/landing-banner';
 import type { LovezaProduct } from 'src/types/loveza-product';
 
 import Image from 'next/image';
-import Script from 'next/script';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -132,28 +131,18 @@ export function HomeView({
                 maxWidth: 400,
                 flexShrink: 0,
                 alignSelf: 'center',
-                '& .instagram-media, & iframe': {
-                  minWidth: '0 !important',
-                  width: '100% !important',
-                  margin: '0 !important',
-                },
+                p: 2,
+                borderRadius: 2,
+                bgcolor: 'background.default',
+                textAlign: 'center',
               }}
             >
-              <Box
-                component="blockquote"
-                className="instagram-media"
-                data-instgrm-permalink={ownerInstagramUrl}
-                data-instgrm-version="14"
-                sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default', textAlign: 'center' }}
-              >
-                <Typography component="div" variant="subtitle2">
-                  @sungstarwin
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Starwin Narkthongpet
-                </Typography>
-              </Box>
-              <Script src="https://www.instagram.com/embed.js" strategy="lazyOnload" />
+              <Typography component="div" variant="subtitle2">
+                @sungstarwin
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Starwin Narkthongpet
+              </Typography>
             </Box>
           </Stack>
         </Container>
