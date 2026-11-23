@@ -57,6 +57,7 @@ declare global {
 type GoogleLoginButtonProps = {
   clientId: string;
   nextPath?: string;
+  onSuccess?: () => Promise<void>;
 };
 
 function createNonce() {
@@ -69,7 +70,7 @@ async function hashNonce(value: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ clientId, nextPath, onSuccess }: GoogleLoginButtonProps) {
   const router = useRouter();
   const buttonRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef('');
@@ -95,6 +96,11 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
         return;
       }
 
+      if (onSuccess) {
+        await onSuccess();
+        return;
+      }
+
       const role = data.user?.app_metadata.role ?? 'user';
       const safeUserPath = getSafeRedirectPath(nextPath, '/account');
       const userPath = safeUserPath.startsWith('/admin') ? '/account' : safeUserPath;
@@ -102,7 +108,7 @@ export function GoogleLoginButton({ clientId, nextPath }: GoogleLoginButtonProps
       router.replace(role === 'admin' ? '/admin' : userPath);
       router.refresh();
     },
-    [nextPath, router]
+    [nextPath, onSuccess, router]
   );
 
   useEffect(() => {

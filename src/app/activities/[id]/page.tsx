@@ -57,12 +57,11 @@ export default async function ActivityPage({
     step?: string;
     preview?: string;
     previewVote?: string;
+    results?: string;
   }>;
 }) {
-  const [{ id }, { flavorVote, step, preview: previewParam, previewVote }] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+  const [{ id }, { flavorVote, step, preview: previewParam, previewVote, results }] =
+    await Promise.all([params, searchParams]);
   const lookupColumn = z.uuid().safeParse(id).success ? 'id' : 'slug';
   if (lookupColumn === 'slug' && !isActivitySlug(id)) notFound();
 
@@ -113,9 +112,26 @@ export default async function ActivityPage({
   const preview =
     adminPreview || (isDevelopment && (!poll.is_published || pollStatus !== 'active'));
   const communityPoll = !matching && !photoActivity;
+  const showResults = results === '1';
+  if (
+    showResults &&
+    (!communityPoll ||
+      !poll.is_published ||
+      (poll.starts_at && Date.parse(poll.starts_at) > now.getTime()))
+  ) {
+    notFound();
+  }
+  const pollResults = showResults
+    ? await db.rpc('get_public_flavor_poll_results', { target_poll_id: poll.id })
+    : null;
+  const resultRows = (
+    (pollResults?.data ?? []) as { option_label: string; vote_count: number }[]
+  ).toSorted((a, b) => Number(b.vote_count) - Number(a.vote_count));
+  const totalVotes = resultRows.reduce((sum, option) => sum + Number(option.vote_count), 0);
+  const podium = resultRows.filter((option) => Number(option.vote_count) > 0).slice(0, 3);
   const [user, guestId] = await Promise.all([
-    matching || preview ? null : db.auth.getUser().then(({ data }) => data.user),
-    communityPoll && !preview ? getGuestVoterId() : null,
+    matching || preview || showResults ? null : db.auth.getUser().then(({ data }) => data.user),
+    communityPoll && !preview && !showResults ? getGuestVoterId() : null,
   ]);
   const [vote, guestVote] = await Promise.all([
     user && communityPoll
@@ -150,6 +166,22 @@ export default async function ActivityPage({
     : '/#flavor-polls';
   const source = parseFlavorPollSourceUrl(poll.source_url);
   const activityDescription = sanitizeFlavorPollDescription(poll.description_html);
+
+  const sourceLink =
+    source && !playing ? (
+      <Button
+        href={source}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="text"
+        color="inherit"
+        size="small"
+        endIcon={<Iconify icon="ri:external-link-line" />}
+        sx={{ alignSelf: 'center', minHeight: 44 }}
+      >
+        ดูโพสต์ต้นทาง
+      </Button>
+    ) : null;
 
   return (
     <Box
@@ -255,7 +287,231 @@ export default async function ActivityPage({
           {(flavorVote === 'error' || voteError) && (
             <Alert severity="error">ส่งหรือโหลดข้อมูลโหวตไม่สำเร็จ กิจกรรมอาจปิดแล้ว</Alert>
           )}
-          {chosen ? (
+          {showResults ? (
+            <Stack
+              component="section"
+              spacing={2}
+              useFlexGap
+              sx={{ width: 1, maxWidth: 640, flex: 1, mx: 'auto', pt: 2 }}
+            >
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography component="h1" variant="h3">
+                  ผลโหวตชุมชน
+                </Typography>
+                <Typography sx={{ mt: 1 }}>{poll.title}</Typography>
+              </Box>
+              {pollResults?.error ? (
+                <Alert severity="error">โหลดผลโหวตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</Alert>
+              ) : (
+                <>
+                  {podium.length > 0 && (
+                    <Box
+                      component="section"
+                      aria-label="โพเดียมผลโหวต"
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        alignItems: 'end',
+                        gap: { xs: 0.75, sm: 1.5 },
+                        textAlign: 'center',
+                      }}
+                    >
+                      {[1, 0, 2].map((place, column) => {
+                        const entry = podium[place];
+                        if (!entry) return null;
+                        const count = Number(entry.vote_count);
+                        const rank =
+                          resultRows.findIndex((row) => Number(row.vote_count) === count) + 1;
+                        const { imageUrl } = getFlavorPollOptionDetails(
+                          poll.option_details,
+                          entry.option_label
+                        );
+                        const middle = place === 0;
+                        const podiumColor = ['#FFC82C', '#A7BFFB', '#FFA87C'][place];
+
+                        return (
+                          <Stack
+                            key={entry.option_label}
+                            spacing={0.5}
+                            sx={{ gridColumn: column + 1, minWidth: 0 }}
+                          >
+                            <Box
+                              component="img"
+                              src={imageUrl || '/assets/loveza/loveza-heart.webp'}
+                              alt=""
+                              sx={{
+                                alignSelf: 'center',
+                                width: { xs: middle ? 92 : 66, sm: middle ? 118 : 84 },
+                                height: { xs: middle ? 160 : 114, sm: middle ? 195 : 145 },
+                                objectFit: 'contain',
+                                filter: 'drop-shadow(0 5px 8px #0003)',
+                              }}
+                            />
+                            <Typography variant="subtitle2" sx={{ overflowWrap: 'anywhere' }}>
+                              {entry.option_label}
+                            </Typography>
+                            <Typography variant="caption">
+                              {count.toLocaleString('th-TH')} โหวต ·{' '}
+                              {((count * 100) / totalVotes).toLocaleString('th-TH', {
+                                maximumFractionDigits: 1,
+                              })}
+                              %
+                            </Typography>
+                            <Box
+                              aria-label={`อันดับ ${rank}`}
+                              sx={{
+                                minHeight: {
+                                  xs: middle ? 62 : place === 1 ? 48 : 36,
+                                  sm: middle ? 84 : place === 1 ? 64 : 48,
+                                },
+                                display: 'grid',
+                                placeItems: 'center',
+                                borderRadius: '14px 14px 0 0',
+                                borderTop: '2px solid #FFFFFFA6',
+                                background: `linear-gradient(180deg, ${podiumColor} 0%, ${podiumColor}E8 40%, ${podiumColor}00 100%)`,
+                                color: '#251D26',
+                                fontSize: { xs: 28, sm: 40 },
+                                fontWeight: 900,
+                              }}
+                            >
+                              {rank}
+                            </Box>
+                          </Stack>
+                        );
+                      })}
+                    </Box>
+                  )}
+                  <Stack
+                    spacing={0.5}
+                    sx={{
+                      mt: 'auto',
+                      p: { xs: 1.25, sm: 2 },
+                      borderRadius: '20px',
+                      overflow: 'hidden',
+                      bgcolor: 'common.white',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      color: 'text.primary',
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      gap={2}
+                      sx={{ px: 1.25, py: 0.75, borderBottom: '1px solid', borderColor: 'divider' }}
+                    >
+                      <Typography variant="subtitle2">โหวตทั้งหมด</Typography>
+                      <Stack direction="row" alignItems="baseline" spacing={0.75}>
+                        <Typography variant="h5" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {totalVotes.toLocaleString('th-TH')}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          คะแนน
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                    {resultRows.slice(podium.length).map(({ option_label, vote_count }, index) => {
+                      const count = Number(vote_count);
+                      const percent = totalVotes ? (count * 100) / totalVotes : 0;
+                      const rank =
+                        resultRows.findIndex((row) => Number(row.vote_count) === count) + 1;
+                      const { imageUrl } = getFlavorPollOptionDetails(
+                        poll.option_details,
+                        option_label
+                      );
+                      return (
+                        <Stack
+                          key={option_label}
+                          direction="row"
+                          alignItems="center"
+                          spacing={1}
+                          sx={{
+                            px: 1,
+                            py: 0.5,
+                            minHeight: 45,
+                            borderTop: index ? '1px solid' : undefined,
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            aria-label={count > 0 ? `อันดับ ${rank}` : 'ยังไม่มีคะแนน'}
+                            sx={{
+                              width: 16,
+                              flexShrink: 0,
+                              textAlign: 'center',
+                              color: 'text.secondary',
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {count > 0 ? rank : '–'}
+                          </Typography>
+                          {imageUrl && (
+                            <Box
+                              component="img"
+                              src={imageUrl}
+                              alt=""
+                              loading="lazy"
+                              sx={{ width: 28, height: 36, objectFit: 'contain', flexShrink: 0 }}
+                            />
+                          )}
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}
+                          >
+                            {option_label}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}
+                          >
+                            {count.toLocaleString('th-TH')} โหวต
+                          </Typography>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              minWidth: '4ch',
+                              textAlign: 'right',
+                              flexShrink: 0,
+                              fontVariantNumeric: 'tabular-nums',
+                            }}
+                          >
+                            {percent.toLocaleString('th-TH', { maximumFractionDigits: 1 })}%
+                          </Typography>
+                        </Stack>
+                      );
+                    })}
+                  </Stack>
+                </>
+              )}
+              <Stack
+                direction="row"
+                justifyContent="center"
+                alignItems="center"
+                useFlexGap
+                flexWrap="wrap"
+                gap={1.5}
+                sx={{ mt: pollResults?.error ? 'auto' : 0 }}
+              >
+                <Button
+                  href={href}
+                  variant="contained"
+                  sx={{
+                    alignSelf: 'center',
+                    minHeight: 48,
+                    bgcolor: 'common.white',
+                    color: 'text.primary',
+                    '&:hover': { bgcolor: 'common.white' },
+                  }}
+                >
+                  กลับหน้าโหวต
+                </Button>
+                {sourceLink}
+              </Stack>
+            </Stack>
+          ) : chosen ? (
             <Stack
               component="section"
               aria-labelledby="vote-success-title"
@@ -399,44 +655,7 @@ export default async function ActivityPage({
                         {photoActivity ? 'กิจกรรมส่งภาพถ่าย' : 'โพลชุมชน'}
                       </Typography>
                     )}
-                    {(matching || !preview) && (
-                      <Chip
-                        size="small"
-                        icon={
-                          <Iconify
-                            icon={open ? 'ri:flashlight-fill' : 'ri:lock-2-line'}
-                            width={14}
-                          />
-                        }
-                        sx={{
-                          fontWeight: 800,
-                          ...(!matching && {
-                            color: 'text.primary',
-                            bgcolor: 'background.paper',
-                            '& .MuiChip-icon': { color: 'inherit' },
-                          }),
-                          ...(matching && {
-                            color: '#174D76',
-                            bgcolor: '#FFFFFFB8',
-                            border: '1px solid #2A6390',
-                          }),
-                        }}
-                        color={open ? 'success' : 'default'}
-                        label={
-                          preview
-                            ? 'ตัวอย่างกิจกรรม'
-                            : matching
-                              ? open
-                                ? 'เล่นได้'
-                                : 'ปิดแล้ว'
-                              : photoActivity && (open || pollStatus === 'closed')
-                                ? open
-                                  ? 'เปิดรับภาพ'
-                                  : 'ปิดรับภาพ'
-                                : flavorPollStatusLabel[pollStatus]
-                        }
-                      />
-                    )}
+                    
                   </Stack>
                 )}
                 <Typography
@@ -596,20 +815,7 @@ export default async function ActivityPage({
               </Box>
             </Stack>
           )}
-          {source && !playing && (
-            <Button
-              href={source}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="text"
-              color="inherit"
-              size="small"
-              endIcon={<Iconify icon="ri:external-link-line" />}
-              sx={{ alignSelf: 'center', minHeight: 44 }}
-            >
-              ดูโพสต์ต้นทาง
-            </Button>
-          )}
+          {!showResults && sourceLink}
         </Stack>
       </Container>
     </Box>

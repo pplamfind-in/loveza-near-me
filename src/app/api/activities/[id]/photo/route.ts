@@ -50,6 +50,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   let content: Buffer;
+  let publicPreview: string | null = null;
   try {
     const image = sharp(Buffer.from(await file.arrayBuffer()), { limitInputPixels: 40_000_000 });
     const { format } = await image.metadata();
@@ -61,6 +62,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 85 })
       .toBuffer();
+    if (form?.get('publishPhoto') === 'on') {
+      const preview = await sharp(content)
+        .resize(720, 720, { fit: 'inside', withoutEnlargement: true })
+        .flatten({ background: '#ffffff' })
+        .webp({ quality: 72 })
+        .toBuffer();
+      if (preview.length > 240000) {
+        return NextResponse.json(
+          { error: 'ภาพมีรายละเอียดมากเกินไปสำหรับแกลเลอรี กรุณาเลือกรูปที่เล็กลง' },
+          { status: 422 }
+        );
+      }
+      publicPreview = preview.toString('base64');
+    }
   } catch {
     return NextResponse.json({ error: 'อ่านไฟล์รูปภาพไม่สำเร็จ' }, { status: 422 });
   }
@@ -74,6 +89,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const submission = await db.rpc('submit_activity_photo', {
     target_activity_id: id,
     object_path: path,
+    public_preview_base64: publicPreview,
+    share_profile: publicPreview !== null,
   });
   if (submission.error) {
     if (!upload.error) await bucket.remove([path]);

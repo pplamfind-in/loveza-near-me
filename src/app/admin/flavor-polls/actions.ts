@@ -145,3 +145,37 @@ export async function deleteFlavorPoll(id: string, formData: FormData) {
     `${adminPath}?status=${error?.code === '23503' ? 'has-photo-submissions' : error ? 'error' : 'deleted'}`
   );
 }
+
+export async function setActivityPhotoHidden(
+  activityId: string,
+  photoId: string,
+  hidden: boolean,
+  page: number,
+  authorQuery: string,
+  sort: 'newest' | 'oldest' | 'likes'
+) {
+  const { supabase, user } = await requireAdminClient();
+  if (!user) redirect('/auth/login');
+
+  const input = z
+    .object({
+      activityId: z.uuid(),
+      photoId: z.uuid(),
+      hidden: z.boolean(),
+      page: z.number().int().min(1).max(100_000),
+      authorQuery: z.string().max(100),
+      sort: z.enum(['newest', 'oldest', 'likes']),
+    })
+    .parse({ activityId, photoId, hidden, page, authorQuery, sort });
+
+  const result = await supabase.rpc('set_activity_photo_hidden', {
+    target_activity_id: input.activityId,
+    target_photo_id: input.photoId,
+    should_hide: input.hidden,
+  });
+
+  const query = new URLSearchParams({ page: String(input.page), sort: input.sort });
+  if (input.authorQuery) query.set('q', input.authorQuery);
+  if (result.error || result.data !== true) query.set('visibility', 'error');
+  redirect(`${adminPath}/${input.activityId}/submissions/?${query}`);
+}

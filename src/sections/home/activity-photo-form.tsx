@@ -8,7 +8,9 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
 import Typography from '@mui/material/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 import {
   ACTIVITY_PHOTO_TYPES,
@@ -49,6 +51,7 @@ export function ActivityPhotoForm({
   const [submittedImage, setSubmittedImage] = useState('');
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+  const [publishPhoto, setPublishPhoto] = useState(false);
   const sendingRef = useRef(false);
   const photoUrl = photo?.url;
 
@@ -97,6 +100,7 @@ export function ActivityPhotoForm({
       const data = new FormData();
       data.set('image', photo.file);
       data.set('submissionId', photo.submissionId);
+      if (publishPhoto) data.set('publishPhoto', 'on');
       const response = await fetch(`/api/activities/${activityId}/photo`, {
         method: 'POST',
         body: data,
@@ -138,6 +142,7 @@ export function ActivityPhotoForm({
               onClick={() => {
                 setSubmittedImage('');
                 setPhoto(null);
+                setPublishPhoto(false);
               }}
               sx={{
                 bgcolor: 'common.white',
@@ -161,6 +166,25 @@ export function ActivityPhotoForm({
         <Typography variant="body2">โหมดพรีวิว รูปที่เลือกจะแสดงให้ดูโดยไม่ส่งเข้าระบบ</Typography>
       )}
       {photo && <Box component="img" src={photo.url} alt="ตัวอย่างภาพที่เลือก" sx={photoFrameSx} />}
+      {photo && (
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={publishPhoto}
+              disabled={sending}
+              onChange={(event) => setPublishPhoto(event.target.checked)}
+            />
+          }
+          label="อนุญาตให้แสดงภาพ ชื่อ และอวาตาร์ของฉันในหน้ารวมภาพกิจกรรม"
+          sx={{
+            m: 0,
+            px: 1.25,
+            borderRadius: 1.5,
+            bgcolor: 'common.white',
+            color: 'text.primary',
+          }}
+        />
+      )}
       <Stack
         direction="row"
         justifyContent="center"

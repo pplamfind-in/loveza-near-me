@@ -51,17 +51,20 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
           const draft = !activity.is_published;
           const open = !draft && status === 'active';
           const preview = process.env.NODE_ENV === 'development' && !open;
+          const href = paths.activity.details(activity.slug ?? activity.id);
+          const showResults = !matching && !photoActivity && !draft && status !== 'upcoming';
+          const showGallery = photoActivity && !draft && status !== 'upcoming';
           return (
             <Stack
-              component="a"
+              component="article"
               key={activity.id}
               id={`${matching ? 'game' : 'poll'}-${activity.id}`}
-              href={paths.activity.details(activity.slug ?? activity.id)}
               spacing={2}
               sx={{
                 ...explorerCardSx,
                 p: { xs: 2, sm: 3 },
                 minWidth: 0,
+                position: 'relative',
                 border: '5px solid',
                 borderColor: 'common.white',
                 borderRadius: landingCardRadius,
@@ -117,6 +120,20 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                 <Chip
                   size="small"
                   color={open ? 'success' : 'default'}
+                  icon={
+                    open ? (
+                      <Iconify
+                        icon={
+                          photoActivity
+                            ? 'ri:camera-line'
+                            : matching
+                              ? 'ri:gamepad-line'
+                              : 'ri:flashlight-fill'
+                        }
+                        width={13}
+                      />
+                    ) : undefined
+                  }
                   label={
                     preview
                       ? 'ตัวอย่างกิจกรรม'
@@ -126,7 +143,17 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                           ? 'เปิดรับภาพ'
                           : flavorPollStatusLabel[status]
                   }
-                  sx={{ fontWeight: 700 }}
+                  sx={{
+                    height: 27,
+                    borderRadius: '999px',
+                    fontWeight: 800,
+                    border: '1px solid',
+                    borderColor: open ? 'success.light' : 'divider',
+                    bgcolor: open ? 'success.lighter' : 'background.paper',
+                    color: open ? 'success.dark' : 'text.secondary',
+                    '& .MuiChip-label': { px: 1.05 },
+                    '& .MuiChip-icon': { color: 'inherit', ml: 0.75 },
+                  }}
                 />
               </Stack>
               <Typography
@@ -140,22 +167,72 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
               >
                 {activity.title}
               </Typography>
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={0.75}
-                sx={{ color: 'primary.dark' }}
-              >
-                <Typography variant="subtitle2">
-                  {open
-                    ? matching
-                      ? 'เล่นเกม'
-                      : photoActivity
-                        ? 'ส่งภาพ'
-                        : 'ร่วมโหวต'
-                    : 'ดูกิจกรรม'}
-                </Typography>
-                <Iconify icon="ri:arrow-right-line" width={18} />
+              <Stack direction="row" alignItems="center" useFlexGap flexWrap="wrap" gap={2}>
+                <Stack
+                  component="a"
+                  href={href}
+                  aria-label={`${open ? 'ร่วมกิจกรรม' : 'ดูกิจกรรม'} ${activity.title}`}
+                  direction="row"
+                  alignItems="center"
+                  spacing={0.75}
+                  sx={{
+                    color: 'primary.dark',
+                    textDecoration: 'none',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: 'inherit',
+                    },
+                    '&:focus-visible::after': {
+                      outline: '2px solid currentColor',
+                      outlineOffset: 3,
+                    },
+                  }}
+                >
+                  <Typography variant="subtitle2">
+                    {open
+                      ? matching
+                        ? 'เล่นเกม'
+                        : photoActivity
+                          ? 'ส่งภาพ'
+                          : 'ร่วมโหวต'
+                      : 'ดูกิจกรรม'}
+                  </Typography>
+                  <Iconify icon="ri:arrow-right-line" width={18} />
+                </Stack>
+                {showGallery && (
+                  <Typography
+                    component="a"
+                    href={`${href}gallery/`}
+                    aria-label={`ดูภาพกิจกรรม ${activity.title}`}
+                    variant="subtitle2"
+                    sx={{
+                      position: 'relative',
+                      zIndex: 1,
+                      color: 'primary.dark',
+                      textUnderlineOffset: '3px',
+                    }}
+                  >
+                    ดูภาพกิจกรรม
+                  </Typography>
+                )}
+                {showResults && (
+                  <Typography
+                    component="a"
+                    href={`${href}?results=1`}
+                    aria-label={`ดูผลโหวต ${activity.title}`}
+                    variant="subtitle2"
+                    sx={{
+                      position: 'relative',
+                      zIndex: 1,
+                      color: 'primary.dark',
+                      textUnderlineOffset: '3px',
+                    }}
+                  >
+                    ดูผลโหวต
+                  </Typography>
+                )}
               </Stack>
             </Stack>
           );

@@ -3,6 +3,7 @@
 import type { AdminNetworkStats } from 'src/types/admin-network';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -123,7 +124,30 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
         overscrollBehavior: 'none',
         px: { xs: 1.5, sm: 4, md: 6 },
         py: { xs: 7, md: 4 },
-        bgcolor: 'common.white',
+        bgcolor: 'background.default',
+        '&::before': {
+          content: '""',
+          inset: 0,
+          zIndex: 1,
+          position: 'absolute',
+          pointerEvents: 'none',
+          background: {
+            xs: 'linear-gradient(180deg, rgba(251,246,237,.96), rgba(251,246,237,.82))',
+            md: 'linear-gradient(90deg, #FBF6ED 0%, rgba(251,246,237,.96) 40%, rgba(251,246,237,.12) 80%)',
+          },
+        },
+        '&::after': {
+          content: '""',
+          zIndex: 1,
+          width: 260,
+          height: 260,
+          position: 'absolute',
+          left: -90,
+          bottom: -100,
+          borderRadius: '50%',
+          pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(255,232,72,.58), rgba(255,232,72,0) 68%)',
+        },
         '@media (max-height: 760px)': {
           py: 7,
           '& .network-panel': { py: 2, px: { xs: 1.5, md: 0 } },
@@ -151,6 +175,15 @@ export function AdminNetworkView({ initialStats, hasError = false }: AdminNetwor
         },
       }}
     >
+      <Image
+        fill
+        priority
+        sizes="100vw"
+        src="/assets/loveza/nearby-explorer-v1.webp"
+        alt=""
+        style={{ objectFit: 'cover', objectPosition: 'center' }}
+      />
+
       <IconButton
         component={Link}
         href="/admin"
