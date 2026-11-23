@@ -21,6 +21,7 @@ import { Iconify } from 'src/components/iconify';
 import { ProductCan } from 'src/sections/home/product-can';
 import { FlavorNavigation } from 'src/sections/products/flavor-navigation';
 import { FlavorLikeButton } from 'src/sections/products/flavor-like-button';
+import { ProductViewTracker } from 'src/sections/products/product-view-tracker';
 
 // Measured visible bounds of the current 1774px-tall mobile can assets.
 const mobileCanBounds: Record<string, { height: number; bottom: number }> = {
@@ -137,6 +138,7 @@ export default async function ProductPage({ params }: Props) {
         background: flavorPageBackground(color),
       }}
     >
+      <ProductViewTracker productId={product.id} />
       <Container
         maxWidth="lg"
         sx={{

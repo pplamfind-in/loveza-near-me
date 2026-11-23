@@ -5,6 +5,8 @@ import type { LovezaProduct } from 'src/types/loveza-product';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
+type AdminProduct = LovezaProduct & { view_count: number | null };
+
 const ADMIN_PRODUCTS_QUERY_KEY = ['admin-products'];
 
 async function readError(response: Response) {
@@ -12,11 +14,11 @@ async function readError(response: Response) {
   return payload?.error ?? 'ดำเนินการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
 }
 
-async function fetchProducts(): Promise<LovezaProduct[]> {
+async function fetchProducts(): Promise<AdminProduct[]> {
   const response = await fetch('/api/admin/products');
   if (!response.ok) throw new Error(await readError(response));
 
-  const payload = (await response.json()) as { products: LovezaProduct[] };
+  const payload = (await response.json()) as { products: AdminProduct[] };
   return payload.products;
 }
 

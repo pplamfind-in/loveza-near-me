@@ -13,15 +13,27 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
-  const { data, error } = await supabase
-    .from('products')
-    .select(PRODUCT_FIELDS)
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: true });
+  const [{ data, error }, views] = await Promise.all([
+    supabase
+      .from('products')
+      .select(PRODUCT_FIELDS)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true }),
+    supabase.rpc('get_admin_product_view_totals'),
+  ]);
 
   if (error) return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
 
-  return NextResponse.json({ products: data ?? [] });
+  const viewRows = (views.data ?? []) as { product_id: string; view_count: number | string }[];
+  const totals = new Map(
+    viewRows.map(({ product_id, view_count }) => [product_id, Number(view_count)])
+  );
+  return NextResponse.json({
+    products: (data ?? []).map((product) => ({
+      ...product,
+      view_count: views.error ? null : (totals.get(product.id) ?? 0),
+    })),
+  });
 }
 
 export async function POST(request: Request) {

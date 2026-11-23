@@ -43,6 +43,8 @@ type ProductFormValue = Omit<ProductInput, 'description' | 'image_url'> & {
   image_url: string;
 };
 
+const viewFormatter = new Intl.NumberFormat('th-TH');
+
 const EMPTY_PRODUCT: ProductFormValue = {
   name: '',
   thai_name: '',
@@ -238,6 +240,7 @@ export function ProductsPanel() {
                 <TableCell>สินค้า</TableCell>
                 <TableCell>Slug</TableCell>
                 <TableCell align="center">ลำดับ</TableCell>
+                <TableCell align="right">วิว</TableCell>
                 <TableCell>สินค้าใหม่</TableCell>
                 <TableCell>การแสดงผล</TableCell>
                 <TableCell align="right">จัดการ</TableCell>
@@ -296,6 +299,9 @@ export function ProductsPanel() {
                   </TableCell>
                   <TableCell sx={{ color: 'text.secondary' }}>/{product.slug}</TableCell>
                   <TableCell align="center">{product.sort_order}</TableCell>
+                  <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {product.view_count === null ? '—' : viewFormatter.format(product.view_count)}
+                  </TableCell>
                   <TableCell>
                     {product.is_new ? (
                       <Chip size="small" label="NEW" color="secondary" />
@@ -330,7 +336,7 @@ export function ProductsPanel() {
               ))}
               {products.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 8, color: 'text.secondary' }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 8, color: 'text.secondary' }}>
                     ยังไม่มีสินค้า กด “เพิ่มสินค้า” เพื่อเริ่มต้น
                   </TableCell>
                 </TableRow>

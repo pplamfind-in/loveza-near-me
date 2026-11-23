@@ -52,7 +52,7 @@ export default async function Page() {
       .order('last_reported_at', { ascending: false, nullsFirst: false })
       .limit(2),
     supabase.rpc('get_brand_owner_acknowledged'),
-    isDevelopment ? supabase.rpc('get_landing_activities_enabled') : null,
+    isDevelopment ? null : supabase.rpc('get_landing_activities_enabled'),
   ]);
 
   const catalog = productsResult.error
@@ -76,7 +76,7 @@ export default async function Page() {
     <HomeView
       limitedMissions={<LimitedMissionsSection db={supabase} />}
       flavorPolls={
-        isDevelopment && landingActivitiesResult?.data !== false ? (
+        isDevelopment || landingActivitiesResult?.data === true ? (
           <FlavorPollsSection db={supabase} />
         ) : null
       }

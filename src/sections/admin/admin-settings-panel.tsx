@@ -630,11 +630,11 @@ export function AdminSettingsPanel({
             data-full-width
           >
             <Box>
-              <Typography variant="subtitle1">กิจกรรมบนหน้าแรก</Typography>
+              <Typography variant="subtitle1">กิจกรรมบนหน้าแรก Production</Typography>
               <Typography variant="body2" color="text.secondary">
                 {landingActivitiesEnabled
-                  ? 'แสดงส่วนกิจกรรมบนหน้าแรกในโหมดพัฒนา'
-                  : 'ซ่อนส่วนกิจกรรมจากหน้าแรกในโหมดพัฒนา'}
+                  ? 'แสดงกิจกรรมที่เปิดและเผยแพร่แล้วบนหน้าแรกของเว็บจริง'
+                  : 'ซ่อนส่วนกิจกรรมจากหน้าแรกของเว็บจริง'}
               </Typography>
             </Box>
             <Switch
@@ -644,7 +644,7 @@ export function AdminSettingsPanel({
                 setLandingActivitiesEnabled(event.target.checked);
                 setMessage(null);
               }}
-              slotProps={{ input: { 'aria-label': 'แสดงกิจกรรมบนหน้าแรก' } }}
+              slotProps={{ input: { 'aria-label': 'แสดงกิจกรรมบนหน้าแรกของเว็บจริง' } }}
             />
           </Stack>
 

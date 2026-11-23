@@ -155,7 +155,8 @@ const REFERENCE_CARDS: ReferenceCard[] = [
     background: '#FBF0CD',
     title: 'จัดการสินค้า',
     href: '/admin/products',
-    description: 'CRUD รสชาติ Loveza (ชื่อ สี ไอคอนผลไม้ คำอธิบาย รูปภาพ) ที่แสดงบน Landing page',
+    description:
+      'จัดการข้อมูลและรูปภาพรสชาติ Loveza พร้อมดูยอดวิวหน้าสินค้า สินค้าเดียวกันที่เปิดซ้ำจากเบราว์เซอร์เดิมภายใน 2 ชั่วโมงจะนับเป็น 1 วิว',
   },
   {
     icon: 'ri:image-2-fill',
