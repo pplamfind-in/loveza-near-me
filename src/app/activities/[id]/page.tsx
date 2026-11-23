@@ -73,7 +73,7 @@ export default async function ActivityPage({
     'id, slug, activity_type, title, description_html, options, is_published, is_active, option_details, starts_at, ends_at, source_url, theme_color';
   const query = db
     .from('flavor_polls')
-    .select(`${columns}, theme_text_color, background_image_url`)
+    .select(`${columns}, theme_text_color, background_image_url, right_background_image_url`)
     .eq(lookupColumn, id);
   const visible = `and(is_published.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -93,6 +93,15 @@ export default async function ActivityPage({
     'background_image_url' in poll && typeof poll.background_image_url === 'string'
       ? poll.background_image_url
       : null;
+  const rightBackgroundImage =
+    'right_background_image_url' in poll && typeof poll.right_background_image_url === 'string'
+      ? poll.right_background_image_url
+      : null;
+  const sideImages = [
+    { side: 'left', src: backgroundImage || rightBackgroundImage },
+    { side: 'right', src: rightBackgroundImage || backgroundImage },
+  ] as const;
+  const hasSideImages = Boolean(backgroundImage || rightBackgroundImage);
   const textColor = 'theme_text_color' in poll ? poll.theme_text_color : null;
   const activityTextColor =
     typeof textColor === 'string' && activityColorPattern.test(textColor)
@@ -150,26 +159,16 @@ export default async function ActivityPage({
         minHeight: '100dvh',
         ...activityTheme(poll.theme_color),
         bgcolor: 'var(--activity-primary)',
-        ...(backgroundImage && {
-          backgroundImage: `url(${JSON.stringify(backgroundImage)})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }),
         color: activityTextColor,
         pt: { xs: 'calc(env(safe-area-inset-top) + 16px)', md: 3 },
         pb: matching
           ? { xs: 'calc(env(safe-area-inset-bottom) + 24px)', md: 8 }
           : 'calc(env(safe-area-inset-bottom) + 8px)',
-        ...(!matching && {
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          isolation: 'isolate',
-        }),
+        ...(!matching && { display: 'flex', flexDirection: 'column' }),
+        ...((!matching || hasSideImages) && { position: 'relative', isolation: 'isolate' }),
       }}
     >
-      {!matching && !backgroundImage && (
+      {(!matching || hasSideImages) && (
         <Box
           aria-hidden="true"
           sx={{
@@ -180,21 +179,48 @@ export default async function ActivityPage({
             zIndex: -1,
           }}
         >
-          {pollBubbles.map((bubble) => (
-            <Box
-              key={bubble.top}
-              sx={{
-                ...bubble,
-                position: 'absolute',
-                aspectRatio: '1 / 1',
-                borderRadius: '50%',
-                opacity: { xs: 0.22, md: 0.32 },
-                background:
-                  'radial-gradient(ellipse at 30% 23%, #FFFFFF 0%, #FFFFFF80 8%, transparent 22%), radial-gradient(circle at 70% 74%, #FFE8AC 0%, transparent 42%), radial-gradient(circle at 42% 45%, #F9DCF3 0%, #FF9DD5 61%, #DF348A 82%, #FFD0E5 100%)',
-                boxShadow: 'inset 0 0 0 1px #FFFFFFC0, 0 8px 22px #801B5340',
-              }}
-            />
-          ))}
+          {hasSideImages
+            ? sideImages.map(({ side, src }) => (
+                <Box
+                  key={side}
+                  component="img"
+                  src={src ?? undefined}
+                  alt=""
+                  decoding="async"
+                  sx={{
+                    position: 'absolute',
+                    top:
+                      side === 'left' ? { xs: '7dvh', md: '4dvh' } : { xs: '49dvh', md: '37dvh' },
+                    [side]: { xs: '-28%', md: '-12%' },
+                    width: {
+                      xs: side === 'right' ? 'min(80%, 460px)' : 'min(66%, 380px)',
+                      md: 'min(48%, 850px)',
+                    },
+                    height: {
+                      xs: side === 'right' ? 'min(58dvh, 460px)' : 'min(48dvh, 380px)',
+                      md: 'min(80dvh, 820px)',
+                    },
+                    objectFit: 'contain',
+                    opacity: { xs: 0.24, md: 0.38 },
+                    transform: side === 'left' ? 'rotate(-8deg)' : 'rotate(8deg)',
+                  }}
+                />
+              ))
+            : pollBubbles.map((bubble) => (
+                <Box
+                  key={bubble.top}
+                  sx={{
+                    ...bubble,
+                    position: 'absolute',
+                    aspectRatio: '1 / 1',
+                    borderRadius: '50%',
+                    opacity: { xs: 0.22, md: 0.32 },
+                    background:
+                      'radial-gradient(ellipse at 30% 23%, #FFFFFF 0%, #FFFFFF80 8%, transparent 22%), radial-gradient(circle at 70% 74%, #FFE8AC 0%, transparent 42%), radial-gradient(circle at 42% 45%, #F9DCF3 0%, #FF9DD5 61%, #DF348A 82%, #FFD0E5 100%)',
+                    boxShadow: 'inset 0 0 0 1px #FFFFFFC0, 0 8px 22px #801B5340',
+                  }}
+                />
+              ))}
         </Box>
       )}
       <Container

@@ -58,6 +58,7 @@ type FlavorPollFormProps = {
     theme_color: string | null;
     theme_text_color: string | null;
     background_image_url: string | null;
+    right_background_image_url: string | null;
     is_active: boolean;
     status: keyof typeof flavorPollPublicationLabel;
   };
@@ -112,6 +113,7 @@ export function FlavorPollForm({
       themeColor: poll?.theme_color ?? '',
       themeTextColor: poll?.theme_text_color ?? '',
       backgroundImageUrl: poll?.background_image_url ?? '',
+      rightBackgroundImageUrl: poll?.right_background_image_url ?? '',
       startsAt: poll?.starts_at ? dayjs(poll.starts_at).toISOString() : null,
       endsAt: poll?.ends_at ? dayjs(poll.ends_at).toISOString() : null,
       sourceUrl: poll?.source_url ?? '',
@@ -135,13 +137,16 @@ export function FlavorPollForm({
   const themeColor = useWatch({ control, name: 'themeColor' });
   const themeTextColor = useWatch({ control, name: 'themeTextColor' });
   const backgroundImageUrl = useWatch({ control, name: 'backgroundImageUrl' });
+  const rightBackgroundImageUrl = useWatch({ control, name: 'rightBackgroundImageUrl' });
   const automaticTextColor = activityTheme(themeColor || theme.palette.primary.main)[
     '--activity-contrast'
   ];
   const isMatching = activityType === 'matching';
   const startsAt = useWatch({ control, name: 'startsAt' });
   const options = useWatch({ control, name: 'options' });
-  const [uploading, setUploading] = useState<number | 'background' | null>(null);
+  const [uploading, setUploading] = useState<
+    number | 'backgroundImageUrl' | 'rightBackgroundImageUrl' | null
+  >(null);
   const optionError = errors.options?.root?.message ?? errors.options?.message;
 
   const submit = handleSubmit(async (values) => {
@@ -156,9 +161,11 @@ export function FlavorPollForm({
     }
   });
 
-  async function uploadImage(target: number | 'background', file: File) {
-    const field =
-      target === 'background' ? 'backgroundImageUrl' : (`options.${target}.imageUrl` as const);
+  async function uploadImage(
+    target: number | 'backgroundImageUrl' | 'rightBackgroundImageUrl',
+    file: File
+  ) {
+    const field = typeof target === 'number' ? (`options.${target}.imageUrl` as const) : target;
     clearErrors(field);
     if (file.size > MAX_FLAVOR_POLL_IMAGE_BYTES) {
       setError(field, { message: 'รูปภาพต้องมีขนาดไม่เกิน 4 MB' });
@@ -168,7 +175,7 @@ export function FlavorPollForm({
     try {
       const data = new FormData();
       data.set('image', file);
-      if (target === 'background') data.set('purpose', 'background');
+      if (typeof target !== 'number') data.set('purpose', 'background');
       const response = await fetch('/api/admin/flavor-polls/image/', {
         method: 'POST',
         body: data,
@@ -388,61 +395,105 @@ export function FlavorPollForm({
                       textAlign: 'center',
                       borderRadius: 1.5,
                       bgcolor: themeColor || theme.palette.primary.main,
-                      backgroundImage: backgroundImageUrl
-                        ? `url(${JSON.stringify(backgroundImageUrl)})`
-                        : undefined,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
+                      position: 'relative',
+                      isolation: 'isolate',
+                      ...((backgroundImageUrl || rightBackgroundImageUrl) && {
+                        '&::before, &::after': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 4,
+                          bottom: 4,
+                          width: '30%',
+                          zIndex: -1,
+                          backgroundPosition: 'center',
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          opacity: 0.35,
+                        },
+                        '&::before': {
+                          left: 4,
+                          backgroundImage: `url(${JSON.stringify(backgroundImageUrl || rightBackgroundImageUrl)})`,
+                        },
+                        '&::after': {
+                          right: 4,
+                          backgroundImage: `url(${JSON.stringify(rightBackgroundImageUrl || backgroundImageUrl)})`,
+                        },
+                      }),
                       color: themeTextColor || automaticTextColor,
                     }}
                   >
                     <Typography variant="subtitle2">ตัวอย่างสีข้อความ</Typography>
                   </Stack>
                 </Box>
-                <Stack alignItems="flex-start" spacing={1}>
-                  <Typography variant="subtitle2">ภาพพื้นหลัง</Typography>
-                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
-                    <Button
-                      component="label"
-                      variant="outlined"
-                      startIcon={<Iconify icon="ri:image-add-line" />}
-                      loading={uploading === 'background'}
-                      disabled={saving || uploading !== null}
-                    >
-                      {backgroundImageUrl ? 'เปลี่ยนภาพพื้นหลัง' : 'อัปโหลดภาพพื้นหลัง'}
-                      <input
-                        hidden
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          event.target.value = '';
-                          if (file) void uploadImage('background', file);
-                        }}
-                      />
-                    </Button>
-                    {backgroundImageUrl && (
-                      <Button
-                        color="error"
-                        disabled={saving || uploading !== null}
-                        onClick={() => {
-                          clearErrors('backgroundImageUrl');
-                          setValue('backgroundImageUrl', '', {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                        }}
-                      >
-                        ลบภาพพื้นหลัง
-                      </Button>
-                    )}
-                  </Stack>
+                <Stack spacing={1.5}>
+                  <Typography variant="subtitle2">ภาพตกแต่งด้านข้าง</Typography>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+                    }}
+                  >
+                    {(
+                      [
+                        {
+                          field: 'backgroundImageUrl',
+                          label: 'ภาพด้านซ้าย',
+                          url: backgroundImageUrl,
+                        },
+                        {
+                          field: 'rightBackgroundImageUrl',
+                          label: 'ภาพด้านขวา',
+                          url: rightBackgroundImageUrl,
+                        },
+                      ] as const
+                    ).map(({ field, label, url }) => (
+                      <Stack key={field} spacing={1} alignItems="flex-start">
+                        <Typography variant="body2">{label}</Typography>
+                        <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+                          <Button
+                            component="label"
+                            variant="outlined"
+                            startIcon={<Iconify icon="ri:image-add-line" />}
+                            loading={uploading === field}
+                            disabled={saving || uploading !== null}
+                          >
+                            {url ? 'เปลี่ยนภาพ' : 'อัปโหลดภาพ'}
+                            <input
+                              hidden
+                              aria-label={label}
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                event.target.value = '';
+                                if (file) void uploadImage(field, file);
+                              }}
+                            />
+                          </Button>
+                          {url && (
+                            <Button
+                              color="error"
+                              disabled={saving || uploading !== null}
+                              onClick={() => {
+                                clearErrors(field);
+                                setValue(field, '', { shouldDirty: true, shouldValidate: true });
+                              }}
+                            >
+                              ลบภาพ
+                            </Button>
+                          )}
+                        </Stack>
+                        {errors[field]?.message && (
+                          <Alert severity="error">{errors[field].message}</Alert>
+                        )}
+                      </Stack>
+                    ))}
+                  </Box>
                   <Typography variant="caption" color="text.secondary">
-                    รองรับ JPG, PNG และ WebP ขนาดไม่เกิน 4 MB
+                    หากอัปโหลดเพียงภาพเดียว ระบบจะแสดงภาพนั้นทั้งสองด้าน รองรับ JPG, PNG และ WebP
+                    ไม่เกิน 4 MB
                   </Typography>
-                  {errors.backgroundImageUrl?.message && (
-                    <Alert severity="error">{errors.backgroundImageUrl.message}</Alert>
-                  )}
                 </Stack>
               </Stack>
               <Stack spacing={1}>

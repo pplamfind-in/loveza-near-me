@@ -31,6 +31,7 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
     themeColor,
     themeTextColor,
     backgroundImageUrl,
+    rightBackgroundImageUrl,
     startsAt,
     endsAt,
     sourceUrl,
@@ -44,7 +45,7 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
     url.startsWith(imageBase) &&
     /^[\da-f-]{36}\/[\da-f-]{36}\.webp$/i.test(url.slice(imageBase.length));
 
-  if (backgroundImageUrl && !isUploadedImage(backgroundImageUrl)) {
+  if ([backgroundImageUrl, rightBackgroundImageUrl].some((url) => url && !isUploadedImage(url))) {
     return 'กรุณาอัปโหลดภาพพื้นหลังผ่านฟอร์มกิจกรรม';
   }
   const catalogImages = options
@@ -84,6 +85,7 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
     theme_color: themeColor || null,
     theme_text_color: themeTextColor || null,
     background_image_url: backgroundImageUrl || null,
+    right_background_image_url: rightBackgroundImageUrl || null,
     options: options.map(({ label }) => label),
     option_details: Object.fromEntries(
       options.map(({ label, description, imageUrl }) => [label, { description, imageUrl }])

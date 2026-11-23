@@ -22,6 +22,20 @@ import { FlavorPollShare } from './flavor-poll-share';
 
 type SelectedPhoto = { file: File; url: string; submissionId: string };
 
+const photoFrameSx = {
+  display: 'block',
+  width: 'auto',
+  height: 'auto',
+  maxWidth: 'min(84%, 350px)',
+  maxHeight: 'min(48dvh, 350px)',
+  my: 1,
+  border: '6px solid',
+  borderColor: 'common.white',
+  borderRadius: '16px',
+  boxShadow: '0 8px 20px #0003',
+  transform: 'rotate(-3deg)',
+};
+
 export function ActivityPhotoForm({
   activityId,
   title,
@@ -112,24 +126,7 @@ export function ActivityPhotoForm({
         <Typography component="h2" variant="h4">
           ขอบคุณที่ร่วมกิจกรรม!
         </Typography>
-        <Box
-          component="img"
-          src={submittedImage}
-          alt="ภาพที่คุณส่ง"
-          sx={{
-            display: 'block',
-            width: 'auto',
-            height: 'auto',
-            maxWidth: 'min(84%, 350px)',
-            maxHeight: 'min(48dvh, 350px)',
-            my: 1,
-            border: '6px solid',
-            borderColor: 'common.white',
-            borderRadius: '16px',
-            boxShadow: '0 8px 20px #0003',
-            transform: 'rotate(-3deg)',
-          }}
-        />
+        <Box component="img" src={submittedImage} alt="ภาพที่คุณส่ง" sx={photoFrameSx} />
         <FlavorPollShare
           flavor={title}
           imageUrl={submittedImage}
@@ -163,62 +160,69 @@ export function ActivityPhotoForm({
       {preview && (
         <Typography variant="body2">โหมดพรีวิว รูปที่เลือกจะแสดงให้ดูโดยไม่ส่งเข้าระบบ</Typography>
       )}
-      {photo && (
-        <Box
-          component="img"
-          src={photo.url}
-          alt="ตัวอย่างภาพที่เลือก"
-          sx={{ width: '100%', maxHeight: 400, objectFit: 'contain', borderRadius: 2 }}
-        />
-      )}
-      <Button
-        component="label"
-        disabled={sending}
-        variant="contained"
-        disableElevation
-        startIcon={<Iconify icon="ri:image-add-line" />}
-        sx={{
-          minHeight: 48,
-          bgcolor: 'common.white',
-          color: 'text.primary',
-          '&:hover': { bgcolor: 'common.white', filter: 'brightness(.96)' },
-          '&:focus-within': { outline: '2px solid currentColor', outlineOffset: 2 },
-        }}
+      {photo && <Box component="img" src={photo.url} alt="ตัวอย่างภาพที่เลือก" sx={photoFrameSx} />}
+      <Stack
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        flexWrap="wrap"
+        useFlexGap
+        spacing={1.25}
       >
-        {photo ? 'เลือกรูปใหม่' : 'เลือกรูปถ่าย'}
-        <Box
-          component="input"
-          type="file"
-          accept={ACTIVITY_PHOTO_TYPES.join(',')}
-          onChange={selectPhoto}
+        <Button
+          component="label"
           disabled={sending}
+          variant="contained"
+          disableElevation
+          startIcon={<Iconify icon="ri:image-add-line" />}
           sx={{
-            position: 'absolute',
-            width: 1,
-            height: 1,
-            inset: 0,
-            opacity: 0,
-            cursor: 'inherit',
+            minHeight: 48,
+            borderRadius: '999px',
+            px: 2,
+            bgcolor: photo ? '#FFFFFFA6' : 'common.white',
+            color: 'text.primary',
+            '&:hover': { bgcolor: 'common.white', filter: 'brightness(.96)' },
+            '&:focus-within': { outline: '2px solid var(--activity-primary)', outlineOffset: -4 },
           }}
-        />
-      </Button>
+        >
+          {photo ? 'เลือกรูปใหม่' : 'เลือกรูปถ่าย'}
+          <Box
+            component="input"
+            type="file"
+            accept={ACTIVITY_PHOTO_TYPES.join(',')}
+            onChange={selectPhoto}
+            disabled={sending}
+            sx={{
+              position: 'absolute',
+              width: 1,
+              height: 1,
+              inset: 0,
+              opacity: 0,
+              cursor: 'inherit',
+            }}
+          />
+        </Button>
+        {photo && (
+          <Button
+            type="submit"
+            variant="contained"
+            loading={sending}
+            sx={{
+              minWidth: 120,
+              minHeight: 48,
+              borderRadius: '999px',
+              px: 2.5,
+              bgcolor: 'common.white',
+              color: 'text.primary',
+              '&:hover': { bgcolor: 'common.white' },
+            }}
+          >
+            {sending ? 'กำลังส่งภาพ' : 'ส่งภาพ'}
+          </Button>
+        )}
+      </Stack>
       {!photo && <Typography variant="body2">{ACTIVITY_PHOTO_FILE_ERROR}</Typography>}
       {error && <Alert severity="error">{error}</Alert>}
-      <Button
-        type="submit"
-        variant="contained"
-        disabled={!photo}
-        loading={sending}
-        sx={{
-          width: 1,
-          minHeight: 48,
-          bgcolor: 'common.white',
-          color: 'var(--activity-primary)',
-          '&:hover': { bgcolor: 'common.white' },
-        }}
-      >
-        {sending ? 'กำลังส่งภาพ' : 'ส่งภาพ'}
-      </Button>
     </Stack>
   );
 }

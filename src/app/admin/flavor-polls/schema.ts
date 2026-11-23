@@ -24,6 +24,7 @@ export const flavorPollSchema = z
       .string()
       .refine((color) => !color || activityColorPattern.test(color), 'กรุณาเลือกสีที่ถูกต้อง'),
     backgroundImageUrl: z.string().max(500),
+    rightBackgroundImageUrl: z.string().max(500),
     themeTextColor: z
       .string()
       .refine(
