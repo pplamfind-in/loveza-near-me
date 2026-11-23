@@ -246,7 +246,7 @@ export default async function ActivityGallery({
               <Button color="inherit" href={`${href}gallery/?preview=1`}>
                 ดูภาพตัวอย่าง
               </Button>
-            )}
+            )}เ
           </Stack>
         ) : (
           <ActivityGalleryGrid
