@@ -15,8 +15,8 @@ import { getProductFlavorIcon } from 'src/lib/product-flavor-icon';
 import { Iconify } from 'src/components/iconify';
 
 import { ProductCan } from './product-can';
-import { explorerLabelSx } from './explorer-styles';
 import { MobileCardCarousel } from './mobile-card-carousel';
+import { explorerLabelSx, landingCardRadius } from './explorer-styles';
 
 type FlavorsSectionProps = {
   products: LovezaProduct[];
@@ -127,7 +127,7 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
                     ? `linear-gradient(165deg, ${product.color}14, ${product.color}26)`
                     : '#F5F1EA',
                   border: '1px solid var(--palette-grey-200)',
-                  borderRadius: '22px',
+                  borderRadius: landingCardRadius,
                   boxShadow: '0 3px 0 #EDE4D7',
                   transition: 'transform 180ms ease, box-shadow 180ms ease',
                   '@media (hover: hover) and (prefers-reduced-motion: no-preference)': {
@@ -273,6 +273,14 @@ export function FlavorsSection({ products }: FlavorsSectionProps) {
               </Typography>
             ) : null}
           </MobileCardCarousel>
+          {products.length > 0 && (
+            <Typography
+              variant="body2"
+              sx={{ mt: 2, color: 'primary.dark', fontWeight: 700, textAlign: 'center' }}
+            >
+              รสไหนโดนใจ? แตะการ์ดรสนั้นแล้วกดหัวใจในหน้ารายละเอียดได้เลย!
+            </Typography>
+          )}
           {products.length > 0 ? (
             <Typography
               sx={{

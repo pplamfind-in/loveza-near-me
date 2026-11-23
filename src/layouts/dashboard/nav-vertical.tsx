@@ -24,6 +24,7 @@ export type NavVerticalProps = React.ComponentProps<'div'> &
     slots?: {
       topArea?: React.ReactNode;
       bottomArea?: React.ReactNode;
+      footerArea?: React.ReactNode;
     };
   };
 
@@ -106,6 +107,11 @@ export function NavVertical({
         ]}
       />
       {isNavMini ? renderNavMini() : renderNavVertical()}
+      {slots?.footerArea && (
+        <Box sx={{ flexShrink: 0, borderTop: '1px solid', borderColor: 'divider' }}>
+          {slots.footerArea}
+        </Box>
+      )}
     </NavRoot>
   );
 }

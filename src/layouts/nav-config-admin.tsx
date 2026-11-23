@@ -23,6 +23,12 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           path: '/admin/analytics',
           icon: navIcon('ri:line-chart-line'),
         },
+        {
+          title: 'กิจกรรม',
+          path: '/admin/flavor-polls',
+          deepMatch: true,
+          icon: navIcon('ri:bar-chart-box-line'),
+        },
       ],
     },
     {

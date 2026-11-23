@@ -48,11 +48,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
           nav: {
             data: getAdminNavData(pendingReportsCount ?? 0),
             hideWorkspace: true,
-            slots: { bottomArea: null },
-          },
-          header: {
             slots: {
-              rightArea: (
+              bottomArea: null,
+              footerArea: (
                 <AdminAccount
                   displayName={displayName}
                   email={user.email ?? ''}
@@ -61,6 +59,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
               ),
             },
           },
+          header: { slots: { rightArea: null } },
           main: {
             sx: {
               bgcolor: 'common.white',

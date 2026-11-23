@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
 
+import { landingCardRadius } from './explorer-styles';
+
 export function StorySection() {
   return (
     <Container maxWidth="lg">
@@ -37,7 +39,7 @@ export function StorySection() {
               objectFit: 'cover',
               objectPosition: 'right bottom',
               border: '5px solid var(--palette-background-paper)',
-              borderRadius: '18px',
+              borderRadius: landingCardRadius,
               boxShadow: '0 12px 32px rgba(65,49,30,.1)',
             }}
           />
@@ -106,7 +108,9 @@ export function AdventureSection() {
         sx={{
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: '18px',
+          borderRadius: landingCardRadius,
+          border: '5px solid',
+          borderColor: 'common.white',
           mb: { xs: 5, md: 8 },
           p: { xs: 3, md: 5 },
           pb: { xs: 28, sm: 5 },

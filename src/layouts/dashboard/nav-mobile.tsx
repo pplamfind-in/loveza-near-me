@@ -23,6 +23,7 @@ type NavMobileProps = NavSectionProps & {
   slots?: {
     topArea?: React.ReactNode;
     bottomArea?: React.ReactNode;
+    footerArea?: React.ReactNode;
   };
 };
 
@@ -78,6 +79,18 @@ export function NavMobile({
         />
         {slots?.bottomArea !== undefined ? slots.bottomArea : <NavUpgrade />}
       </Scrollbar>
+      {slots?.footerArea && (
+        <Box
+          sx={{
+            flexShrink: 0,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            pb: 'env(safe-area-inset-bottom)',
+          }}
+        >
+          {slots.footerArea}
+        </Box>
+      )}
     </Drawer>
   );
 }

@@ -130,18 +130,7 @@ export function RewardRulesPanel({ rules, hasError }: { rules: RewardRule[]; has
       <Button href="/admin/rewards/" sx={{ alignSelf: 'flex-start' }}>
         กลับไปจัดการรางวัล
       </Button>
-      <Alert severity="info">
-        ปิดใช้งานเพื่อหยุดเลือกในรางวัลใหม่ รางวัลเดิมยังนับต่อได้
-        ลบได้เฉพาะเงื่อนไขที่ไม่มีรางวัลใช้ และเปลี่ยนวิธีนับไม่ได้เมื่อมีรางวัลใช้อยู่
-      </Alert>
-      {hasError && <Alert severity="error">โหลดเงื่อนไขไม่สำเร็จ</Alert>}
-      {success && (
-        <Alert severity="success" onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      )}
-      {error && !open && !deleting && <Alert severity="error">{error}</Alert>}
-      <TableContainer component={Paper}>
+     <TableContainer component={Paper}>
         <Table sx={{ minWidth: 850 }} aria-label="Master เงื่อนไขรางวัล">
           <TableHead>
             <TableRow>

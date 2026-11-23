@@ -15,6 +15,8 @@ import { Iconify } from 'src/components/iconify';
 
 import { RewardCard } from 'src/sections/rewards/reward-card';
 
+import { landingCardRadius } from './explorer-styles';
+
 export async function LimitedMissionsSection({
   db,
 }: {
@@ -54,8 +56,8 @@ export async function LimitedMissionsSection({
           alignItems: 'center',
           gap: { xs: 3, md: 3, lg: 4 },
           p: { xs: 2.5, sm: 4, md: 5 },
-          border: '1px solid #E6CE96',
-          borderRadius: '28px',
+          border: '5px solid #D8AB42',
+          borderRadius: landingCardRadius,
           background: 'linear-gradient(125deg, #FFF8E9 20%, #FFE9AD 100%)',
         }}
       >

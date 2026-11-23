@@ -1,3 +1,5 @@
+export const landingCardRadius = '22px';
+
 // Shared materials for the landing page's block-world illustrations.
 export const explorerCardSx = {
   border: '1px solid var(--palette-grey-300)',

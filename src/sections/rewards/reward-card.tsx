@@ -250,6 +250,7 @@ export function RewardCard({ reward, index, status, showDetails = true }: Reward
             }
             alt={status.unlocked ? `การ์ด ${reward.name}` : 'การ์ดลับ รอคุณมาปลดล็อก'}
             fill
+            unoptimized
             sizes="(max-width: 599px) 90vw, (max-width: 1199px) 45vw, 370px"
             style={{
               objectFit: 'contain',

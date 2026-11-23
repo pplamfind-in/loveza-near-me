@@ -40,6 +40,7 @@ const nextConfig: NextConfig = {
     '/*': ['./public/avatar/**/*', './public/assets/avatar/**/*'],
     '/admin/rewards': ['./public/assets/illustrations/p-*.webp'],
     '/api/admin/rewards': ['./public/assets/illustrations/p-*.webp'],
+    '/api/admin/messages/*/reply': ['./public/logo/logo-email.png'],
     '/api/rewards/*/download': [
       './public/assets/illustrations/p-*.webp',
       './public/fonts/LINESeedSansTH-Bold.ttf',
@@ -52,6 +53,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: '/fonts/:font(LINESeedSansTH-(?:Regular|Bold)\\.woff2)',
+        headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
+      },
       {
         source: '/:path*',
         headers: [{ key: 'Permissions-Policy', value: 'geolocation=(self)' }],

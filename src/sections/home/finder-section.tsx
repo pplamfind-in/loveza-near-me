@@ -15,7 +15,7 @@ import { Iconify } from 'src/components/iconify';
 import { STORE_STATUS_LABEL } from 'src/types/store';
 
 import { MobileCardCarousel } from './mobile-card-carousel';
-import { explorerCardSx, explorerLabelSx } from './explorer-styles';
+import { explorerCardSx, explorerLabelSx, landingCardRadius } from './explorer-styles';
 
 const finderSteps = [
   {
@@ -52,7 +52,7 @@ function MapPreview({ stores }: { stores: LatestStorePreview[] }) {
         overflow: 'hidden',
         ...explorerCardSx,
         border: '5px solid var(--palette-background-paper)',
-        borderRadius: '18px',
+        borderRadius: landingCardRadius,
         bgcolor: 'background.paper',
         boxShadow: '0 16px 48px rgba(65,49,30,.06)',
       }}
@@ -480,7 +480,7 @@ export function FinderSection({ latestStores }: { latestStores: LatestStorePrevi
                     p: { xs: 3, md: 3.5 },
                     ...explorerCardSx,
                     border: '5px solid var(--palette-background-paper)',
-                    borderRadius: '18px',
+                    borderRadius: landingCardRadius,
                     bgcolor: [
                       'var(--palette-secondary-lighter)',
                       'var(--palette-primary-lighter)',

@@ -11,6 +11,8 @@ import { Iconify } from 'src/components/iconify';
 
 const coinAsset = '/assets/loveza/loveza-coin.webp';
 
+import { landingCardRadius } from './explorer-styles';
+
 export function MissionSection() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
@@ -22,7 +24,7 @@ export function MissionSection() {
           p: { xs: 3, sm: 4, lg: 6 },
           overflow: 'hidden',
           border: '5px solid var(--palette-background-paper)',
-          borderRadius: '28px',
+          borderRadius: landingCardRadius,
           background: 'linear-gradient(125deg, #FFF3D4 4%, #F6F2DB 46%, #E1EFE1 100%)',
           boxShadow: '0 4px 0 var(--palette-grey-200)',
           display: 'grid',

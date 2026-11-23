@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import { Iconify } from 'src/components/iconify';
 
 import { MobileCardCarousel } from './mobile-card-carousel';
-import { explorerCardSx, explorerLabelSx } from './explorer-styles';
+import { explorerCardSx, explorerLabelSx, landingCardRadius } from './explorer-styles';
 
 const highlights = [
   {
@@ -53,7 +53,7 @@ export function HighlightsSection() {
               p: 2.5,
               ...explorerCardSx,
               border: '5px solid var(--palette-background-paper)',
-              borderRadius: '18px',
+              borderRadius: landingCardRadius,
             }}
           >
             <Box

@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { SiteFont } from 'src/lib/site-font';
 import type { ProvinceColorSettings } from 'src/lib/mapza/province-color-scale';
 
@@ -38,6 +39,7 @@ import {
 import { Iconify } from 'src/components/iconify';
 
 type AdminSettingsPanelProps = {
+  children: ReactNode;
   initialRequireReportApproval: boolean;
   initialBrandOwnerAcknowledged: boolean;
   initialSiteFont: SiteFont;
@@ -150,125 +152,130 @@ type ProvinceColorFieldProps = {
 
 function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
   const scale = buildProvinceColorScale(settings);
-  const rows = [
-    { ...scale[0], colorKey: 'noDataColor', countKey: null, countLabel: 'จำนวนคงที่', count: 0 },
-    {
-      ...scale[1],
-      colorKey: 'tier1Color',
-      countKey: 'tier1Max',
-      countLabel: 'จำนวนสูงสุด',
-      count: settings.tier1Max,
-    },
-    {
-      ...scale[2],
-      colorKey: 'tier2Color',
-      countKey: 'tier2Max',
-      countLabel: 'จำนวนสูงสุด',
-      count: settings.tier2Max,
-    },
-    {
-      ...scale[3],
-      colorKey: 'tier3Color',
-      countKey: 'tier3Max',
-      countLabel: 'จำนวนสูงสุด',
-      count: settings.tier3Max,
-    },
-    {
-      ...scale[4],
-      colorKey: 'tier4Color',
-      countKey: null,
-      countLabel: 'เริ่มต้นที่',
-      count: settings.tier3Max + 1,
-    },
+  const fields = [
+    { color: 'noDataColor', max: null },
+    { color: 'tier1Color', max: 'tier1Max' },
+    { color: 'tier2Color', max: 'tier2Max' },
+    { color: 'tier3Color', max: 'tier3Max' },
+    { color: 'tier4Color', max: null },
   ] as const;
+  const rowSx = {
+    display: 'grid',
+    gridTemplateColumns: {
+      xs: 'minmax(0, 1fr) 64px 40px',
+      sm: 'minmax(0, 1.5fr) minmax(84px, 0.7fr) minmax(120px, 1fr)',
+    },
+    alignItems: 'center',
+    gap: { xs: 1, sm: 2 },
+    px: { xs: 1, sm: 1.5 },
+    py: 0.875,
+    '& > :nth-child(2)': { justifySelf: 'center', textAlign: 'center' },
+  };
 
   return (
-    <Stack spacing={2.5} sx={SETTINGS_SECTION_SX}>
-      <Stack direction="row" spacing={2} alignItems="center">
+    <Stack spacing={1.5} sx={{ ...SETTINGS_SECTION_SX, width: 1, maxWidth: 760 }} data-full-width>
+      <Stack direction="row" spacing={1.25} alignItems="center">
+        <Iconify icon="ri:palette-fill" width={22} sx={{ color: 'primary.main' }} />
+        <Typography component="h3" variant="h6">
+          สีสถานะจังหวัด
+        </Typography>
+      </Stack>
+
+      <Box
+        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden' }}
+      >
         <Box
           sx={{
-            width: 52,
-            height: 52,
-            color: 'primary.main',
-            display: 'grid',
-            flexShrink: 0,
-            borderRadius: '16px',
-            placeItems: 'center',
+            ...rowSx,
+            typography: 'caption',
+            fontWeight: 800,
+            color: 'primary.dark',
             bgcolor: 'primary.lighter',
           }}
         >
-          <Iconify icon="ri:palette-fill" width={28} />
+          <span>ช่วงจำนวนจุดขาย</span>
+          <span>สูงสุด</span>
+          <span>สี</span>
         </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: 20, fontWeight: 900 }}>สีสถานะจังหวัด</Typography>
-          <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
-            กำหนดช่วงจำนวนจุดขายและสีที่ใช้บนแผนที่ซ่าทั่วไทย
-          </Typography>
-        </Box>
-      </Stack>
-
-      <Stack spacing={1.5}>
-        {rows.map((row) => (
-          <Box
-            key={row.colorKey}
-            sx={{
-              p: 2,
-              gap: 2,
-              display: 'grid',
-              alignItems: 'center',
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: '16px',
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'minmax(0, 1fr) minmax(100px, 150px) minmax(90px, 130px)',
-              },
-            }}
-          >
-            <Stack direction="row" spacing={1.25} alignItems="center">
-              <Box
-                sx={{
-                  width: 18,
-                  height: 18,
-                  flexShrink: 0,
-                  borderRadius: '50%',
-                  bgcolor: row.color,
-                  border: '1px solid rgba(53,17,41,.18)',
-                }}
-              />
-              <Typography sx={{ fontWeight: 800 }}>{row.label}</Typography>
-            </Stack>
-
-            <TextField
-              type="number"
-              label={row.countLabel}
-              value={row.count}
-              disabled={!row.countKey}
-              onChange={(event) => {
-                if (!row.countKey) return;
-                onChange({
-                  ...settings,
-                  [row.countKey]: Number(event.target.value),
-                });
+        {scale.map(({ label }, index) => {
+          const { color, max } = fields[index];
+          return (
+            <Box
+              key={color}
+              sx={{
+                ...rowSx,
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                '&:focus-within': { bgcolor: 'action.hover' },
               }}
-              slotProps={{ htmlInput: { min: 1, max: 999999, step: 1 } }}
-            />
-
-            <TextField
-              type="color"
-              label="สี"
-              value={settings[row.colorKey]}
-              onChange={(event) =>
-                onChange({
-                  ...settings,
-                  [row.colorKey]: event.target.value.toUpperCase(),
-                })
-              }
-              helperText={settings[row.colorKey]}
-            />
-          </Box>
-        ))}
-      </Stack>
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {label}
+              </Typography>
+              {max ? (
+                <TextField
+                  type="number"
+                  size="small"
+                  value={settings[max]}
+                  sx={{
+                    width: { xs: 60, sm: 80 },
+                    '& input': {
+                      px: 0.5,
+                      py: 0.75,
+                      textAlign: 'center',
+                      fontVariantNumeric: 'tabular-nums',
+                    },
+                  }}
+                  onChange={(event) => onChange({ ...settings, [max]: Number(event.target.value) })}
+                  slotProps={{
+                    htmlInput: {
+                      min: 1,
+                      max: 999999,
+                      step: 1,
+                      'aria-label': `จำนวนสูงสุดสำหรับ ${label}`,
+                    },
+                  }}
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  —
+                </Typography>
+              )}
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box
+                  component="input"
+                  type="color"
+                  aria-label={`สีสำหรับ ${label}`}
+                  value={settings[color]}
+                  onChange={(event) =>
+                    onChange({ ...settings, [color]: event.target.value.toUpperCase() })
+                  }
+                  sx={{
+                    width: 36,
+                    height: 34,
+                    p: '4px',
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    cursor: 'pointer',
+                    '&::-webkit-color-swatch-wrapper': { p: 0 },
+                    '&::-webkit-color-swatch': { border: 0, borderRadius: '4px' },
+                    '&::-moz-color-swatch': { border: 0, borderRadius: '4px' },
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: { xs: 'none', sm: 'block' }, fontFamily: 'monospace' }}
+                >
+                  {settings[color]}
+                </Typography>
+              </Stack>
+            </Box>
+          );
+        })}
+      </Box>
 
       {!isValidProvinceColorSettings(settings) ? (
         <Alert severity="error">
@@ -280,6 +287,7 @@ function ProvinceColorField({ settings, onChange }: ProvinceColorFieldProps) {
 }
 
 export function AdminSettingsPanel({
+  children,
   initialRequireReportApproval,
   initialBrandOwnerAcknowledged,
   initialSiteFont,
@@ -423,11 +431,44 @@ export function AdminSettingsPanel({
               ตั้งค่าระบบ
             </Typography>
             <Typography sx={{ mt: 0.5, color: 'text.secondary', lineHeight: 1.6 }}>
-              จัดการกติกาการรับข้อมูล ภาพลักษณ์เว็บไซต์ และการแสดงผลบนแผนที่
+              จัดการบัญชีส่งอีเมล การเผยแพร่ข้อมูล และการตั้งค่าแผนที่
             </Typography>
           </Box>
         </Stack>
       </Paper>
+
+      <Stack
+        component="nav"
+        aria-label="หมวดการตั้งค่า"
+        direction="row"
+        spacing={1}
+        useFlexGap
+        flexWrap="wrap"
+      >
+        <Button
+          href="#gmail-smtp"
+          variant="outlined"
+          startIcon={<Iconify icon="ri:mail-settings-line" />}
+        >
+          Gmail SMTP
+        </Button>
+        <Button
+          href="#website-settings"
+          variant="outlined"
+          startIcon={<Iconify icon="ri:global-line" />}
+        >
+          เว็บไซต์และการเผยแพร่
+        </Button>
+        <Button
+          href="#map-settings"
+          variant="outlined"
+          startIcon={<Iconify icon="ri:map-2-line" />}
+        >
+          แผนที่และพิกัด
+        </Button>
+      </Stack>
+
+      {children}
 
       {hasError ? (
         <Alert severity="error">
@@ -441,13 +482,17 @@ export function AdminSettingsPanel({
             display: 'grid',
             gap: 3,
             alignItems: 'start',
-            gridTemplateColumns: { xs: '1fr', xl: 'repeat(2, minmax(0, 1fr))' },
-            '& > :nth-child(3), & > :nth-child(6), & > .MuiAlert-root, & > :last-child': {
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'repeat(2, minmax(0, 1fr))' },
+            '& > h2, & > [data-full-width], & > .MuiAlert-root, & > :last-child': {
               gridColumn: '1 / -1',
             },
+            '& > h2': { scrollMarginTop: 'calc(var(--layout-header-desktop-height, 80px) + 24px)' },
           }}
         >
-          <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
+          <Typography id="website-settings" component="h2" variant="h5">
+            เว็บไซต์และการเผยแพร่
+          </Typography>
+          <Stack spacing={2} sx={{ ...SETTINGS_SECTION_SX, alignSelf: 'stretch' }}>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -503,7 +548,7 @@ export function AdminSettingsPanel({
             </Box>
           </Stack>
 
-          <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
+          <Stack spacing={2} sx={{ ...SETTINGS_SECTION_SX, alignSelf: 'stretch' }}>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -568,7 +613,7 @@ export function AdminSettingsPanel({
             </Alert>
           </Stack>
 
-          <Stack spacing={2} sx={SETTINGS_SECTION_SX}>
+          <Stack spacing={2} sx={SETTINGS_SECTION_SX} data-full-width>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -625,6 +670,10 @@ export function AdminSettingsPanel({
               ฟอนต์ที่เลือกจะมีผลกับหน้าสาธารณะและหน้า Admin หลังจากกดบันทึก
             </Alert>
           </Stack>
+
+          <Typography id="map-settings" component="h2" variant="h5">
+            แผนที่และพิกัด
+          </Typography>
 
           <RadiusField
             icon="ri:radar-fill"

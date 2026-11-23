@@ -25,6 +25,26 @@ export function useAdminMessagesQuery() {
   });
 }
 
+export function useReplyToMessageMutation() {
+  return useMutation({
+    retry: false,
+    mutationFn: async ({ id, text }: { id: string; text: string }) => {
+      const response = await fetch(`/api/admin/messages/${encodeURIComponent(id)}/reply/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        sent?: boolean;
+        error?: string;
+      } | null;
+      if (!response.ok || !payload?.sent) {
+        throw new Error(payload?.error ?? 'ยืนยันผลการส่งอีเมลไม่ได้');
+      }
+    },
+  });
+}
+
 export function useUpdateMessageStatusMutation() {
   const queryClient = useQueryClient();
 

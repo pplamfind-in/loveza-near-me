@@ -16,6 +16,7 @@ import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -24,8 +25,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { buildContactReplyEmail } from 'src/lib/contact-reply-email';
 import {
   useAdminMessagesQuery,
+  useReplyToMessageMutation,
   useUpdateMessageStatusMutation,
 } from 'src/app/admin/messages/use-admin-messages';
 
@@ -39,7 +42,15 @@ const STATUS_LABELS: Record<ContactMessageStatus, string> = {
 
 type FilterValue = 'all' | ContactMessageStatus;
 
-export function ContactMessagesPanel() {
+export function ContactMessagesPanel({
+  replySender,
+  replyConfigured,
+  replySiteUrl,
+}: {
+  replySender: { name: string; address: string } | null;
+  replyConfigured: boolean;
+  replySiteUrl: string;
+}) {
   const {
     data: messages = [],
     isLoading,
@@ -49,11 +60,22 @@ export function ContactMessagesPanel() {
     refetch,
   } = useAdminMessagesQuery();
   const updateStatus = useUpdateMessageStatusMutation();
+  const sendReply = useReplyToMessageMutation();
+  const [composing, setComposing] = useState(false);
+  const [replyText, setReplyText] = useState('');
   const [filter, setFilter] = useState<FilterValue>('all');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedMessage = messages.find((message) => message.id === selectedId);
+
+  const closeMessage = () => {
+    if (sendReply.isPending) return;
+    sendReply.reset();
+    setComposing(false);
+    setReplyText('');
+    setSelectedId(null);
+  };
 
   const visibleMessages =
     filter === 'all' ? messages : messages.filter((message) => message.status === filter);
@@ -259,7 +281,7 @@ export function ContactMessagesPanel() {
       )}
       <Dialog
         open={Boolean(selectedMessage)}
-        onClose={() => setSelectedId(null)}
+        onClose={closeMessage}
         fullWidth
         maxWidth="md"
         aria-labelledby="contact-message-title"
@@ -308,8 +330,11 @@ export function ContactMessagesPanel() {
 
               <Stack spacing={1} sx={{ minWidth: { md: 180 } }}>
                 <Button
-                  component="a"
-                  href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(`Re: ${selectedMessage.subject}`)}`}
+                  onClick={() => {
+                    sendReply.reset();
+                    setComposing(true);
+                  }}
+                  disabled={composing}
                   variant="contained"
                   startIcon={<Iconify icon="ri:reply-fill" />}
                 >
@@ -348,9 +373,146 @@ export function ContactMessagesPanel() {
               </Stack>
             </Stack>
           )}
+          {sendReply.isSuccess && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              Gmail รับอีเมลตอบกลับแล้ว
+            </Alert>
+          )}
+          {selectedMessage && composing && (
+            <Stack
+              component="form"
+              spacing={2}
+              sx={{ mt: 3 }}
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!replyConfigured || sendReply.isPending || !replyText.trim()) return;
+                sendReply.mutate(
+                  { id: selectedMessage.id, text: replyText },
+                  {
+                    onSuccess: () => {
+                      setReplyText('');
+                      setComposing(false);
+                    },
+                  }
+                );
+              }}
+            >
+              <Box
+                component="dl"
+                sx={{
+                  m: 0,
+                  p: 2,
+                  display: 'grid',
+                  gridTemplateColumns: 'max-content minmax(0, 1fr)',
+                  gap: 1,
+                  borderRadius: 1,
+                  bgcolor: 'background.neutral',
+                  typography: 'body2',
+                  '& dt': { fontWeight: 700 },
+                  '& dd': { m: 0, overflowWrap: 'anywhere' },
+                }}
+              >
+                <dt>จาก</dt>
+                <dd>
+                  {replySender
+                    ? `${replySender.name} <${replySender.address}>`
+                    : 'ยังไม่ได้ตั้งค่าอีเมลผู้ส่ง'}
+                </dd>
+                <dt>ถึง</dt>
+                <dd>{selectedMessage.email}</dd>
+                <dt>หัวข้อ</dt>
+                <dd>Re: {selectedMessage.subject.replace(/[\r\n]+/g, ' ')}</dd>
+              </Box>
+              {!replyConfigured && (
+                <Alert
+                  severity="warning"
+                  action={
+                    <Button href="/admin/settings/" color="inherit" size="small">
+                      ไปที่การตั้งค่า
+                    </Button>
+                  }
+                >
+                  ตั้งค่าบัญชี Gmail SMTP ก่อนส่งอีเมล
+                </Alert>
+              )}
+              <TextField
+                autoFocus
+                required
+                multiline
+                minRows={4}
+                label="ข้อความตอบกลับ"
+                value={replyText}
+                disabled={sendReply.isPending}
+                onChange={(event) => setReplyText(event.target.value)}
+                slotProps={{ htmlInput: { maxLength: 5000 } }}
+              />
+              <Box
+                component="details"
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  overflow: 'hidden',
+                }}
+              >
+                <Typography
+                  component="summary"
+                  variant="subtitle2"
+                  sx={{ px: 2, py: 1.5, cursor: 'pointer' }}
+                >
+                  ดูตัวอย่างอีเมล
+                </Typography>
+                <Box
+                  component="iframe"
+                  title="ตัวอย่างอีเมลตอบกลับ Loveza Hunt"
+                  sandbox="allow-same-origin"
+                  loading="lazy"
+                  srcDoc={
+                    buildContactReplyEmail({
+                      name: selectedMessage.name,
+                      subject: selectedMessage.subject,
+                      message: replyText.trim() || 'ข้อความตอบกลับของคุณจะแสดงตรงนี้',
+                      siteUrl: replySiteUrl,
+                      assetBaseUrl: '',
+                    }).html
+                  }
+                  sx={{
+                    display: 'block',
+                    width: 1,
+                    height: { xs: 440, md: 520 },
+                    border: 0,
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                />
+              </Box>
+              {sendReply.isError && <Alert severity="error">{sendReply.error.message}</Alert>}
+              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                <Button
+                  type="button"
+                  disabled={sendReply.isPending}
+                  onClick={() => {
+                    sendReply.reset();
+                    setComposing(false);
+                    setReplyText('');
+                  }}
+                >
+                  ยกเลิกการตอบกลับ
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  loading={sendReply.isPending}
+                  disabled={!replyConfigured || !replyText.trim()}
+                >
+                  ส่งอีเมล
+                </Button>
+              </Stack>
+            </Stack>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button color="inherit" onClick={() => setSelectedId(null)}>
+          <Button color="inherit" disabled={sendReply.isPending} onClick={closeMessage}>
             ปิด
           </Button>
         </DialogActions>

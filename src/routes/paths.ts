@@ -22,6 +22,7 @@ export const paths = {
   payment: '/payment',
   about: '/about-us',
   contact: '/contact-us',
+  activity: { details: (id: string) => `/activities/${encodeURIComponent(id)}/` },
   terms: '/terms',
   privacy: '/privacy',
   cookies: '/cookies',

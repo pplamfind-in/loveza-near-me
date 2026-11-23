@@ -52,6 +52,7 @@ export type DashboardLayoutProps = LayoutBaseProps & {
       slots?: {
         topArea?: React.ReactNode;
         bottomArea?: React.ReactNode;
+        footerArea?: React.ReactNode;
       };
     };
     main?: MainSectionProps;
@@ -181,7 +182,23 @@ export function DashboardLayout({
         layoutQuery={layoutQuery}
         disableElevation={isNavVertical}
         {...slotProps?.header}
-        slots={{ ...headerSlots, ...slotProps?.header?.slots }}
+        slots={{
+          ...headerSlots,
+          ...slotProps?.header?.slots,
+          ...(isNavHorizontal &&
+            slotProps?.nav?.slots?.footerArea && {
+              rightArea: (
+                <Box
+                  sx={{
+                    display: 'none',
+                    [theme.breakpoints.up(layoutQuery)]: { display: 'block', width: 280 },
+                  }}
+                >
+                  {slotProps.nav.slots.footerArea}
+                </Box>
+              ),
+            }),
+        }}
         slotProps={merge(headerSlotProps, slotProps?.header?.slotProps ?? {})}
         sx={slotProps?.header?.sx}
       />
