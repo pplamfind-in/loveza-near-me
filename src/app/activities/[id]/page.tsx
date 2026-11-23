@@ -46,20 +46,22 @@ export default async function ActivityPage({
 
   const db = await createClient();
   const now = new Date();
-  const { data: poll, error } = await db
+  const query = db
     .from('flavor_polls')
     .select(
-      'id, activity_type, title, description_html, options, is_active, option_details, starts_at, ends_at, source_url, theme_color'
+      'id, activity_type, title, description_html, options, is_published, is_active, option_details, starts_at, ends_at, source_url, theme_color'
     )
-    .eq('id', id)
-    .eq('is_published', true)
-    .or(`starts_at.is.null,starts_at.lte.${now.toISOString()}`)
-    .maybeSingle();
+    .eq('id', id);
+  const visible = `and(is_published.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const { data: poll, error } = await (isDevelopment ? query : query.or(visible)).maybeSingle();
   if (error) throw new Error('โหลดกิจกรรมไม่สำเร็จ');
   if (!poll) notFound();
 
   const matching = poll.activity_type === 'matching';
-  const user = matching ? null : (await db.auth.getUser()).data.user;
+  const pollStatus = getFlavorPollStatus(poll, now.getTime());
+  const preview = isDevelopment && (!poll.is_published || pollStatus !== 'active');
+  const user = matching || preview ? null : (await db.auth.getUser()).data.user;
   const vote = user
     ? await db
         .from('flavor_poll_votes')
@@ -70,8 +72,7 @@ export default async function ActivityPage({
     : null;
   const chosen = vote?.data?.option_label;
 
-  const pollStatus = getFlavorPollStatus(poll, now.getTime());
-  const open = pollStatus === 'active';
+  const open = preview ? matching : pollStatus === 'active';
   const playing = matching && open && step === 'play';
   const canVote = open && Boolean(user) && !chosen && !vote?.error;
   const href = paths.activity.details(poll.id);
@@ -241,7 +242,13 @@ export default async function ActivityPage({
                     }}
                     color={open ? 'success' : 'default'}
                     label={
-                      matching ? (open ? 'เล่นได้' : 'ปิดแล้ว') : flavorPollStatusLabel[pollStatus]
+                      preview
+                        ? 'ตัวอย่างกิจกรรม'
+                        : matching
+                          ? open
+                            ? 'เล่นได้'
+                            : 'ปิดแล้ว'
+                          : flavorPollStatusLabel[pollStatus]
                     }
                   />
                 </Stack>

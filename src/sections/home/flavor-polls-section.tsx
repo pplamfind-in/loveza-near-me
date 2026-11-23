@@ -17,13 +17,14 @@ import { explorerCardSx, landingCardRadius } from './explorer-styles';
 
 export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof createClient>> }) {
   const now = new Date();
-  const { data: activities } = await db
+  const query = db
     .from('flavor_polls')
-    .select('id, activity_type, title, is_active, starts_at, ends_at, theme_color')
-    .eq('is_published', true)
-    .eq('is_active', true)
-    .or(`starts_at.is.null,starts_at.lte.${now.toISOString()}`)
+    .select('id, activity_type, title, is_published, is_active, starts_at, ends_at, theme_color')
     .order('created_at', { ascending: false });
+  const visible = `and(is_published.eq.true,is_active.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
+  const { data: activities } = await (process.env.NODE_ENV === 'development'
+    ? query
+    : query.or(visible));
   if (!activities?.length) return null;
 
   return (
@@ -44,7 +45,9 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
         {activities.map((activity) => {
           const matching = activity.activity_type === 'matching';
           const status = getFlavorPollStatus(activity, now.getTime());
-          const open = status === 'active';
+          const draft = !activity.is_published;
+          const open = !draft && status === 'active';
+          const preview = process.env.NODE_ENV === 'development' && !open;
           return (
             <Stack
               component="a"
@@ -103,7 +106,13 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                 <Chip
                   size="small"
                   color={open ? 'success' : 'default'}
-                  label={matching && open ? 'เล่นได้' : flavorPollStatusLabel[status]}
+                  label={
+                    preview
+                      ? 'ตัวอย่างกิจกรรม'
+                      : matching && open
+                        ? 'เล่นได้'
+                        : flavorPollStatusLabel[status]
+                  }
                   sx={{ fontWeight: 700 }}
                 />
               </Stack>

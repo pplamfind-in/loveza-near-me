@@ -42,6 +42,7 @@ type AdminSettingsPanelProps = {
   children: ReactNode;
   initialRequireReportApproval: boolean;
   initialBrandOwnerAcknowledged: boolean;
+  initialLandingActivitiesEnabled: boolean;
   initialSiteFont: SiteFont;
   initialDuplicateRadiusM: number;
   initialSearchRadiusM: number;
@@ -290,6 +291,7 @@ export function AdminSettingsPanel({
   children,
   initialRequireReportApproval,
   initialBrandOwnerAcknowledged,
+  initialLandingActivitiesEnabled,
   initialSiteFont,
   initialDuplicateRadiusM,
   initialSearchRadiusM,
@@ -307,6 +309,9 @@ export function AdminSettingsPanel({
   const [searchRadiusM, setSearchRadiusM] = useState(initialSearchRadiusM);
   const [provinceColorSettings, setProvinceColorSettings] = useState(initialProvinceColorSettings);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(updatedAt);
+  const [landingActivitiesEnabled, setLandingActivitiesEnabled] = useState(
+    initialLandingActivitiesEnabled
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -335,6 +340,7 @@ export function AdminSettingsPanel({
         body: JSON.stringify({
           requireReportApproval,
           brandOwnerAcknowledged,
+          landingActivitiesEnabled,
           siteFont,
           duplicateRadiusM,
           searchRadiusM,
@@ -346,6 +352,7 @@ export function AdminSettingsPanel({
         settings?: {
           requireReportApproval: boolean;
           brandOwnerAcknowledged: boolean;
+          landingActivitiesEnabled: boolean;
           siteFont: SiteFont;
           duplicateRadiusM: number;
           searchRadiusM: number;
@@ -360,6 +367,7 @@ export function AdminSettingsPanel({
 
       setRequireReportApproval(payload.settings.requireReportApproval);
       setBrandOwnerAcknowledged(payload.settings.brandOwnerAcknowledged);
+      setLandingActivitiesEnabled(payload.settings.landingActivitiesEnabled);
       setSiteFont(payload.settings.siteFont);
       setDuplicateRadiusM(payload.settings.duplicateRadiusM);
       setSearchRadiusM(payload.settings.searchRadiusM);
@@ -611,6 +619,33 @@ export function AdminSettingsPanel({
                 {getBrandOwnerNotice(brandOwnerAcknowledged)}
               </Typography>
             </Alert>
+          </Stack>
+
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            justifyContent="space-between"
+            sx={SETTINGS_SECTION_SX}
+            data-full-width
+          >
+            <Box>
+              <Typography variant="subtitle1">กิจกรรมบนหน้าแรก</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {landingActivitiesEnabled
+                  ? 'แสดงส่วนกิจกรรมบนหน้าแรกในโหมดพัฒนา'
+                  : 'ซ่อนส่วนกิจกรรมจากหน้าแรกในโหมดพัฒนา'}
+              </Typography>
+            </Box>
+            <Switch
+              checked={landingActivitiesEnabled}
+              disabled={saving || hasError}
+              onChange={(event) => {
+                setLandingActivitiesEnabled(event.target.checked);
+                setMessage(null);
+              }}
+              slotProps={{ input: { 'aria-label': 'แสดงกิจกรรมบนหน้าแรก' } }}
+            />
           </Stack>
 
           <Stack spacing={2} sx={SETTINGS_SECTION_SX} data-full-width>
