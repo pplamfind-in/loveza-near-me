@@ -15,6 +15,7 @@ type MobileCardCarouselProps = {
   id?: string;
   label: string;
   count: number;
+  paginated?: boolean;
   gridSx: SxProps<Theme>;
   children: ReactNode;
 };
@@ -23,6 +24,7 @@ export function MobileCardCarousel({
   id,
   label,
   count,
+  paginated = false,
   gridSx,
   children,
 }: MobileCardCarouselProps) {
@@ -36,19 +38,57 @@ export function MobileCardCarousel({
         role="region"
         aria-label={label}
         sx={{
-          mt: 3,
+          mt: paginated ? 0 : 3,
           '& .slick-list': {
-            width: 'calc(95% + 16px)',
-            ml: -1,
+            width: paginated ? '100%' : 'calc(95% + 16px)',
+            ml: paginated ? 0 : -1,
             pb: 0.5,
-            overflow: 'visible',
+            overflow: paginated ? 'hidden' : 'visible',
           },
-          '& .slick-slide > div': { px: 1 },
+          '& .slick-slide > div': { px: paginated ? 0.5 : 1 },
+          ...(paginated && {
+            '& .slick-dots': {
+              display: 'flex !important',
+              justifyContent: 'center',
+              listStyle: 'none',
+              m: 0,
+              mt: 1,
+              p: 0,
+            },
+            '& .slick-dots button': {
+              display: 'grid',
+              placeItems: 'center',
+              width: 28,
+              height: 28,
+              border: 0,
+              borderRadius: '50%',
+              bgcolor: 'transparent',
+              color: 'text.secondary',
+              cursor: 'pointer',
+              '&::before': {
+                content: '""',
+                width: 8,
+                height: 8,
+                border: '1px solid currentColor',
+                borderRadius: '50%',
+              },
+            },
+            '& .slick-active button::before': {
+              bgcolor: 'primary.main',
+              borderColor: 'primary.main',
+            },
+          }),
         }}
       >
         <Slider
           arrows={false}
-          infinite
+          infinite={!paginated}
+          dots={paginated}
+          customPaging={
+            paginated
+              ? (index) => <button type="button" aria-label={`ดูตัวเลือกที่ ${index + 1}`} />
+              : undefined
+          }
           slidesToShow={1}
           slidesToScroll={1}
           speed={reduceMotion ? 0 : 300}

@@ -19,7 +19,9 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
   const now = new Date();
   const query = db
     .from('flavor_polls')
-    .select('id, activity_type, title, is_published, is_active, starts_at, ends_at, theme_color')
+    .select(
+      'id, slug, activity_type, title, is_published, is_active, starts_at, ends_at, theme_color'
+    )
     .order('created_at', { ascending: false });
   const visible = `and(is_published.eq.true,is_active.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
   const { data: activities } = await (process.env.NODE_ENV === 'development'
@@ -53,7 +55,7 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
               component="a"
               key={activity.id}
               id={`${matching ? 'game' : 'poll'}-${activity.id}`}
-              href={paths.activity.details(activity.id)}
+              href={paths.activity.details(activity.slug ?? activity.id)}
               spacing={2}
               sx={{
                 ...explorerCardSx,

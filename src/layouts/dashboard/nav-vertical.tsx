@@ -53,7 +53,7 @@ export function NavVertical({
           data={data}
           cssVars={cssVars}
           checkPermissions={checkPermissions}
-          sx={{ px: 2, flex: '1 1 auto' }}
+          sx={{ px: 2, pb: slots?.footerArea ? 1.5 : 0, flex: '1 1 auto' }}
         />
 
         {slots?.bottomArea !== undefined ? slots.bottomArea : <NavUpgrade />}

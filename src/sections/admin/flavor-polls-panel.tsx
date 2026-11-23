@@ -115,8 +115,6 @@ export function FlavorPollsPanel({
         </Button>
       </Stack>
 
-      {(pollsError || totalsError) && <Alert severity="error">โหลดรายการหรือผลโหวตไม่สำเร็จ</Alert>}
-      {notice && <Alert severity={notice.severity}>{notice.text}</Alert>}
 
       <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '16px' }}>
         <Table sx={{ minWidth: 680 }} aria-label="รายการกิจกรรม">

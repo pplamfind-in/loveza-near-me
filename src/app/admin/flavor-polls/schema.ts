@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { isActivitySlug } from 'src/lib/activity-slug';
 import { activityColorPattern } from 'src/lib/activity-theme';
 import { parseFlavorPollSourceUrl } from 'src/lib/flavor-poll-schedule';
 
@@ -9,11 +10,25 @@ export const flavorPollSchema = z
   .object({
     activityType: z.enum(['poll', 'matching'], { error: 'กรุณาเลือกประเภทกิจกรรม' }),
     title: z.string().trim().min(1, 'กรุณากรอกหัวข้อ').max(140, 'หัวข้อต้องไม่เกิน 140 ตัวอักษร'),
+    slug: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .refine(
+        (value) => !value || isActivitySlug(value),
+        'Slug ใช้ตัวอักษรอังกฤษพิมพ์เล็ก ตัวเลข และขีดกลางได้ไม่เกิน 80 ตัวอักษร'
+      ),
     descriptionHtml: z.string().max(20000, 'รายละเอียดกิจกรรมยาวเกินกำหนด'),
     publication: z.enum(['now', 'scheduled', 'draft', 'closed']),
     themeColor: z
       .string()
       .refine((color) => !color || activityColorPattern.test(color), 'กรุณาเลือกสีที่ถูกต้อง'),
+    themeTextColor: z
+      .string()
+      .refine(
+        (color) => !color || activityColorPattern.test(color),
+        'กรุณาเลือกสีข้อความที่ถูกต้อง'
+      ),
     startsAt: z.string().nullable(),
     endsAt: dateTimeSchema,
     sourceUrl: z

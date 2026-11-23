@@ -25,9 +25,11 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
   const {
     activityType,
     title,
+    slug,
     descriptionHtml,
     publication,
     themeColor,
+    themeTextColor,
     startsAt,
     endsAt,
     sourceUrl,
@@ -73,9 +75,11 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
   if (activityDescription.length > 20000) return 'รายละเอียดกิจกรรมยาวเกินกำหนด';
   const row = {
     title,
+    slug: slug || null,
     description_html: activityDescription,
     is_published: publication !== 'draft',
     theme_color: themeColor || null,
+    theme_text_color: themeTextColor || null,
     options: options.map(({ label }) => label),
     option_details: Object.fromEntries(
       options.map(({ label, description, imageUrl }) => [label, { description, imageUrl }])
@@ -95,6 +99,7 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
           })
           .eq('id', id);
   const { error } = await query.select('id').single();
+  if (error?.code === '23505') return 'Slug นี้ถูกใช้งานแล้ว';
   if (error?.code === '23514')
     return 'กิจกรรมมีผลโหวตแล้ว กรุณาโหลดหน้าใหม่เพื่อแก้รายละเอียดโดยคงตัวเลือกเดิม';
   if (error) return 'บันทึกกิจกรรมไม่สำเร็จ';

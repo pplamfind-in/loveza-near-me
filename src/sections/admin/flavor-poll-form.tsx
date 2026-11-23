@@ -24,6 +24,9 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
+import { paths } from 'src/routes/paths';
+
+import { activityTheme } from 'src/lib/activity-theme';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { saveFlavorPoll } from 'src/app/admin/flavor-polls/actions';
 import { flavorPollSchema } from 'src/app/admin/flavor-polls/schema';
@@ -45,6 +48,7 @@ type FlavorPollFormProps = {
     id: string;
     activity_type: FlavorPollFormValues['activityType'];
     title: string;
+    slug: string | null;
     description_html: string;
     options: string[];
     option_details: unknown;
@@ -52,6 +56,7 @@ type FlavorPollFormProps = {
     ends_at: string | null;
     source_url: string | null;
     theme_color: string | null;
+    theme_text_color: string | null;
     is_active: boolean;
     status: keyof typeof flavorPollPublicationLabel;
   };
@@ -93,6 +98,7 @@ export function FlavorPollForm({
     defaultValues: {
       activityType: poll?.activity_type ?? 'poll',
       title: poll?.title ?? '',
+      slug: poll?.slug ?? '',
       descriptionHtml: poll?.description_html ?? '',
       publication:
         poll?.status === 'draft'
@@ -103,6 +109,7 @@ export function FlavorPollForm({
               ? 'scheduled'
               : 'now',
       themeColor: poll?.theme_color ?? '',
+      themeTextColor: poll?.theme_text_color ?? '',
       startsAt: poll?.starts_at ? dayjs(poll.starts_at).toISOString() : null,
       endsAt: poll?.ends_at ? dayjs(poll.ends_at).toISOString() : null,
       sourceUrl: poll?.source_url ?? '',
@@ -124,6 +131,10 @@ export function FlavorPollForm({
   const publication = useWatch({ control, name: 'publication' });
   const activityType = useWatch({ control, name: 'activityType' });
   const themeColor = useWatch({ control, name: 'themeColor' });
+  const themeTextColor = useWatch({ control, name: 'themeTextColor' });
+  const automaticTextColor = activityTheme(themeColor || theme.palette.primary.main)[
+    '--activity-contrast'
+  ];
   const isMatching = activityType === 'matching';
   const startsAt = useWatch({ control, name: 'startsAt' });
   const options = useWatch({ control, name: 'options' });
@@ -194,68 +205,189 @@ export function FlavorPollForm({
           <Typography component="h1" sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 900 }}>
             {poll ? 'แก้ไขกิจกรรม' : 'สร้างกิจกรรม'}
           </Typography>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" color="text.secondary">
-              สถานะกิจกรรม
-            </Typography>
-            <Chip
-              size="small"
-              label={flavorPollPublicationLabel[poll?.status ?? 'draft']}
-              color={
-                poll?.status === 'published'
-                  ? 'success'
-                  : poll?.status === 'upcoming'
-                    ? 'info'
-                    : 'default'
-              }
-            />
+          <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1.5}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="body2" color="text.secondary">
+                สถานะกิจกรรม
+              </Typography>
+              <Chip
+                size="small"
+                label={flavorPollPublicationLabel[poll?.status ?? 'draft']}
+                color={
+                  poll?.status === 'published'
+                    ? 'success'
+                    : poll?.status === 'upcoming'
+                      ? 'info'
+                      : 'default'
+                }
+              />
+            </Stack>
+            {poll && (
+              <Button
+                href={`${paths.activity.details(poll.slug ?? poll.id)}?preview=1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outlined"
+                endIcon={<Iconify icon="ri:external-link-line" />}
+                title="พรีวิวข้อมูลที่บันทึกแล้ว"
+              >
+                พรีวิวหน้าใช้งานจริง
+              </Button>
+            )}
           </Stack>
         </Stack>
         <Card sx={{ p: { xs: 2, md: 3 } }}>
           <Form methods={methods} onSubmit={submit}>
             <Stack spacing={3}>
-              <Field.Text
-                select
-                name="activityType"
-                label="ประเภทกิจกรรม"
-                required
-                sx={{ maxWidth: 360 }}
-                slotProps={{ input: { readOnly: Boolean(poll) } }}
-              >
-                <MenuItem value="poll">สร้างโพล</MenuItem>
-                <MenuItem value="matching">เกมจับคู่</MenuItem>
-              </Field.Text>
-              <Field.Text
-                name="title"
-                label="หัวข้อ"
-                required
-                slotProps={{ htmlInput: { maxLength: 140 } }}
-              />
-              <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-                <TextField
-                  label="สีหลักกิจกรรม"
-                  type="color"
-                  value={themeColor || theme.palette.primary.main}
-                  onChange={(event) =>
-                    setValue('themeColor', event.target.value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                  error={Boolean(errors.themeColor)}
-                  helperText={errors.themeColor?.message ?? (themeColor || 'ใช้สี Primary ของระบบ')}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ width: 180 }}
-                />
-                {themeColor && (
-                  <Button
-                    onClick={() =>
-                      setValue('themeColor', '', { shouldDirty: true, shouldValidate: true })
-                    }
+              <Stack component="section" aria-labelledby="activity-info-heading" spacing={2}>
+                <Typography id="activity-info-heading" component="h2" variant="subtitle1">
+                  ข้อมูลกิจกรรม
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 2fr)' },
+                    alignItems: 'start',
+                  }}
+                >
+                  <Field.Text
+                    select
+                    name="activityType"
+                    label="ประเภทกิจกรรม"
+                    required
+                    slotProps={{ input: { readOnly: Boolean(poll) } }}
                   >
-                    ใช้สีระบบ
-                  </Button>
-                )}
+                    <MenuItem value="poll">สร้างโพล</MenuItem>
+                    <MenuItem value="matching">เกมจับคู่</MenuItem>
+                  </Field.Text>
+                  <Field.Text
+                    name="title"
+                    label="หัวข้อ"
+                    required
+                    slotProps={{ htmlInput: { maxLength: 140 } }}
+                  />
+                  <Field.Text
+                    name="slug"
+                    label="Slug กิจกรรม"
+                    sx={{ gridColumn: '1 / -1' }}
+                    placeholder="loveza-new-flavor"
+                    helperText="ชื่อท้ายลิงก์กิจกรรม เช่น /activities/loveza-new-flavor/"
+                    slotProps={{
+                      htmlInput: { maxLength: 80, autoCapitalize: 'none', spellCheck: false },
+                    }}
+                  />
+                </Box>
+              </Stack>
+              <Stack
+                component="section"
+                aria-labelledby="activity-colors-heading"
+                spacing={2}
+                sx={{
+                  p: { xs: 2, md: 2.5 },
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                }}
+              >
+                <Typography id="activity-colors-heading" component="h2" variant="subtitle1">
+                  สีของหน้ากิจกรรม
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
+                    alignItems: 'start',
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="flex-start"
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    <TextField
+                      label="สีหลักกิจกรรม"
+                      type="color"
+                      value={themeColor || theme.palette.primary.main}
+                      onChange={(event) =>
+                        setValue('themeColor', event.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
+                      error={Boolean(errors.themeColor)}
+                      helperText={
+                        errors.themeColor?.message ?? (themeColor || 'ใช้สี Primary ของระบบ')
+                      }
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      sx={{ minWidth: 0, width: 1 }}
+                    />
+                    {themeColor && (
+                      <Button
+                        onClick={() =>
+                          setValue('themeColor', '', { shouldDirty: true, shouldValidate: true })
+                        }
+                      >
+                        ใช้สีระบบ
+                      </Button>
+                    )}
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="flex-start"
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    <TextField
+                      label="สีข้อความหัวกิจกรรม"
+                      type="color"
+                      value={themeTextColor || automaticTextColor}
+                      onChange={(event) =>
+                        setValue('themeTextColor', event.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
+                      error={Boolean(errors.themeTextColor)}
+                      helperText={
+                        errors.themeTextColor?.message ??
+                        (themeTextColor || 'เลือกสีอัตโนมัติตามพื้นหลัง')
+                      }
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      sx={{ minWidth: 0, width: 1 }}
+                    />
+                    {themeTextColor && (
+                      <Button
+                        onClick={() =>
+                          setValue('themeTextColor', '', {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }
+                      >
+                        ใช้สีอัตโนมัติ
+                      </Button>
+                    )}
+                  </Stack>
+                  <Stack
+                    justifyContent="center"
+                    alignItems="center"
+                    sx={{
+                      minHeight: 90,
+                      p: 1.5,
+                      textAlign: 'center',
+                      borderRadius: 1.5,
+                      bgcolor: themeColor || theme.palette.primary.main,
+                      color: themeTextColor || automaticTextColor,
+                    }}
+                  >
+                    <Typography variant="subtitle2">ตัวอย่างสีข้อความ</Typography>
+                  </Stack>
+                </Box>
               </Stack>
               <Stack spacing={1}>
                 <Typography id="activity-description-label" component="h2" variant="subtitle1">
@@ -425,7 +557,11 @@ export function FlavorPollForm({
                   sx={{
                     display: 'grid',
                     gap: 2,
-                    gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' },
+                    gridTemplateColumns: {
+                      xs: 'minmax(0, 1fr)',
+                      md: 'repeat(2, minmax(0, 1fr))',
+                      lg: isMatching ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
+                    },
                   }}
                 >
                   {fields.map(({ id }, index) => {

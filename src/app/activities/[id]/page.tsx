@@ -13,11 +13,11 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 
+import { isActivitySlug } from 'src/lib/activity-slug';
 import { createClient } from 'src/lib/supabase/server';
-import { LovezaMainLayout } from 'src/layouts/main/loveza-layout';
 import { getFlavorPollOptionDetails } from 'src/lib/flavor-poll-options';
+import { activityTheme, activityColorPattern } from 'src/lib/activity-theme';
 import { sanitizeFlavorPollDescription } from 'src/lib/flavor-poll-description';
-import { activityTint, activityTheme, activityButtonSx } from 'src/lib/activity-theme';
 import {
   getFlavorPollStatus,
   formatBangkokPollDate,
@@ -28,486 +28,516 @@ import {
 import { Iconify } from 'src/components/iconify';
 
 import { MatchingGame } from 'src/sections/home/matching-game';
-import { explorerCardSx } from 'src/sections/home/explorer-styles';
+import { FlavorPollShare } from 'src/sections/home/flavor-poll-share';
+import { FlavorPollPicker } from 'src/sections/home/flavor-poll-picker';
+import { FlavorPollSubmit } from 'src/sections/home/flavor-poll-submit';
 
-import { voteForFlavor } from '../vote-action';
+import { voteForFlavor, previewFlavorVote } from '../vote-action';
 
 export const metadata: Metadata = { title: 'กิจกรรม | Loveza Hunt' };
+
+const pollBubbles = [
+  { top: '18%', left: '-5%', width: 'clamp(76px, 16vw, 250px)' },
+  { top: '28%', right: '4%', width: 'clamp(35px, 7vw, 104px)' },
+  { top: '45%', left: '16%', width: 'clamp(30px, 6vw, 90px)' },
+  { top: '52%', right: '-4%', width: 'clamp(80px, 17vw, 260px)' },
+  { top: '72%', left: '4%', width: 'clamp(50px, 10vw, 145px)' },
+  { top: '79%', right: '16%', width: 'clamp(26px, 5vw, 72px)' },
+];
 
 export default async function ActivityPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ flavorVote?: string; step?: string }>;
+  searchParams: Promise<{
+    flavorVote?: string;
+    step?: string;
+    preview?: string;
+    previewVote?: string;
+  }>;
 }) {
-  const [{ id }, { flavorVote, step }] = await Promise.all([params, searchParams]);
-  if (!z.uuid().safeParse(id).success) notFound();
+  const [{ id }, { flavorVote, step, preview: previewParam, previewVote }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const lookupColumn = z.uuid().safeParse(id).success ? 'id' : 'slug';
+  if (lookupColumn === 'slug' && !isActivitySlug(id)) notFound();
 
+  const adminPreview = previewParam === '1';
   const db = await createClient();
   const now = new Date();
-  const query = db
-    .from('flavor_polls')
-    .select(
-      'id, activity_type, title, description_html, options, is_published, is_active, option_details, starts_at, ends_at, source_url, theme_color'
-    )
-    .eq('id', id);
+  const columns =
+    'id, slug, activity_type, title, description_html, options, is_published, is_active, option_details, starts_at, ends_at, source_url, theme_color';
+  const query = db.from('flavor_polls').select(`${columns}, theme_text_color`).eq(lookupColumn, id);
   const visible = `and(is_published.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const { data: poll, error } = await (isDevelopment ? query : query.or(visible)).maybeSingle();
+  const [result, adminSession] = await Promise.all([
+    (isDevelopment || adminPreview ? query : query.or(visible)).maybeSingle(),
+    adminPreview ? db.auth.getUser() : null,
+  ]);
+  if (adminPreview && adminSession?.data.user?.app_metadata.role !== 'admin') notFound();
+  const { data: poll, error } =
+    isDevelopment && result.error?.code === '42703'
+      ? await db.from('flavor_polls').select(columns).eq(lookupColumn, id).maybeSingle()
+      : result;
   if (error) throw new Error('โหลดกิจกรรมไม่สำเร็จ');
   if (!poll) notFound();
 
+  const textColor = 'theme_text_color' in poll ? poll.theme_text_color : null;
+  const activityTextColor =
+    typeof textColor === 'string' && activityColorPattern.test(textColor)
+      ? textColor
+      : 'var(--activity-contrast)';
   const matching = poll.activity_type === 'matching';
   const pollStatus = getFlavorPollStatus(poll, now.getTime());
-  const preview = isDevelopment && (!poll.is_published || pollStatus !== 'active');
+  const preview =
+    adminPreview || (isDevelopment && (!poll.is_published || pollStatus !== 'active'));
   const user = matching || preview ? null : (await db.auth.getUser()).data.user;
   const vote = user
     ? await db
         .from('flavor_poll_votes')
         .select('option_label')
         .eq('voter_id', user.id)
-        .eq('poll_id', id)
+        .eq('poll_id', poll.id)
         .maybeSingle()
     : null;
-  const chosen = vote?.data?.option_label;
+  const simulatedVote =
+    adminPreview && poll.options.includes(previewVote) ? previewVote : undefined;
+  const chosen = simulatedVote ?? vote?.data?.option_label;
+  const chosenImage = chosen
+    ? getFlavorPollOptionDetails(poll.option_details, chosen).imageUrl
+    : null;
 
   const open = preview ? matching : pollStatus === 'active';
   const playing = matching && open && step === 'play';
-  const canVote = open && Boolean(user) && !chosen && !vote?.error;
-  const href = paths.activity.details(poll.id);
+  const canVote = !chosen && (adminPreview || (open && Boolean(user) && !vote?.error));
+  const href = paths.activity.details(poll.slug ?? poll.id);
+  const previewHref = adminPreview ? `${href}?preview=1` : href;
+  const backHref = adminPreview
+    ? `/admin/flavor-polls/${encodeURIComponent(poll.id)}/edit/`
+    : '/#flavor-polls';
   const source = parseFlavorPollSourceUrl(poll.source_url);
   const activityDescription = sanitizeFlavorPollDescription(poll.description_html);
 
-  const content = (
+  return (
     <Box
       component="main"
+      data-activity-page
       sx={{
-        minHeight: matching ? '100dvh' : '75vh',
+        minHeight: '100dvh',
         ...activityTheme(poll.theme_color),
-        bgcolor: matching ? 'var(--activity-primary)' : 'background.default',
-        color: matching ? 'var(--activity-contrast)' : 'text.primary',
-        pt: matching
-          ? { xs: 'calc(env(safe-area-inset-top) + 16px)', md: 3 }
-          : {
-              xs: 'calc(var(--layout-header-mobile-height) + 20px)',
-              md: 'calc(var(--layout-header-desktop-height) + 24px)',
-            },
-        pb: { xs: matching ? 'calc(env(safe-area-inset-bottom) + 24px)' : 5, md: 8 },
+        bgcolor: 'var(--activity-primary)',
+        color: activityTextColor,
+        pt: { xs: 'calc(env(safe-area-inset-top) + 16px)', md: 3 },
+        pb: matching
+          ? { xs: 'calc(env(safe-area-inset-bottom) + 24px)', md: 8 }
+          : 'calc(env(safe-area-inset-bottom) + 8px)',
+        ...(!matching && {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          isolation: 'isolate',
+        }),
       }}
     >
+      {!matching && (
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: -1,
+          }}
+        >
+          {pollBubbles.map((bubble) => (
+            <Box
+              key={bubble.top}
+              sx={{
+                ...bubble,
+                position: 'absolute',
+                aspectRatio: '1 / 1',
+                borderRadius: '50%',
+                opacity: { xs: 0.22, md: 0.32 },
+                background:
+                  'radial-gradient(ellipse at 30% 23%, #FFFFFF 0%, #FFFFFF80 8%, transparent 22%), radial-gradient(circle at 70% 74%, #FFE8AC 0%, transparent 42%), radial-gradient(circle at 42% 45%, #F9DCF3 0%, #FF9DD5 61%, #DF348A 82%, #FFD0E5 100%)',
+                boxShadow: 'inset 0 0 0 1px #FFFFFFC0, 0 8px 22px #801B5340',
+              }}
+            />
+          ))}
+        </Box>
+      )}
       <Container
-        maxWidth={matching ? false : 'md'}
-        sx={matching ? { px: { xs: 1.5, sm: 3, lg: 5 } } : undefined}
+        maxWidth={false}
+        sx={{ px: { xs: 1.5, sm: 3, lg: 5 }, ...(!matching && { display: 'flex', flex: 1 }) }}
       >
-        <Stack spacing={matching ? { xs: 1.5, sm: 2.5 } : 2.5}>
+        <Stack spacing={matching ? { xs: 1.5, sm: 2.5 } : 2.5} sx={{ width: 1 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
             <Button
-              href={playing ? href : '/#flavor-polls'}
+              href={playing ? previewHref : backHref}
               color="inherit"
               startIcon={<Iconify icon="ri:arrow-left-line" />}
-              sx={{ alignSelf: 'flex-start', ...(matching && { minHeight: 44 }) }}
+              sx={{ alignSelf: 'flex-start', minHeight: 44 }}
             >
-              {playing ? 'กลับไปหน้าแนะนำ' : 'กลับไปดูกิจกรรม'}
+              {playing ? 'กลับไปหน้าแนะนำ' : adminPreview ? 'กลับไปหน้าแก้ไข' : 'กลับไปดูกิจกรรม'}
             </Button>
-            {matching && (
-              <Box
-                component="img"
-                src="/logo/logo-email.png"
-                alt="Loveza Hunt"
-                width={360}
-                height={149}
-                sx={{ display: 'block', width: { xs: 92, sm: 120 }, height: 'auto', flexShrink: 0 }}
-              />
-            )}
+            <Box
+              component="img"
+              src="/logo/logo-email.png"
+              alt="Loveza Hunt"
+              width={360}
+              height={149}
+              sx={{ display: 'block', width: { xs: 92, sm: 120 }, height: 'auto', flexShrink: 0 }}
+            />
           </Stack>
           {flavorVote === 'invalid' && (
             <Alert severity="warning">กรุณาเลือกคำตอบที่ต้องการโหวต</Alert>
           )}
-          {flavorVote === 'duplicate' && <Alert severity="info">คุณโหวตกิจกรรมนี้แล้ว</Alert>}
+          {!chosen && flavorVote === 'duplicate' && (
+            <Alert severity="info">คุณโหวตกิจกรรมนี้แล้ว</Alert>
+          )}
           {(flavorVote === 'error' || vote?.error) && (
             <Alert severity="error">ส่งหรือโหลดข้อมูลโหวตไม่สำเร็จ กิจกรรมอาจปิดแล้ว</Alert>
           )}
-          <Box
-            component="article"
-            sx={{
-              minWidth: 0,
-              ...(!matching && {
-                ...explorerCardSx,
-                borderRadius: 3,
-                border: '5px solid',
-                borderColor: 'common.white',
-                overflow: 'hidden',
-              }),
-            }}
-          >
-            <Box
-              sx={{
-                p: matching ? 0 : { xs: 2, sm: 4 },
-                background: matching
-                  ? 'transparent'
-                  : `linear-gradient(125deg, ${activityTint}, var(--palette-background-paper))`,
-                borderBottom: matching ? 0 : '1px solid',
-                borderColor: 'divider',
-                display: 'flex',
-                flexDirection: 'column',
-                ...(matching && {
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  pt: { xs: 0.5, sm: 1 },
-                  maxWidth: 680,
-                  mx: 'auto',
-                }),
-              }}
+          {chosen ? (
+            <Stack
+              component="section"
+              aria-labelledby="vote-success-title"
+              alignItems="center"
+              justifyContent="center"
+              spacing={2}
+              sx={{ flex: 1, width: 1, maxWidth: 580, mx: 'auto', py: 3, textAlign: 'center' }}
             >
-              {matching && !playing && (
-                <Box
-                  sx={{
-                    display: 'grid',
-                    placeItems: 'center',
-                    width: 1,
-                    minHeight: { xs: 'clamp(270px, 86vw, 410px)', sm: 400 },
-                    mb: { xs: 2, sm: 2.5 },
-                    p: { xs: 1.5, sm: 2 },
-                    overflow: 'hidden',
-                    border: '4px solid #FFFDF8',
-                    borderRadius: { xs: '22px', sm: '28px' },
-                    background:
-                      'radial-gradient(ellipse at 49% 68%, #FFFFFF45 0%, transparent 67%), linear-gradient(150deg, #0004, #0000)',
-                    boxShadow: '0 5px 0 #0003',
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src="/assets/illustrations/p-sung-potion-soda.webp"
-                    alt=""
-                    width={1143}
-                    height={1376}
-                    sx={{
-                      display: 'block',
-                      width: 'auto',
-                      height: { xs: 'clamp(226px, 73vw, 350px)', sm: 350 },
-                      maxWidth: 1,
-                      objectFit: 'contain',
-                      filter: 'drop-shadow(0 10px 12px #0006)',
-                    }}
-                  />
-                </Box>
-              )}
-              {!playing && (
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent={matching ? 'center' : 'space-between'}
-                  spacing={1}
-                  useFlexGap
-                  flexWrap="wrap"
-                >
-                  {!matching && (
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={1}
-                      sx={{ color: 'primary.dark' }}
-                    >
-                      <Box
-                        sx={{
-                          flexShrink: 0,
-                          display: 'grid',
-                          placeItems: 'center',
-                          width: 36,
-                          height: 36,
-                          borderRadius: 1.25,
-                          bgcolor: 'common.white',
-                          boxShadow: '0 2px 0 #C2DEC5',
-                        }}
-                      >
-                        <Iconify icon="ri:bar-chart-box-line" width={20} />
-                      </Box>
-                      <Typography variant="subtitle2">โพลชุมชน</Typography>
-                    </Stack>
-                  )}
-                  <Chip
-                    size="small"
-                    icon={
-                      <Iconify icon={open ? 'ri:flashlight-fill' : 'ri:lock-2-line'} width={14} />
-                    }
-                    sx={{
-                      fontWeight: 800,
-                      ...(matching && {
-                        color: '#174D76',
-                        bgcolor: '#FFFFFFB8',
-                        border: '1px solid #2A6390',
-                      }),
-                    }}
-                    color={open ? 'success' : 'default'}
-                    label={
-                      preview
-                        ? 'ตัวอย่างกิจกรรม'
-                        : matching
-                          ? open
-                            ? 'เล่นได้'
-                            : 'ปิดแล้ว'
-                          : flavorPollStatusLabel[pollStatus]
-                    }
-                  />
-                </Stack>
-              )}
               <Typography
+                id="vote-success-title"
                 component="h1"
+                sx={{ fontSize: { xs: 34, sm: 48 }, fontWeight: 900 }}
+              >
+                โหวตสำเร็จ!
+              </Typography>
+              <Typography>ขอบคุณที่ร่วมสนุกกับ Loveza Hunt</Typography>
+              <Box
+                component="img"
+                src={chosenImage || '/assets/loveza/loveza-heart.webp'}
+                alt=""
                 sx={{
-                  mt: { xs: matching ? 1 : 1.5, sm: 1.5 },
-                  fontSize: playing
-                    ? { xs: 23, sm: 30 }
-                    : { xs: matching ? 27 : 25, sm: 36, md: 42 },
-                  fontWeight: 900,
-                  lineHeight: 1.32,
-                  overflowWrap: 'anywhere',
+                  width: chosenImage ? 'min(85%, 360px)' : 100,
+                  height: chosenImage ? 'clamp(205px, 40dvh, 410px)' : 'auto',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 12px 18px #0003)',
+                  transform: chosenImage ? 'rotate(-8deg)' : undefined,
+                }}
+              />
+              <Box>
+                <Typography variant="body2">รสที่คุณเลือก</Typography>
+                <Typography component="p" sx={{ fontSize: { xs: 28, sm: 36 }, fontWeight: 900 }}>
+                  {chosen}
+                </Typography>
+              </Box>
+              <FlavorPollShare
+                key={chosen}
+                flavor={chosen}
+                imageUrl={chosenImage}
+                secondaryAction={
+                  <Button
+                    href={simulatedVote ? previewHref : '/#flavor-polls'}
+                    variant="contained"
+                    sx={{
+                      minHeight: 48,
+                      width: 'fit-content',
+                      px: { xs: 1.5, sm: 3 },
+                      borderRadius: '14px',
+                      bgcolor: 'common.white',
+                      color: 'var(--activity-primary)',
+                      '&:hover': { bgcolor: 'common.white', filter: 'brightness(.96)' },
+                    }}
+                  >
+                    {simulatedVote ? 'โหวตอีกครั้ง' : 'กลับไปดูกิจกรรม'}
+                  </Button>
+                }
+              />
+            </Stack>
+          ) : (
+            <Stack
+              component="article"
+              spacing={matching ? 0 : 1}
+              sx={{ minWidth: 0, flex: matching ? undefined : 1 }}
+            >
+              <Box
+                sx={{
+                  pt: matching ? 0 : { xs: 1, sm: 2 },
+                  ...(!matching && {
+                    alignItems: 'center',
+                    textAlign: 'center',
+                  }),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  ...(matching && {
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    pt: { xs: 0.5, sm: 1 },
+                    maxWidth: 680,
+                    mx: 'auto',
+                  }),
                 }}
               >
-                {poll.title}
-              </Typography>
-              {matching && open && !playing && (
-                <Typography sx={{ mt: 0.75, fontSize: { xs: 14, sm: 16 } }}>
-                  เปิดการ์ด หาคู่รสซ่า แล้วลองทำเวลาให้ดีที่สุด
-                </Typography>
-              )}
-              {poll.ends_at && !playing && (
-                <Typography
-                  variant="body2"
-                  color={matching ? 'inherit' : 'text.secondary'}
-                  sx={{ mt: 1 }}
-                >
-                  สิ้นสุด {formatBangkokPollDate(poll.ends_at)} น.
-                </Typography>
-              )}
-              {source && !playing && (
-                <Button
-                  href={source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="text"
-                  color={matching ? 'inherit' : 'primary'}
-                  size="small"
-                  endIcon={<Iconify icon="ri:external-link-line" />}
-                  sx={{ mt: 1, alignSelf: matching ? 'center' : 'flex-start' }}
-                >
-                  ดูโพสต์ต้นทาง
-                </Button>
-              )}
-              {matching && open && !playing && (
-                <Button
-                  href={`${href}?step=play`}
-                  variant="contained"
-                  size="large"
-                  disableElevation
-                  endIcon={<Iconify icon="ri:arrow-right-line" />}
-                  sx={{
-                    mt: 2,
-                    width: 1,
-                    minHeight: 54,
-                    borderRadius: '18px',
-                    bgcolor: 'var(--activity-contrast)',
-                    color: 'var(--activity-primary)',
-                    boxShadow: '0 4px 0 #0003',
-                    '&:hover': { bgcolor: 'var(--activity-contrast)', filter: 'brightness(.94)' },
-                  }}
-                >
-                  เล่นเกม
-                </Button>
-              )}
-            </Box>
-            <Box
-              sx={{
-                minWidth: 0,
-                px: matching ? 0 : { xs: 2, sm: 3 },
-                pb: matching ? 0 : { xs: 2, sm: 3 },
-              }}
-            >
-              {activityDescription && !playing && (
-                <Box
-                  sx={{
-                    mt: 2,
-                    typography: 'body2',
-                    overflowWrap: 'anywhere',
-                    '& p': { my: 1 },
-                    '& img': { display: 'block', maxWidth: 1, height: 'auto', borderRadius: 1 },
-                    '& pre': { overflowX: 'auto' },
-                    '& a': {
-                      color: matching ? 'inherit' : 'primary.dark',
-                      textDecoration: 'underline',
-                    },
-                  }}
-                  dangerouslySetInnerHTML={{ __html: activityDescription }}
-                />
-              )}
-              {matching ? (
-                playing && (
-                  <MatchingGame
-                    sharePath={href}
-                    title={poll.title}
-                    pairs={(poll.options as string[]).map((label) => ({
-                      label,
-                      ...getFlavorPollOptionDetails(poll.option_details, label),
-                    }))}
-                  />
-                )
-              ) : (
-                <Stack
-                  component="form"
-                  action={voteForFlavor.bind(null, poll.id)}
-                  spacing={2}
-                  sx={{ mt: 2 }}
-                >
+                {matching && !playing && (
                   <Box
-                    component="fieldset"
-                    disabled={!canVote}
-                    sx={{ m: 0, p: 0, border: 0, minWidth: 0 }}
+                    sx={{
+                      display: 'grid',
+                      placeItems: 'center',
+                      width: 1,
+                      minHeight: { xs: 'clamp(270px, 86vw, 410px)', sm: 400 },
+                      mb: { xs: 2, sm: 2.5 },
+                      p: { xs: 1.5, sm: 2 },
+                      overflow: 'hidden',
+                      border: '4px solid #FFFDF8',
+                      borderRadius: { xs: '22px', sm: '28px' },
+                      background:
+                        'radial-gradient(ellipse at 49% 68%, #FFFFFF45 0%, transparent 67%), linear-gradient(150deg, #0004, #0000)',
+                      boxShadow: '0 5px 0 #0003',
+                    }}
                   >
-                    <Typography component="legend" variant="subtitle2" sx={{ mb: 1 }}>
-                      {canVote ? 'เลือกคำตอบของคุณ' : 'ตัวเลือกในโพล'}
-                    </Typography>
                     <Box
+                      component="img"
+                      src="/assets/illustrations/p-sung-potion-soda.webp"
+                      alt=""
+                      width={1143}
+                      height={1376}
                       sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                          xs: 'minmax(0, 1fr)',
-                          sm: 'repeat(2, minmax(0, 1fr))',
-                        },
-                        gap: 1.25,
+                        display: 'block',
+                        width: 'auto',
+                        height: { xs: 'clamp(226px, 73vw, 350px)', sm: 350 },
+                        maxWidth: 1,
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 10px 12px #0006)',
                       }}
-                    >
-                      {(poll.options as string[]).map((option) => {
-                        const { imageUrl, description } = getFlavorPollOptionDetails(
-                          poll.option_details,
-                          option
-                        );
-                        return (
-                          <Box
-                            key={option}
-                            component={canVote ? 'label' : 'div'}
-                            sx={{
-                              display: 'flex',
-                              alignItems: imageUrl || description ? 'flex-start' : 'center',
-                              gap: 1,
-                              p: 1.25,
-                              minHeight: 52,
-                              border: '1px solid',
-                              borderColor:
-                                chosen === option ? 'var(--activity-primary)' : 'divider',
-                              borderRadius: 1.5,
-                              bgcolor: chosen === option ? activityTint : '#FFFDFA',
-                              boxShadow: '0 2px 0 var(--palette-grey-200)',
-                              overflowWrap: 'anywhere',
-                              ...(canVote && {
-                                cursor: 'pointer',
-                                '&:hover': { borderColor: 'var(--activity-primary)' },
-                                '&:has(input:checked)': {
-                                  borderColor: 'var(--activity-primary)',
-                                  bgcolor: activityTint,
-                                },
-                                '&:focus-within': {
-                                  outline: '2px solid var(--activity-primary)',
-                                  outlineOffset: 2,
-                                },
-                              }),
-                            }}
-                          >
-                            {canVote ? (
-                              <Box
-                                component="input"
-                                type="radio"
-                                name="option"
-                                value={option}
-                                required
-                                sx={{
-                                  m: imageUrl || description ? '3px 0 0' : 0,
-                                  flexShrink: 0,
-                                  accentColor: 'var(--activity-primary)',
-                                }}
-                              />
-                            ) : chosen === option ? (
-                              <Iconify
-                                icon="ri:check-line"
-                                width={18}
-                                sx={{ color: 'var(--activity-primary)', flexShrink: 0 }}
-                              />
-                            ) : null}
-                            <Stack spacing={0.75} sx={{ minWidth: 0, flex: 1 }}>
-                              {imageUrl && (
-                                <Box
-                                  component="img"
-                                  src={imageUrl}
-                                  alt=""
-                                  loading="lazy"
-                                  sx={{
-                                    width: 1,
-                                    height: 150,
-                                    objectFit: 'contain',
-                                    bgcolor: 'background.neutral',
-                                    borderRadius: 1,
-                                  }}
-                                />
-                              )}
-                              <Typography component="span" variant="body2" sx={{ fontWeight: 700 }}>
-                                {option}
-                              </Typography>
-                              {description && (
-                                <Typography
-                                  component="span"
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ whiteSpace: 'pre-wrap' }}
-                                >
-                                  {description}
-                                </Typography>
-                              )}
-                            </Stack>
-                          </Box>
-                        );
-                      })}
-                    </Box>
+                    />
                   </Box>
-                  {chosen ? (
-                    <Alert severity="success">คุณโหวต “{chosen}” แล้ว ขอบคุณที่ร่วมสนุก!</Alert>
-                  ) : !open ? null : user ? (
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={Boolean(vote?.error)}
-                      sx={{ ...activityButtonSx, alignSelf: 'flex-start' }}
-                    >
-                      ส่งโหวต
-                    </Button>
-                  ) : (
-                    <Stack
-                      direction={{ xs: 'column', sm: 'row' }}
-                      alignItems={{ sm: 'center' }}
-                      justifyContent="space-between"
-                      spacing={1.5}
-                      sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 1.5 }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        เข้าสู่ระบบเพื่อเลือกคำตอบและส่งโหวต
-                      </Typography>
-                      <Button
-                        href={`/auth/login?next=${encodeURIComponent(href)}`}
-                        variant="contained"
-                        startIcon={<Iconify icon="ri:login-box-line" />}
-                        sx={{ ...activityButtonSx, flexShrink: 0 }}
+                )}
+                {!playing && (
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                    spacing={1}
+                    useFlexGap
+                    flexWrap="wrap"
+                  >
+                    {!matching && <Typography variant="subtitle2">โพลชุมชน</Typography>}
+                    {(matching || !preview) && (
+                      <Chip
+                        size="small"
+                        icon={
+                          <Iconify
+                            icon={open ? 'ri:flashlight-fill' : 'ri:lock-2-line'}
+                            width={14}
+                          />
+                        }
+                        sx={{
+                          fontWeight: 800,
+                          ...(!matching && {
+                            color: 'text.primary',
+                            bgcolor: 'background.paper',
+                            '& .MuiChip-icon': { color: 'inherit' },
+                          }),
+                          ...(matching && {
+                            color: '#174D76',
+                            bgcolor: '#FFFFFFB8',
+                            border: '1px solid #2A6390',
+                          }),
+                        }}
+                        color={open ? 'success' : 'default'}
+                        label={
+                          preview
+                            ? 'ตัวอย่างกิจกรรม'
+                            : matching
+                              ? open
+                                ? 'เล่นได้'
+                                : 'ปิดแล้ว'
+                              : flavorPollStatusLabel[pollStatus]
+                        }
+                      />
+                    )}
+                  </Stack>
+                )}
+                <Typography
+                  component="h1"
+                  sx={{
+                    mt: { xs: matching ? 1 : 1.5, sm: 1.5 },
+                    fontSize: playing
+                      ? { xs: 23, sm: 30 }
+                      : { xs: matching ? 27 : 25, sm: 36, md: 42 },
+                    fontWeight: 900,
+                    ...(!matching && {
+                      fontSize: { xs: 'clamp(30px, 8vw, 40px)', sm: 36, md: 42 },
+                      maxWidth: '27ch',
+                      textWrap: 'balance',
+                    }),
+                    lineHeight: 1.32,
+                    overflowWrap: 'anywhere',
+                  }}
+                >
+                  {poll.title}
+                </Typography>
+                {matching && open && !playing && (
+                  <Typography sx={{ mt: 0.75, fontSize: { xs: 14, sm: 16 } }}>
+                    เปิดการ์ด หาคู่รสซ่า แล้วลองทำเวลาให้ดีที่สุด
+                  </Typography>
+                )}
+                {poll.ends_at && !playing && (
+                  <Typography variant="body2" color="inherit" sx={{ mt: 1 }}>
+                    สิ้นสุด {formatBangkokPollDate(poll.ends_at)} น.
+                  </Typography>
+                )}
+                {source && !playing && (
+                  <Button
+                    href={source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="text"
+                    color="inherit"
+                    size="small"
+                    endIcon={<Iconify icon="ri:external-link-line" />}
+                    sx={{ mt: 1, alignSelf: 'center' }}
+                  >
+                    ดูโพสต์ต้นทาง
+                  </Button>
+                )}
+                {matching && open && !playing && (
+                  <Button
+                    href={`${previewHref}${adminPreview ? '&' : '?'}step=play`}
+                    variant="contained"
+                    size="large"
+                    disableElevation
+                    endIcon={<Iconify icon="ri:arrow-right-line" />}
+                    sx={{
+                      mt: 2,
+                      width: 1,
+                      minHeight: 54,
+                      borderRadius: '18px',
+                      bgcolor: 'var(--activity-contrast)',
+                      color: 'var(--activity-primary)',
+                      boxShadow: '0 4px 0 #0003',
+                      '&:hover': { bgcolor: 'var(--activity-contrast)', filter: 'brightness(.94)' },
+                    }}
+                  >
+                    เล่นเกม
+                  </Button>
+                )}
+              </Box>
+              <Box
+                sx={{
+                  minWidth: 0,
+                  ...(!matching && { display: 'flex', flexDirection: 'column', flex: 1 }),
+                }}
+              >
+                {activityDescription && !playing && (
+                  <Box
+                    sx={{
+                      mt: matching ? 2 : 0,
+                      typography: 'body2',
+                      overflowWrap: 'anywhere',
+                      ...(!matching && {
+                        maxWidth: 580,
+                        mx: 'auto',
+                        textAlign: 'center',
+                        fontSize: { xs: 16, sm: 18 },
+                      }),
+                      '& p': { my: 1 },
+                      ...(!matching && { '& > :first-child': { mt: 0 } }),
+                      '& img': {
+                        display: 'block',
+                        maxWidth: 1,
+                        height: 'auto',
+                        borderRadius: 1,
+                        mx: matching ? 0 : 'auto',
+                      },
+                      '& pre': { overflowX: 'auto' },
+                      '& a': {
+                        color: 'inherit',
+                        textDecoration: 'underline',
+                      },
+                    }}
+                    dangerouslySetInnerHTML={{ __html: activityDescription }}
+                  />
+                )}
+                {matching ? (
+                  playing && (
+                    <MatchingGame
+                      sharePath={href}
+                      title={poll.title}
+                      pairs={(poll.options as string[]).map((label) => ({
+                        label,
+                        ...getFlavorPollOptionDetails(poll.option_details, label),
+                      }))}
+                    />
+                  )
+                ) : (
+                  <Stack
+                    component="form"
+                    action={(preview ? previewFlavorVote : voteForFlavor).bind(
+                      null,
+                      poll.id,
+                      poll.slug
+                    )}
+                    spacing={2}
+                    sx={{
+                      mt: activityDescription ? 2 : 0,
+                      maxWidth: 580,
+                      width: 1,
+                      mx: 'auto',
+                      flex: 1,
+                    }}
+                  >
+                    <FlavorPollPicker
+                      options={(poll.options as string[]).map((label) => ({
+                        label,
+                        ...getFlavorPollOptionDetails(poll.option_details, label),
+                      }))}
+                      canVote={canVote}
+                    />
+                    {preview || (open && user) ? (
+                      <FlavorPollSubmit disabled={!canVote} />
+                    ) : open ? (
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        alignItems={{ sm: 'center' }}
+                        justifyContent="space-between"
+                        spacing={1.5}
+                        sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 1.5 }}
                       >
-                        เข้าสู่ระบบเพื่อโหวต
-                      </Button>
-                    </Stack>
-                  )}
-                </Stack>
-              )}
-            </Box>
-          </Box>
+                        <Typography variant="body2" color="inherit">
+                          เข้าสู่ระบบเพื่อเลือกคำตอบและส่งโหวต
+                        </Typography>
+                        <Button
+                          href={`/auth/login?next=${encodeURIComponent(href)}`}
+                          variant="contained"
+                          startIcon={<Iconify icon="ri:login-box-line" />}
+                          sx={{
+                            bgcolor: 'var(--activity-contrast)',
+                            color: 'var(--activity-primary)',
+                            '&:hover': {
+                              bgcolor: 'var(--activity-contrast)',
+                              filter: 'brightness(.94)',
+                            },
+                            flexShrink: 0,
+                            minHeight: 48,
+                          }}
+                        >
+                          เข้าสู่ระบบเพื่อโหวต
+                        </Button>
+                      </Stack>
+                    ) : null}
+                  </Stack>
+                )}
+              </Box>
+            </Stack>
+          )}
         </Stack>
       </Container>
     </Box>
   );
-
-  return matching ? content : <LovezaMainLayout>{content}</LovezaMainLayout>;
 }

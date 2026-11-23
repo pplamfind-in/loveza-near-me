@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import { createSeoMetadata } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
 import { getProductFlavorIcon } from 'src/lib/product-flavor-icon';
+import { flavorPageBackground } from 'src/lib/flavor-page-background';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -133,7 +134,7 @@ export default async function ProductPage({ params }: Props) {
         '@media (min-width: 560px) and (max-width: 899.95px) and (max-height: 620px)': {
           '--product-mobile-stage-height': 'clamp(132px, calc(100dvh - 216px), 398px)',
         },
-        background: `radial-gradient(ellipse at 25% 32%, #fff7dc 0%, transparent 48%), linear-gradient(180deg, ${color}35 0%, ${color}12 60%, #FBF6ED 100%)`,
+        background: flavorPageBackground(color),
       }}
     >
       <Container

@@ -2,6 +2,7 @@
 
 import { m } from 'framer-motion';
 
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -9,7 +10,6 @@ import Typography from '@mui/material/Typography';
 import { RouterLink } from 'src/routes/components';
 
 import { SimpleLayout } from 'src/layouts/simple';
-import { PageNotFoundIllustration } from 'src/assets/illustrations';
 
 import { varBounce, MotionContainer } from 'src/components/animate';
 
@@ -24,24 +24,36 @@ export function NotFoundView() {
     >
       <Container component={MotionContainer}>
         <m.div variants={varBounce('in')}>
-          <Typography variant="h3" sx={{ mb: 2 }}>
-            Sorry, page not found!
+          <Typography component="h1" variant="h3" sx={{ mb: 2 }}>
+            ไม่พบหน้านี้
           </Typography>
         </m.div>
 
         <m.div variants={varBounce('in')}>
           <Typography sx={{ color: 'text.secondary' }}>
-            Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be
-            sure to check your spelling.
+            ลิงก์นี้อาจไม่ถูกต้อง หรือหน้านี้ถูกย้ายไปแล้ว
           </Typography>
         </m.div>
 
         <m.div variants={varBounce('in')}>
-          <PageNotFoundIllustration sx={{ my: { xs: 5, sm: 10 } }} />
+          <Box
+            component="img"
+            src="/assets/illustrations/p-kard-heart.webp"
+            alt=""
+            draggable={false}
+            onContextMenu={(event) => event.preventDefault()}
+            sx={{
+              display: 'block',
+              width: { xs: 180, sm: 240 },
+              height: 'auto',
+              mx: 'auto',
+              my: { xs: 4, sm: 5 },
+            }}
+          />
         </m.div>
 
         <Button component={RouterLink} href="/" size="large" variant="contained">
-          Go to home
+          กลับหน้าแรก
         </Button>
       </Container>
     </SimpleLayout>
