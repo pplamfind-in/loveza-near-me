@@ -3,13 +3,19 @@ import type { createClient } from 'src/lib/supabase/server';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 
-import { activityTint, activityTheme } from 'src/lib/activity-theme';
 import { getFlavorPollStatus, flavorPollStatusLabel } from 'src/lib/flavor-poll-schedule';
+import {
+  activityTint,
+  activityTheme,
+  activityButtonSx,
+  activityColorPattern,
+} from 'src/lib/activity-theme';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -20,7 +26,7 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
   const query = db
     .from('flavor_polls')
     .select(
-      'id, slug, activity_type, title, is_published, is_active, starts_at, ends_at, theme_color'
+      'id, slug, activity_type, title, is_published, is_active, starts_at, ends_at, theme_color, theme_text_color'
     )
     .order('created_at', { ascending: false });
   const visible = `and(is_published.eq.true,is_active.eq.true,or(starts_at.is.null,starts_at.lte.${now.toISOString()}))`;
@@ -30,11 +36,26 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
   if (!activities?.length) return null;
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container
+      component="section"
+      id="flavor-polls"
+      aria-labelledby="home-activities-title"
+      maxWidth="lg"
+      sx={{ py: { xs: 4, md: 6 } }}
+    >
+      <Typography
+        id="home-activities-title"
+        component="h2"
+        sx={{
+          mb: { xs: 2, md: 3 },
+          fontSize: { xs: 28, md: 40 },
+          fontWeight: 900,
+          lineHeight: 1.2,
+        }}
+      >
+        ร่วมเล่นกิจกรรม
+      </Typography>
       <Box
-        component="section"
-        id="flavor-polls"
-        aria-label="กิจกรรม Loveza Hunt"
         sx={{
           display: 'grid',
           gap: 2.5,
@@ -62,7 +83,7 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
               spacing={2}
               sx={{
                 ...explorerCardSx,
-                p: { xs: 2, sm: 3 },
+                p: { xs: 2, sm: 3.25 },
                 minWidth: 0,
                 position: 'relative',
                 border: '5px solid',
@@ -71,7 +92,7 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                 textDecoration: 'none',
                 color: 'text.primary',
                 ...activityTheme(activity.theme_color),
-                background: `linear-gradient(115deg, ${activityTint}, var(--palette-background-paper))`,
+                background: `radial-gradient(ellipse at 0% 0%, ${activityTint}, transparent 78%), var(--palette-background-paper)`,
                 transition: 'box-shadow 160ms ease',
                 '&:hover': {
                   boxShadow: '0 5px 0 var(--palette-grey-300), 0 12px 28px rgba(48,63,35,.10)',
@@ -96,10 +117,12 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                     sx={{
                       display: 'grid',
                       placeItems: 'center',
-                      width: 36,
-                      height: 36,
-                      borderRadius: 1.25,
+                      width: 44,
+                      height: 44,
+                      flexShrink: 0,
+                      borderRadius: 1.5,
                       bgcolor: 'common.white',
+                      color: matching ? 'common.black' : 'var(--activity-primary)',
                     }}
                   >
                     <Iconify
@@ -110,7 +133,7 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                             ? 'ri:camera-line'
                             : 'ri:bar-chart-box-line'
                       }
-                      width={20}
+                      width={23}
                     />
                   </Box>
                   <Typography variant="subtitle2">
@@ -157,50 +180,54 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                 />
               </Stack>
               <Typography
-                component="h2"
+                component="h3"
                 sx={{
-                  fontSize: { xs: 21, sm: 25 },
+                  fontSize: { xs: 22, sm: 28 },
                   fontWeight: 900,
+                  lineHeight: 1.27,
                   overflowWrap: 'anywhere',
                   flex: 1,
                 }}
               >
                 {activity.title}
               </Typography>
-              <Stack direction="row" alignItems="center" useFlexGap flexWrap="wrap" gap={2}>
-                <Stack
-                  component="a"
+              <Stack direction="row" alignItems="center" useFlexGap flexWrap="wrap" gap={1.5}>
+                <Button
                   href={href}
+                  color="inherit"
                   aria-label={`${open ? 'ร่วมกิจกรรม' : 'ดูกิจกรรม'} ${activity.title}`}
-                  direction="row"
-                  alignItems="center"
-                  spacing={0.75}
+                  endIcon={<Iconify icon="ri:arrow-right-line" width={18} />}
                   sx={{
-                    color: 'primary.dark',
-                    textDecoration: 'none',
+                    ...activityButtonSx,
+                    color:
+                      activity.theme_text_color &&
+                      activityColorPattern.test(activity.theme_text_color)
+                        ? activity.theme_text_color
+                        : 'var(--activity-contrast)',
+                    position: 'static',
+                    minHeight: 44,
+                    px: 2,
+                    fontWeight: 800,
                     '&::after': {
                       content: '""',
                       position: 'absolute',
                       inset: 0,
                       borderRadius: 'inherit',
                     },
-                    '&:focus-visible::after': {
-                      outline: '2px solid currentColor',
+                    '&.Mui-focusVisible::after': {
+                      outline: '2px solid var(--activity-primary)',
                       outlineOffset: 3,
                     },
                   }}
                 >
-                  <Typography variant="subtitle2">
-                    {open
-                      ? matching
-                        ? 'เล่นเกม'
-                        : photoActivity
-                          ? 'ส่งภาพ'
-                          : 'ร่วมโหวต'
-                      : 'ดูกิจกรรม'}
-                  </Typography>
-                  <Iconify icon="ri:arrow-right-line" width={18} />
-                </Stack>
+                  {open
+                    ? matching
+                      ? 'เล่นเกม'
+                      : photoActivity
+                        ? 'ส่งภาพ'
+                        : 'ร่วมโหวต'
+                    : 'ดูกิจกรรม'}
+                </Button>
                 {showGallery && (
                   <Typography
                     component="a"

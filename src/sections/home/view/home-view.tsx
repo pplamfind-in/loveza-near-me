@@ -67,13 +67,13 @@ export function HomeView({
         }}
       >
         <HeroSection />
-        <HighlightsSection />
-        <MissionSection />
-        <StorySection />
-        {limitedMissions}
-        <FinderSection latestStores={latestStores} />
         <FlavorsSection products={products} />
+        <FinderSection latestStores={latestStores} />
         {flavorPolls}
+        {limitedMissions}
+        <MissionSection />
+        <HighlightsSection />
+        <StorySection />
         <AdventureSection />
         <Container maxWidth="lg" sx={{ mb: { xs: 5, md: 8 } }}>
           <Stack

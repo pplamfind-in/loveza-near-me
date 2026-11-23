@@ -45,6 +45,24 @@ function getVisibleImageBounds(image: HTMLImageElement) {
   return { x: left, y: top, width: right - left + 1, height: bottom - top + 1 };
 }
 
+function drawCenteredText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  baseline: number,
+  maxWidth: number
+) {
+  const width = ctx.measureText(text).width;
+  const scale = width > maxWidth ? maxWidth / width : 1;
+
+  // Measure and position explicitly so text fitting does not change the alignment on iOS.
+  ctx.save();
+  ctx.translate(ctx.canvas.width / 2, baseline);
+  ctx.scale(scale, 1);
+  ctx.textAlign = 'left';
+  ctx.fillText(text, -width / 2, 0);
+  ctx.restore();
+}
+
 async function createShareImage(
   flavor: string,
   imageUrl: string | null,
@@ -52,11 +70,14 @@ async function createShareImage(
   foreground: string,
   isPhoto: boolean
 ) {
-  const [logo, can] = await Promise.all([
+  if (isPhoto && !imageUrl) throw new Error('Missing submitted photo');
+
+  const [logo, image] = await Promise.all([
     loadImage('/logo/logo-email.png'),
-    loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch(() =>
-      loadImage('/assets/loveza/loveza-heart.webp')
-    ),
+    loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch((error) => {
+      if (isPhoto) throw error;
+      return loadImage('/assets/loveza/loveza-heart.webp');
+    }),
   ]);
   await document.fonts.ready;
 
@@ -88,23 +109,29 @@ async function createShareImage(
     logoWidth,
     (logoWidth * logo.naturalHeight) / logo.naturalWidth
   );
-  ctx.textAlign = 'center';
   ctx.fillStyle = foreground;
   ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
-  ctx.fillText(isPhoto ? 'ขอบคุณที่ร่วมกิจกรรม!' : 'โหวตสำเร็จ!', 540, 324, 920);
+  drawCenteredText(ctx, isPhoto ? 'ขอบคุณที่ร่วมกิจกรรม!' : 'โหวตสำเร็จ!', 324, 920);
+
+  ctx.font = '34px "LINE Seed Sans TH", sans-serif';
+  drawCenteredText(ctx, isPhoto ? flavor : 'ขอบคุณที่ร่วมสนุกกับ Loveza Hunt', 385, 920);
 
   const bounds = isPhoto
-    ? { x: 0, y: 0, width: can.naturalWidth, height: can.naturalHeight }
-    : getVisibleImageBounds(can);
-  const scale = Math.min((isPhoto ? 850 : 475) / bounds.width, 710 / bounds.height, 1);
+    ? { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight }
+    : getVisibleImageBounds(image);
+  const scale = Math.min(
+    (isPhoto ? 850 : 475) / bounds.width,
+    (isPhoto ? 710 : 620) / bounds.height,
+    1
+  );
   const width = bounds.width * scale;
   const height = bounds.height * scale;
   ctx.save();
   ctx.imageSmoothingQuality = 'high';
-  ctx.translate(540, 704);
+  ctx.translate(540, isPhoto ? 780 : 748);
   if (!isPhoto) ctx.rotate((-8 * Math.PI) / 180);
   ctx.drawImage(
-    can,
+    image,
     bounds.x,
     bounds.y,
     bounds.width,
@@ -116,10 +143,12 @@ async function createShareImage(
   );
   ctx.restore();
 
-  ctx.font = '38px "LINE Seed Sans TH", sans-serif';
-  if (!isPhoto) ctx.fillText('รสที่ฉันเลือก', 540, 1125, 920);
-  ctx.font = 'bold 72px "LINE Seed Sans TH", sans-serif';
-  ctx.fillText(flavor, 540, 1210, 940);
+  if (!isPhoto) {
+    ctx.font = '38px "LINE Seed Sans TH", sans-serif';
+    drawCenteredText(ctx, 'รสที่ฉันเลือก', 1125, 920);
+    ctx.font = 'bold 72px "LINE Seed Sans TH", sans-serif';
+    drawCenteredText(ctx, flavor, 1210, 940);
+  }
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('Cannot export vote image');

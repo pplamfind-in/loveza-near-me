@@ -130,6 +130,7 @@ export function ActivityPhotoForm({
         <Typography component="h2" variant="h4">
           ขอบคุณที่ร่วมกิจกรรม!
         </Typography>
+        <Typography>{title}</Typography>
         <Box component="img" src={submittedImage} alt="ภาพที่คุณส่ง" sx={photoFrameSx} />
         <FlavorPollShare
           flavor={title}
