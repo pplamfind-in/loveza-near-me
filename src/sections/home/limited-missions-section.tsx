@@ -74,10 +74,10 @@ export async function LimitedMissionsSection({
           }}
         >
           <Image
-            src="/assets/illustrations/p-card-heart-hands.webp"
+            src="/assets/illustrations/p-card-heart-hands-animated-hd.webp"
             alt=""
-            width={1295}
-            height={1214}
+            width={1080}
+            height={1080}
             unoptimized
             style={{ display: 'block', width: '100%', height: 'auto' }}
           />

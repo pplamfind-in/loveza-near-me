@@ -8,13 +8,18 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import GlobalStyles from '@mui/material/GlobalStyles';
 
 import { paths } from 'src/routes/paths';
 
 import { isActivitySlug } from 'src/lib/activity-slug';
 import { createClient } from 'src/lib/supabase/server';
 import { galleryPageSize, galleryPhotoPage } from 'src/lib/activity-gallery';
-import { activityTheme, activityColorPattern } from 'src/lib/activity-theme';
+import {
+  activityTheme,
+  activityColorPattern,
+  activityViewportStyles,
+} from 'src/lib/activity-theme';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -104,18 +109,22 @@ export default async function ActivityGallery({
   return (
     <Box
       component="main"
+      data-activity-screen
       sx={{
         ...activityTheme(activity.theme_color),
         minHeight: '100dvh',
+        flexGrow: 1,
         bgcolor: 'var(--activity-primary)',
         color:
           activity.theme_text_color && activityColorPattern.test(activity.theme_text_color)
             ? activity.theme_text_color
             : 'var(--activity-contrast)',
         px: { xs: 2, sm: 4 },
-        py: { xs: 2, sm: 4 },
+        pt: { xs: 'calc(env(safe-area-inset-top, 0px) + 8px)', md: 4 },
+        pb: { xs: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', md: 4 },
       }}
     >
+      <GlobalStyles styles={activityViewportStyles(activity.theme_color)} />
       <Stack spacing={2.5} sx={{ width: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Button

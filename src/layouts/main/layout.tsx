@@ -317,6 +317,7 @@ export function MainLayout({
 
   return (
     <LayoutSection
+      data-home-layout={isHomePage ? '' : undefined}
       /** **************************************
        * @Header
        *************************************** */

@@ -4,12 +4,12 @@ import { z } from 'zod';
 import { notFound } from 'next/navigation';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
+import GlobalStyles from '@mui/material/GlobalStyles';
 
 import { paths } from 'src/routes/paths';
 
@@ -17,12 +17,15 @@ import { isActivitySlug } from 'src/lib/activity-slug';
 import { createClient } from 'src/lib/supabase/server';
 import { getGuestVoterId } from 'src/lib/flavor-poll-guest';
 import { getFlavorPollOptionDetails } from 'src/lib/flavor-poll-options';
-import { activityTheme, activityColorPattern } from 'src/lib/activity-theme';
 import { sanitizeFlavorPollDescription } from 'src/lib/flavor-poll-description';
+import {
+  activityTheme,
+  activityColorPattern,
+  activityViewportStyles,
+} from 'src/lib/activity-theme';
 import {
   getFlavorPollStatus,
   formatBangkokPollDate,
-  flavorPollStatusLabel,
   parseFlavorPollSourceUrl,
 } from 'src/lib/flavor-poll-schedule';
 
@@ -186,13 +189,15 @@ export default async function ActivityPage({
   return (
     <Box
       component="main"
+      data-activity-screen
       data-activity-page
       sx={{
         minHeight: '100dvh',
+        flexGrow: 1,
         ...activityTheme(poll.theme_color),
         bgcolor: 'var(--activity-primary)',
         color: activityTextColor,
-        pt: { xs: 'calc(env(safe-area-inset-top) + 16px)', md: 3 },
+        pt: { xs: 'calc(env(safe-area-inset-top, 0px) + 8px)', md: 3 },
         pb: matching
           ? { xs: 'calc(env(safe-area-inset-bottom) + 24px)', md: 8 }
           : 'calc(env(safe-area-inset-bottom) + 8px)',
@@ -200,6 +205,7 @@ export default async function ActivityPage({
         ...((!matching || hasSideImages) && { position: 'relative', isolation: 'isolate' }),
       }}
     >
+      <GlobalStyles styles={activityViewportStyles(poll.theme_color)} />
       {(!matching || hasSideImages) && (
         <Box
           aria-hidden="true"
@@ -655,7 +661,6 @@ export default async function ActivityPage({
                         {photoActivity ? 'กิจกรรมส่งภาพถ่าย' : 'โพลชุมชน'}
                       </Typography>
                     )}
-                    
                   </Stack>
                 )}
                 <Typography

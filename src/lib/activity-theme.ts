@@ -20,6 +20,14 @@ export function activityTheme(color: string | null) {
   };
 }
 
+export function activityViewportStyles(color: string | null) {
+  return {
+    'html:has(main[data-activity-screen]), body:has(main[data-activity-screen])': {
+      background: activityTheme(color)['--activity-primary'],
+    },
+  };
+}
+
 export const activityTint =
   'color-mix(in srgb, var(--activity-primary) 18%, var(--palette-background-paper))';
 
