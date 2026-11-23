@@ -72,13 +72,10 @@ async function createShareImage(
 ) {
   if (isPhoto && !imageUrl) throw new Error('Missing submitted photo');
 
-  const [logo, image] = await Promise.all([
-    loadImage('/logo/logo-email.png'),
-    loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch((error) => {
-      if (isPhoto) throw error;
-      return loadImage('/assets/loveza/loveza-heart.webp');
-    }),
-  ]);
+  const image = await loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch((error) => {
+    if (isPhoto) throw error;
+    return loadImage('/assets/loveza/loveza-heart.webp');
+  });
   await document.fonts.ready;
 
   const canvas = document.createElement('canvas');
@@ -101,14 +98,6 @@ async function createShareImage(
     ctx.fill();
   }
 
-  const logoWidth = 280;
-  ctx.drawImage(
-    logo,
-    (1080 - logoWidth) / 2,
-    80,
-    logoWidth,
-    (logoWidth * logo.naturalHeight) / logo.naturalWidth
-  );
   ctx.fillStyle = foreground;
   ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
   drawCenteredText(ctx, isPhoto ? 'ขอบคุณที่ร่วมกิจกรรม!' : 'โหวตสำเร็จ!', 324, 920);
