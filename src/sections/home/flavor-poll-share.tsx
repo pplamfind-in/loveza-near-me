@@ -80,7 +80,7 @@ async function createShareImage(
           if (isPhoto || isKrathong) throw error;
           return loadImage('/assets/loveza/loveza-heart.webp');
         }),
-    isKrathong ? loadImage('/assets/activities/krathong-river.webp') : null,
+    isKrathong ? loadImage('/assets/activities/krathong-wat-arun-twilight.webp') : null,
     document.fonts.ready,
   ]);
 
@@ -92,7 +92,7 @@ async function createShareImage(
 
   if (river) {
     const sceneWidth = river.naturalHeight * (1080 / 1350);
-    const sceneX = (river.naturalWidth - sceneWidth) * 0.58;
+    const sceneX = (river.naturalWidth - sceneWidth) / 2;
     ctx.drawImage(river, sceneX, 0, sceneWidth, river.naturalHeight, 0, 0, 1080, 1350);
 
     const shade = ctx.createLinearGradient(0, 0, 0, 1350);

@@ -18,9 +18,18 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
 import { supabase } from 'src/lib/supabase';
-import { activityButtonSx } from 'src/lib/activity-theme';
+import { activityTheme, activityButtonSx } from 'src/lib/activity-theme';
 
 import { FlavorPollShare } from './flavor-poll-share';
+
+const lanternTracks = [
+  { x: 8, size: 12, duration: 28, offset: 9, sway: 16 },
+  { x: 16, size: 16, duration: 34, offset: 23, sway: -12 },
+  { x: 27, size: 10, duration: 32, offset: 13, sway: 13 },
+  { x: 70, size: 13, duration: 31, offset: 24, sway: -14 },
+  { x: 81, size: 17, duration: 36, offset: 16, sway: 10 },
+  { x: 92, size: 11, duration: 27, offset: 7, sway: -16 },
+];
 
 const flowers: Record<string, string> = {
   lotus: '🪷',
@@ -36,6 +45,79 @@ type FloatingKrathong = Launch & { age: number; lane: number };
 const driftMs = 60_000;
 const riverLimit = 60;
 const idleDesignLimit = 5;
+
+async function findCandleFlame(imageUrl: string) {
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+  image.src = imageUrl;
+  await image.decode();
+
+  // Match the floating image's centered object-fit box before locating its flame.
+  const width = 64;
+  const height = 56;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const imageWidth = image.naturalWidth * scale;
+  const imageHeight = image.naturalHeight * scale;
+  ctx.drawImage(image, (width - imageWidth) / 2, (height - imageHeight) / 2, imageWidth, imageHeight);
+  const { data } = ctx.getImageData(0, 0, width, height);
+  const warm = new Uint8Array(width * height);
+  const candle = new Uint8Array(width * height);
+  let top = height;
+  let bottom = 0;
+  for (let pixel = 0; pixel < warm.length; pixel += 1) {
+    const offset = pixel * 4;
+    if (data[offset + 3] < 160) continue;
+    const row = Math.floor(pixel / width);
+    top = Math.min(row, top);
+    bottom = row;
+    const red = data[offset];
+    const green = data[offset + 1];
+    const blue = data[offset + 2];
+    if (red > 175 && green > 100 && red >= green && green - blue > 44 && red - blue > 85) {
+      warm[pixel] = 1;
+    }
+    if (red > 160 && green > 125 && red >= green - 5 && green - blue > 11 && red - blue > 25) {
+      candle[pixel] = 1;
+    }
+  }
+
+  // A flame must sit over a vertical candle shaft. This rejects gold ornaments
+  // such as the finial on top of the lotus and the tips of incense sticks.
+  const searchEnd = Math.min(height - 15, top + (bottom - top) * 0.46);
+  let best: { x: number; y: number; score: number } | null = null;
+  for (let y = Math.max(top, 1); y < searchEnd; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      const pixel = y * width + x;
+      if (!warm[pixel] || warm[pixel - width]) continue;
+
+      let flame = 0;
+      for (let row = y; row < y + 6; row += 1) {
+        const center = row * width + x;
+        flame += warm[center - 1] + warm[center] + warm[center + 1];
+      }
+      if (flame < 4) continue;
+
+      let shaft = 0;
+      let straight = 0;
+      for (let row = y + 6; row < y + 16; row += 1) {
+        const center = row * width + x;
+        shaft += candle[center - 1] + candle[center] + candle[center + 1];
+        straight += candle[center];
+      }
+      if (shaft < 15 || straight < 6) continue;
+
+      const score = shaft + straight * 2 + flame * 0.6 - y * 1.3;
+      if (!best || score > best.score) best = { x, y, score };
+    }
+  }
+  return best ? { x: best.x, y: best.y } : null;
+}
 
 function Krathong({ design, imageUrl }: { design: string; imageUrl: string | null }) {
   if (imageUrl) {
@@ -62,11 +144,13 @@ function Krathong({ design, imageUrl }: { design: string; imageUrl: string | nul
 
 export function KrathongRiver({
   activityId,
+  themeColor,
   open,
   preview,
   designs,
 }: {
   activityId: string;
+  themeColor: string | null;
   open: boolean;
   preview: boolean;
   designs: { label: string; imageUrl: string }[];
@@ -77,6 +161,7 @@ export function KrathongRiver({
   const [wish, setWish] = useState('');
   const [ownWishes, setOwnWishes] = useState<Record<string, string>>({});
   const [floating, setFloating] = useState<FloatingKrathong[]>([]);
+  const [flamePositions, setFlamePositions] = useState<Record<string, { x: number; y: number }>>({});
   const [idlePositions, setIdlePositions] = useState<{ phase: number; lane: number }[]>([]);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState<{ label: string; imageUrl: string } | null>(null);
@@ -92,6 +177,26 @@ export function KrathongRiver({
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const images = new Set(designs.map(({ imageUrl }) => imageUrl).filter(Boolean));
+    Promise.all(
+      Array.from(images, async (imageUrl) => {
+        const position = await findCandleFlame(imageUrl).catch(() => null);
+        return [imageUrl, position] as const;
+      })
+    ).then((entries) => {
+      if (active) {
+        setFlamePositions(
+          Object.fromEntries(entries.flatMap(([url, position]) => (position ? [[url, position]] : [])))
+        );
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [designs]);
 
   const receive = useCallback((launches: Launch[]) => {
     const now = Date.now();
@@ -235,6 +340,24 @@ export function KrathongRiver({
 
   return (
     <div className={styles.scene}>
+      <div className={styles.skyEffects} aria-hidden="true">
+        {lanternTracks.map(({ x, size, duration, offset, sway }) => (
+          <span
+            key={x}
+            className={styles.lantern}
+            style={{
+              '--lantern-x': `${x}%`,
+              '--lantern-size': `${size}px`,
+              '--lantern-duration': `${duration}s`,
+              '--lantern-delay': `-${offset}s`,
+              '--lantern-sway': `${sway}px`,
+            } as CSSProperties}
+          />
+        ))}
+        <span className={styles.firework} />
+        <span className={styles.firework} />
+        <span className={styles.firework} />
+      </div>
       <div className={styles.river} role="img" aria-label="แม่น้ำหน้าวัดอรุณในคืนลอยกระทง">
         {visibleKrathongs.map(({ id, design: launchedDesign, image_url, age, lane }, index) => (
           <span
@@ -262,6 +385,15 @@ export function KrathongRiver({
               </span>
               <span className={styles.basket}>
                 <Krathong design={launchedDesign} imageUrl={image_url} />
+                {image_url && flamePositions[image_url] && (
+                  <span
+                    className={styles.candleFlame}
+                    style={{
+                      left: flamePositions[image_url].x + 0.5,
+                      top: flamePositions[image_url].y,
+                    }}
+                  />
+                )}
               </span>
             </span>
           </span>
@@ -370,6 +502,7 @@ export function KrathongRiver({
         fullWidth
         maxWidth="xs"
         aria-labelledby="krathong-wish-title"
+        sx={activityTheme(themeColor)}
       >
         <Box component="form" onSubmit={submitKrathong}>
           <DialogTitle id="krathong-wish-title">{selected?.label}</DialogTitle>
@@ -391,10 +524,19 @@ export function KrathongRiver({
             {error && <Alert severity="error">{error}</Alert>}
           </DialogContent>
           <DialogActions>
-            <Button disabled={sending} onClick={() => setSelectedLabel('')}>
+            <Button
+              disabled={sending}
+              onClick={() => setSelectedLabel('')}
+              sx={{ color: 'color-mix(in srgb, var(--activity-primary) 70%, currentColor)' }}
+            >
               ยกเลิก
             </Button>
-            <Button type="submit" variant="contained" loading={sending} sx={{ minHeight: 44 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              loading={sending}
+              sx={{ ...activityButtonSx, minHeight: 44 }}
+            >
               ลอยกระทง
             </Button>
           </DialogActions>

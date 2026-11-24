@@ -43,6 +43,8 @@ import { voteForFlavor, previewFlavorVote } from '../vote-action';
 
 export const metadata: Metadata = { title: 'กิจกรรม | Loveza Hunt' };
 
+const krathongBackdrop = '#191b25';
+
 const pollBubbles = [
   { top: '18%', left: '-5%', width: 'clamp(76px, 16vw, 250px)' },
   { top: '28%', right: '4%', width: 'clamp(35px, 7vw, 104px)' },
@@ -206,12 +208,8 @@ export default async function ActivityPage({
         bgcolor: 'var(--activity-primary)',
         color: activityTextColor,
         ...(krathong && {
+          bgcolor: krathongBackdrop,
           color: 'common.white',
-          backgroundImage:
-            "linear-gradient(180deg, #0b0829b3, #0b08294d 32%, transparent 63%), url('/assets/activities/krathong-river.webp')",
-          backgroundSize: 'cover',
-          backgroundPosition: '58% center',
-          backgroundRepeat: 'no-repeat',
         }),
         pt: { xs: 'calc(env(safe-area-inset-top, 0px) + 8px)', md: 3 },
         pb: matching
@@ -221,7 +219,7 @@ export default async function ActivityPage({
         ...((!matching || hasSideImages) && { position: 'relative', isolation: 'isolate' }),
       }}
     >
-      <GlobalStyles styles={activityViewportStyles(poll.theme_color)} />
+      <GlobalStyles styles={activityViewportStyles(krathong ? krathongBackdrop : poll.theme_color)} />
       {!krathong && (!matching || hasSideImages) && (
         <Box
           aria-hidden="true"
@@ -785,6 +783,7 @@ export default async function ActivityPage({
                   <KrathongRiver
                     key={poll.id}
                     activityId={poll.id}
+                    themeColor={poll.theme_color}
                     open={open}
                     preview={preview}
                     designs={(poll.options as string[]).map((label) => ({
