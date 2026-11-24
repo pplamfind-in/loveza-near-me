@@ -23,6 +23,7 @@ export async function PUT(request: Request) {
     requireReportApproval?: unknown;
     brandOwnerAcknowledged?: unknown;
     landingActivitiesEnabled?: unknown;
+    advertisingContactEnabled?: unknown;
     siteFont?: unknown;
     duplicateRadiusM?: unknown;
     searchRadiusM?: unknown;
@@ -40,6 +41,7 @@ export async function PUT(request: Request) {
   const requireReportApproval = payload?.requireReportApproval;
   const brandOwnerAcknowledged = payload?.brandOwnerAcknowledged;
   const landingActivitiesEnabled = payload?.landingActivitiesEnabled;
+  const advertisingContactEnabled = payload?.advertisingContactEnabled;
   const siteFont = payload?.siteFont;
   const duplicateRadiusM = Number(payload?.duplicateRadiusM);
   const searchRadiusM = Number(payload?.searchRadiusM);
@@ -67,6 +69,10 @@ export async function PUT(request: Request) {
 
   if (typeof landingActivitiesEnabled !== 'boolean') {
     return NextResponse.json({ error: 'สถานะการแสดงกิจกรรมไม่ถูกต้อง' }, { status: 400 });
+  }
+
+  if (advertisingContactEnabled !== undefined && typeof advertisingContactEnabled !== 'boolean') {
+    return NextResponse.json({ error: 'สถานะการแสดงส่วนติดต่อโฆษณาไม่ถูกต้อง' }, { status: 400 });
   }
 
   if (!isSiteFont(siteFont)) {
@@ -115,6 +121,9 @@ export async function PUT(request: Request) {
       require_report_approval: requireReportApproval,
       brand_owner_acknowledged: brandOwnerAcknowledged,
       landing_activities_enabled: landingActivitiesEnabled,
+      ...(typeof advertisingContactEnabled === 'boolean'
+        ? { landing_advertising_contact_enabled: advertisingContactEnabled }
+        : {}),
       site_font: siteFont,
       duplicate_radius_m: duplicateRadiusM,
       search_radius_m: searchRadiusM,
@@ -131,7 +140,7 @@ export async function PUT(request: Request) {
     })
     .eq('id', true)
     .select(
-      'require_report_approval, brand_owner_acknowledged, landing_activities_enabled, site_font, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
+      'require_report_approval, brand_owner_acknowledged, landing_activities_enabled, landing_advertising_contact_enabled, site_font, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
     )
     .single();
 
@@ -145,6 +154,7 @@ export async function PUT(request: Request) {
       requireReportApproval: data.require_report_approval,
       brandOwnerAcknowledged: data.brand_owner_acknowledged,
       landingActivitiesEnabled: data.landing_activities_enabled,
+      advertisingContactEnabled: data.landing_advertising_contact_enabled,
       siteFont: data.site_font,
       duplicateRadiusM: data.duplicate_radius_m,
       searchRadiusM: data.search_radius_m,

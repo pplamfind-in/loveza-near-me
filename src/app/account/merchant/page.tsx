@@ -113,7 +113,10 @@ export default async function MerchantPage({
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (ownStoreId) branches = branches.eq('id', ownStoreId);
   if (q) branches = branches.ilike('name', `%${q.replace(/[\\%_*]/g, '\\$&')}%`);
-  const stores = await branches;
+  const [stores, visibility] = await Promise.all([
+    branches,
+    ownStoreId ? supabase.rpc('merchant_store_visibility') : null,
+  ]);
   if (stores.error) console.error('[merchant] stock query failed', stores.error.code);
 
   const logoPath = business.data?.logo_path;
@@ -141,6 +144,7 @@ export default async function MerchantPage({
       ) : (
         <MerchantSettingsCard
           storeName={business.data?.name}
+          visible={visibility?.data ?? undefined}
           currentLogoUrl={logoUrl}
           defaults={{
             logo: null,
@@ -186,6 +190,10 @@ export default async function MerchantPage({
       )}
 
       {stores.error && <MerchantLoadError part="สต็อกร้าน" />}
+      {visibility?.error && <MerchantLoadError part="สถานะการแสดงร้าน" />}
+      {visibility?.data === false && (
+        <Alert severity="info">เปิดแสดงร้านบนแผนที่เพื่ออัปเดตสต็อกอีกครั้ง</Alert>
+      )}
       {stores.data?.map((store) => {
         const status = store.current_status as StoreStatus;
         const stock = store.merchant_stock_by_flavor as MerchantFlavorStock;

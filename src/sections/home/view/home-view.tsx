@@ -11,11 +11,14 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
+import { Iconify } from 'src/components/iconify';
+
 import { HeroSection } from '../hero-section';
 import { FooterSection } from '../footer-section';
 import { FinderSection } from '../finder-section';
 import { MissionSection } from '../mission-section';
 import { FlavorsSection } from '../flavors-section';
+import { InstagramProfile } from '../instagram-profile';
 import { ProtectedHomeImages } from '../protected-images';
 import { HighlightsSection } from '../highlights-section';
 import { StorySection, AdventureSection } from '../story-section';
@@ -28,6 +31,7 @@ type HomeViewProps = {
   banners: LandingBanner[];
   latestStores: LatestStorePreview[];
   brandOwnerAcknowledged: boolean;
+  advertisingContactEnabled: boolean;
 };
 
 const ownerInstagramUrl = 'https://www.instagram.com/sungstarwin/';
@@ -38,6 +42,7 @@ export function HomeView({
   products,
   latestStores,
   brandOwnerAcknowledged,
+  advertisingContactEnabled,
 }: HomeViewProps) {
   return (
     <ProtectedHomeImages>
@@ -90,7 +95,7 @@ export function HomeView({
               p: { xs: 3, md: 5 },
             }}
           >
-            <Box>
+            <Box sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
               <Box sx={{ width: { xs: 160, md: 200 }, maxWidth: 1, mb: 2 }}>
                 <Image
                   src="/assets/illustrations/p-sung-kard.webp"
@@ -125,27 +130,53 @@ export function HomeView({
                 เปิด Instagram @sungstarwin
               </Button>
             </Box>
-            <Box
-              sx={{
-                width: 1,
-                maxWidth: 400,
-                flexShrink: 0,
-                alignSelf: 'center',
-                p: 2,
-                borderRadius: 2,
-                bgcolor: 'background.default',
-                textAlign: 'center',
-              }}
-            >
-              <Typography component="div" variant="subtitle2">
-                @sungstarwin
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Starwin Narkthongpet
-              </Typography>
-            </Box>
+            <InstagramProfile url={ownerInstagramUrl} />
           </Stack>
         </Container>
+        {advertisingContactEnabled && (
+          <Container maxWidth="lg" sx={{ mb: { xs: 5, md: 8 } }}>
+            <Stack
+              component="section"
+              aria-labelledby="advertising-contact-title"
+              direction={{ xs: 'column', sm: 'row' }}
+              alignItems={{ xs: 'flex-start', sm: 'center' }}
+              justifyContent="space-between"
+              spacing={2}
+              sx={{
+                ...explorerCardSx,
+                borderRadius: landingCardRadius,
+                border: '5px solid',
+                borderColor: 'common.white',
+                p: { xs: 3, md: 4 },
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{
+                  display: 'grid', placeItems: 'center', flexShrink: 0, width: 48, height: 48,
+                  borderRadius: 1.5, bgcolor: 'primary.lighter', color: 'primary.dark',
+                }}>
+                  <Iconify icon="ri:megaphone-line" width={24} />
+                </Box>
+                <Box>
+                  <Typography id="advertising-contact-title" component="h2" variant="h5">
+                    พื้นที่โฆษณา
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    สนใจติดต่อ
+                  </Typography>
+                </Box>
+              </Stack>
+              <Button
+                href="/contact-us/?topic=advertising#contact-form"
+                variant="contained"
+                startIcon={<Iconify icon="ri:mail-line" />}
+                sx={{ flexShrink: 0 }}
+              >
+                ติดต่อลงโฆษณา
+              </Button>
+            </Stack>
+          </Container>
+        )}
         <FooterSection brandOwnerAcknowledged={brandOwnerAcknowledged} />
       </Box>
     </ProtectedHomeImages>

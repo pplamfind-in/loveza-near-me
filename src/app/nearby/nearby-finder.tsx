@@ -25,8 +25,16 @@ import { formatRelativeTimeTh } from 'src/utils/relative-time-th';
 
 import { supabase } from 'src/lib/supabase';
 import { formatRadiusM } from 'src/lib/admin/duplicate-radius';
+import {
+  getStockStatus,
+  getStockQuantity,
+  matchesMerchantStock,
+  newestMerchantStockFirst,
+  merchantConfirmationLabel,
+} from 'src/lib/merchant-stock';
 
 import { Iconify } from 'src/components/iconify';
+import { MerchantStockFilter } from 'src/components/store-stock/merchant-stock-filter';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
 import { getMerchantFlavorStockLabels } from 'src/types/report';
@@ -237,6 +245,9 @@ export function NearbyFinder() {
     requestLocation();
   };
 
+  const [flavor, setFlavor] = useState('');
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const filteringStock = Boolean(flavor || availableOnly);
   const { data, isFetching, isError, dataUpdatedAt } = useQuery({
     queryKey: ['nearby-stores', coordinates?.latitude, coordinates?.longitude],
     enabled: !!coordinates,
@@ -262,7 +273,14 @@ export function NearbyFinder() {
     },
   });
 
-  const stores = data?.stores ?? EMPTY_STORES;
+  const allStores = data?.stores ?? EMPTY_STORES;
+  const stores = useMemo(
+    () => filteringStock
+      ? allStores.filter((store) => matchesMerchantStock(store, flavor, availableOnly))
+          .sort((a, b) => newestMerchantStockFirst(a, b, flavor))
+      : allStores,
+    [allStores, filteringStock, flavor, availableOnly]
+  );
   const visibleStores = stores.slice(0, visibleStoreCount);
   const hasMoreStores = visibleStoreCount < stores.length;
   const searchRadiusM = data?.radiusM ?? null;
@@ -270,7 +288,9 @@ export function NearbyFinder() {
   const message = isError
     ? 'ค้นหาร้านไม่สำเร็จ กรุณาลองอีกครั้ง'
     : !loading && coordinates && stores.length === 0
-      ? `ยังไม่พบร้านในระยะ ${searchRadiusM ? formatRadiusM(searchRadiusM) : 'ที่ Admin กำหนด'} ช่วยแจ้งพิกัดแรกได้เลย`
+      ? filteringStock
+        ? 'ยังไม่พบร้านที่ตรงกับตัวกรองในพื้นที่นี้'
+        : `ยังไม่พบร้านในระยะ ${searchRadiusM ? formatRadiusM(searchRadiusM) : 'ที่ Admin กำหนด'} ช่วยแจ้งพิกัดแรกได้เลย`
       : '';
 
   useEffect(() => {
@@ -434,7 +454,19 @@ export function NearbyFinder() {
                   อัปเดตตำแหน่ง
                 </Button>
               </Stack>
-              <NearbyMap coordinates={coordinates} stores={stores} />
+              <Box sx={{ p: 2 }}>
+                <MerchantStockFilter
+                  flavor={flavor}
+                  availableOnly={availableOnly}
+                  onChange={(nextFlavor, nextAvailable) => {
+                    setFlavor(nextFlavor);
+                    setAvailableOnly(nextAvailable);
+                    setVisibleStoreCount(STORES_PAGE_SIZE);
+                    setIsLoadingMore(false);
+                  }}
+                />
+              </Box>
+              <NearbyMap coordinates={coordinates} stores={stores} flavor={flavor} />
               <Stack
                 direction="row"
                 spacing={0.75}
@@ -496,6 +528,9 @@ export function NearbyFinder() {
         }}
       >
         {visibleStores.map((store, index) => {
+          const confirmation = merchantConfirmationLabel(store, flavor);
+          const status = getStockStatus(store, flavor);
+          const quantity = getStockQuantity(store, flavor);
           const storeColor = getNearbyStoreColor(store.id);
 
           return (
@@ -538,13 +573,13 @@ export function NearbyFinder() {
                 </Typography>
                 <Chip
                   size="small"
-                  label={STORE_STATUS_LABEL[store.current_status] ?? STORE_STATUS_LABEL.unknown}
+                  label={STORE_STATUS_LABEL[status] ?? STORE_STATUS_LABEL.unknown}
                   color={
-                    store.current_status === 'available'
+                    status === 'available'
                       ? 'success'
-                      : store.current_status === 'low_stock'
+                      : status === 'low_stock'
                         ? 'warning'
-                        : store.current_status === 'out_of_stock'
+                        : status === 'out_of_stock'
                           ? 'error'
                           : 'default'
                   }
@@ -666,14 +701,14 @@ export function NearbyFinder() {
                   <Typography
                     sx={{
                       mt: 0.5,
-                      fontSize: store.estimated_quantity === null ? 13 : 22,
+                      fontSize: quantity === null ? 13 : 22,
                       fontWeight: 800,
                     }}
                   >
-                    {store.estimated_quantity !== null
-                      ? store.estimated_quantity.toLocaleString('th-TH')
+                    {quantity !== null
+                      ? quantity.toLocaleString('th-TH')
                       : 'ไม่ระบุ'}
-                    {store.estimated_quantity !== null ? (
+                    {quantity !== null ? (
                       <Box component="span" sx={{ fontSize: 11, fontWeight: 500 }}>
                         {' '}
                         กระป๋อง
@@ -696,9 +731,9 @@ export function NearbyFinder() {
                 >
                   <Iconify icon="ri:time-line" width={14} sx={{ flexShrink: 0 }} />
                   <Typography sx={{ fontSize: 11, lineHeight: 1.7 }}>
-                    {store.last_reported_at
+                    {confirmation ?? (store.last_reported_at
                       ? `แจ้งล่าสุด ${formatRelativeTimeTh(store.last_reported_at)}`
-                      : 'ยังไม่มีเวลารายงานล่าสุด'}
+                      : 'ยังไม่มีเวลารายงานล่าสุด')}
                   </Typography>
                 </Stack>
                 <Stack

@@ -30,7 +30,7 @@ const defaultValues: ContactMessageFormValues = {
   website: '',
 };
 
-export function ContactView() {
+export function ContactView({ initialSubject = '' }: { initialSubject?: string }) {
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
 
@@ -38,7 +38,7 @@ export function ContactView() {
     mode: 'onTouched',
     reValidateMode: 'onChange',
     resolver: zodResolver(contactMessageSchema),
-    defaultValues,
+    defaultValues: { ...defaultValues, subject: initialSubject },
   });
 
   const {
@@ -62,7 +62,7 @@ export function ContactView() {
       if (!response.ok) throw new Error(payload.error ?? 'ส่งข้อความไม่สำเร็จ');
 
       setSubmitSuccess(payload.message ?? 'ส่งข้อความเรียบร้อยแล้ว');
-      reset(defaultValues);
+      reset({ ...defaultValues, subject: initialSubject });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'ส่งข้อความไม่สำเร็จ');
     }

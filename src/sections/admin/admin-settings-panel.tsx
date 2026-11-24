@@ -43,6 +43,7 @@ type AdminSettingsPanelProps = {
   initialRequireReportApproval: boolean;
   initialBrandOwnerAcknowledged: boolean;
   initialLandingActivitiesEnabled: boolean;
+  initialAdvertisingContactEnabled: boolean;
   initialSiteFont: SiteFont;
   initialDuplicateRadiusM: number;
   initialSearchRadiusM: number;
@@ -292,6 +293,7 @@ export function AdminSettingsPanel({
   initialRequireReportApproval,
   initialBrandOwnerAcknowledged,
   initialLandingActivitiesEnabled,
+  initialAdvertisingContactEnabled,
   initialSiteFont,
   initialDuplicateRadiusM,
   initialSearchRadiusM,
@@ -312,6 +314,7 @@ export function AdminSettingsPanel({
   const [landingActivitiesEnabled, setLandingActivitiesEnabled] = useState(
     initialLandingActivitiesEnabled
   );
+  const [advertisingContactEnabled, setAdvertisingContactEnabled] = useState(initialAdvertisingContactEnabled);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -341,6 +344,7 @@ export function AdminSettingsPanel({
           requireReportApproval,
           brandOwnerAcknowledged,
           landingActivitiesEnabled,
+          advertisingContactEnabled,
           siteFont,
           duplicateRadiusM,
           searchRadiusM,
@@ -353,6 +357,7 @@ export function AdminSettingsPanel({
           requireReportApproval: boolean;
           brandOwnerAcknowledged: boolean;
           landingActivitiesEnabled: boolean;
+          advertisingContactEnabled: boolean;
           siteFont: SiteFont;
           duplicateRadiusM: number;
           searchRadiusM: number;
@@ -368,6 +373,7 @@ export function AdminSettingsPanel({
       setRequireReportApproval(payload.settings.requireReportApproval);
       setBrandOwnerAcknowledged(payload.settings.brandOwnerAcknowledged);
       setLandingActivitiesEnabled(payload.settings.landingActivitiesEnabled);
+      setAdvertisingContactEnabled(payload.settings.advertisingContactEnabled);
       setSiteFont(payload.settings.siteFont);
       setDuplicateRadiusM(payload.settings.duplicateRadiusM);
       setSearchRadiusM(payload.settings.searchRadiusM);
@@ -645,6 +651,31 @@ export function AdminSettingsPanel({
                 setMessage(null);
               }}
               slotProps={{ input: { 'aria-label': 'แสดงกิจกรรมบนหน้าแรกของเว็บจริง' } }}
+            />
+          </Stack>
+
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            justifyContent="space-between"
+            sx={SETTINGS_SECTION_SX}
+            data-full-width
+          >
+            <Box>
+              <Typography variant="subtitle1">ติดต่อลงโฆษณาบนหน้าแรก</Typography>
+              <Typography variant="body2" color="text.secondary">
+                แสดงช่องทางให้ผู้สนใจส่งข้อความถึงทีม Loveza Hunt
+              </Typography>
+            </Box>
+            <Switch
+              checked={advertisingContactEnabled}
+              disabled={saving || hasError}
+              onChange={(event) => {
+                setAdvertisingContactEnabled(event.target.checked);
+                setMessage(null);
+              }}
+              slotProps={{ input: { 'aria-label': 'แสดงส่วนติดต่อลงโฆษณาบนหน้าแรก' } }}
             />
           </Stack>
 

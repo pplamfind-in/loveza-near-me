@@ -72,6 +72,9 @@ export default async function MapzaPage() {
       ...store
     }) => ({
       ...store,
+      stock_updated_by_merchant: Boolean(
+        merchantUpdate && merchantUpdate === store.last_reported_at
+      ),
       merchant_stock_by_flavor:
         merchantUpdate && merchantUpdate === store.last_reported_at ? breakdown : undefined,
       merchant_stock_flavors:

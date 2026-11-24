@@ -71,6 +71,13 @@ export function LovezaHeaderAccount({
           '& .MuiListItemIcon-root': { minWidth: 36, color: 'primary.dark' },
         }}
       >
+        <ListItemButton component="a" href="/account/" onClick={closeMenus}>
+          <ListItemIcon>
+            <Iconify icon="ri:user-line" width={22} />
+          </ListItemIcon>
+          <ListItemText primary="โปรไฟล์ของฉัน" />
+          <Iconify icon="ri:arrow-right-s-line" width={18} />
+        </ListItemButton>
         <ListItemButton component="a" href="/about-us/" onClick={closeMenus}>
           <ListItemIcon>
             <Iconify icon="ri:information-line" width={22} />
@@ -133,17 +140,53 @@ export function LovezaHeaderAccount({
             id: popoverId,
             role: 'dialog',
             'aria-label': 'เมนูบัญชี',
-            sx: { mt: 1, width: 260, p: 1.5, borderRadius: 2 },
+            sx: {
+              mt: 1,
+              width: 272,
+              p: 1,
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              backgroundImage: 'none',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: '0 12px 32px rgba(42, 35, 27, 0.16)',
+              '& .MuiListItemButton-root': {
+                minHeight: 42,
+                mb: 0.25,
+                px: 1.25,
+                borderRadius: 1,
+                bgcolor: 'transparent',
+                '&:hover': { bgcolor: 'primary.lighter' },
+              },
+              '& .MuiListItemIcon-root': { minWidth: 32, '& svg': { width: 18, height: 18 } },
+              '& .MuiListItemText-primary': { fontSize: 13, fontWeight: 700 },
+              '& .MuiListItemButton-root > svg': { color: 'text.secondary', width: 14 },
+              '& > .MuiButton-root': { mt: 1, minHeight: 38 },
+            },
           },
         }}
       >
-        <Box sx={{ px: 1, pb: 1.5 }} aria-label="บัญชีที่เข้าสู่ระบบ">
-          <Typography variant="subtitle2" noWrap>
-            {user.displayName}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
-            {user.email}
-          </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.25,
+            p: 1,
+            pb: 1.25,
+            mb: 0.75,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          {avatar}
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="subtitle2" noWrap>
+              {user.displayName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block" noWrap>
+              {user.email}
+            </Typography>
+          </Box>
         </Box>
         {menuLinks}
       </Popover>

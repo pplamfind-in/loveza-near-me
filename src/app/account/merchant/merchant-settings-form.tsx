@@ -14,14 +14,15 @@ import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
 import { STORE_LOGO_MAX_BYTES, STORE_LOGO_MIME_TYPES } from 'src/lib/supabase/store-logo';
 
 import { Form, Field } from 'src/components/hook-form';
 
-import { saveMerchantSettings } from './actions';
 import { merchantSettingsSchema } from './settings-schema';
+import { saveMerchantSettings, updateMerchantVisibility } from './actions';
 
 type StoreOption = { code: string; name: string; logo_url: string | null };
 
@@ -33,10 +34,11 @@ type MerchantSettingsProps = {
 
 export function MerchantSettingsCard({
   storeName,
+  visible,
   defaults,
   stores,
   currentLogoUrl,
-}: MerchantSettingsProps & { storeName?: string }) {
+}: MerchantSettingsProps & { storeName?: string; visible?: boolean }) {
   const [open, setOpen] = useState(false);
   const logo =
     currentLogoUrl ||
@@ -57,12 +59,18 @@ export function MerchantSettingsCard({
             <Typography variant="subtitle1" component="h3">
               {storeName || 'ร้านของฉัน'}
             </Typography>
+            {visible === false && (
+              <Typography variant="body2" color="text.secondary">
+                ซ่อนจากแผนที่แล้ว
+              </Typography>
+            )}
             {defaults.branch_name && (
               <Typography variant="body2" color="text.secondary">
                 {defaults.branch_name}
               </Typography>
             )}
           </Box>
+          {visible !== undefined && <MerchantVisibilityButton visible={visible} />}
           <Button variant="outlined" onClick={() => setOpen(true)} aria-haspopup="dialog">
             {storeName ? 'แก้ไขร้านค้า' : 'ตั้งค่าร้าน'}
           </Button>
@@ -80,6 +88,69 @@ export function MerchantSettingsCard({
   );
 }
 
+function MerchantVisibilityButton({ visible }: { visible: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const label = visible ? 'ซ่อนร้านจากแผนที่' : 'แสดงร้านบนแผนที่';
+
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const message = await updateMerchantVisibility(!visible);
+      if (message) setError(message);
+      else setOpen(false);
+    } catch {
+      setError('เปลี่ยนการแสดงร้านไม่สำเร็จ กรุณาลองใหม่');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        variant="outlined"
+        aria-haspopup="dialog"
+        onClick={() => {
+          setError('');
+          setOpen(true);
+        }}
+      >
+        {label}
+      </Button>
+      <Dialog
+        open={open}
+        onClose={saving ? undefined : () => setOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="merchant-visibility-title"
+      >
+        <DialogTitle id="merchant-visibility-title">{label}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Typography variant="body2">
+              {visible
+                ? 'หมุดร้านจะหายจากแผนที่และหน้าค้นหาร้าน คุณเปิดแสดงร้านอีกครั้งได้จากหน้านี้'
+                : 'นักสำรวจจะเห็นหมุดร้านและสต็อกที่บันทึกไว้ในแผนที่และหน้าค้นหาร้าน'}
+            </Typography>
+            {error && <Alert severity="error">{error}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pt: 2, pb: 3, flexWrap: 'wrap' }}>
+          <Button disabled={saving} onClick={() => setOpen(false)}>
+            ยกเลิก
+          </Button>
+          <Button variant="contained" loading={saving} onClick={save}>
+            {label}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
 export function AddMerchantButton({ stores }: { stores: StoreOption[] | null }) {
   const [open, setOpen] = useState(false);
 
@@ -88,6 +159,9 @@ export function AddMerchantButton({ stores }: { stores: StoreOption[] | null }) 
       <Button variant="outlined" fullWidth onClick={() => setOpen(true)} aria-haspopup="dialog">
         + เพิ่มร้านของฉัน
       </Button>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        ปักหมุดร้านและแจ้งรสที่มี ให้คนตามหารู้ก่อนเดินทาง
+      </Typography>
       <MerchantSettingsDialog
         open={open}
         title="ตั้งค่าร้านค้า"

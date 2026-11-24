@@ -4,16 +4,19 @@ import type { MerchantStock } from './stock-schema';
 import type { MerchantFlavorStock } from 'src/types/store';
 
 import { useId, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
+import ToggleButton from '@mui/material/ToggleButton';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { reportSubmitButtonSx } from 'src/app/report/form-section';
 
@@ -56,6 +59,9 @@ function StockDialog({ storeId, filters, stock, onClose }: Props & { onClose: ()
     resolver: zodResolver(merchantStockSchema),
   });
   const { isSubmitting, errors } = methods.formState;
+  const flavorOptions = [...merchantFlavorOptions].sort(
+    (a, b) => Number(Boolean(stock[b])) - Number(Boolean(stock[a]))
+  );
   const submit = methods.handleSubmit(async (values) => {
     methods.clearErrors('root');
     const error = await updateMerchantStock(storeId, filters, values);
@@ -77,7 +83,7 @@ function StockDialog({ storeId, filters, stock, onClose }: Props & { onClose: ()
             <Field.Autocomplete
               name="flavor"
               label="รสชาติ"
-              options={merchantFlavorOptions}
+              options={flavorOptions}
               getOptionLabel={(value: NonNullable<MerchantStock['flavor']>) =>
                 getReportedFlavorLabels([value])[0] ?? value
               }
@@ -89,17 +95,38 @@ function StockDialog({ storeId, filters, stock, onClose }: Props & { onClose: ()
                 methods.setValue('quantity', saved?.quantity?.toString() ?? '');
               }}
             />
-            <Field.Autocomplete
+            <Controller
               name="status"
-              label="สถานะของรสนี้"
-              options={merchantStockSchema.shape.status.options}
-              getOptionLabel={(option: MerchantStock['status']) => STORE_STATUS_LABEL[option]}
-              disableClearable
-              disabled={isSubmitting}
+              control={methods.control}
+              render={({ field }) => (
+                <Stack spacing={0.75}>
+                  <Typography variant="subtitle2">สถานะของรสนี้</Typography>
+                  <ToggleButtonGroup
+                    value={field.value}
+                    onChange={(_, status: MerchantStock['status'] | null) => {
+                      if (!status) return;
+                      field.onChange(status);
+                      if (status === 'out_of_stock') methods.setValue('quantity', '0');
+                      else if (field.value === 'out_of_stock') methods.setValue('quantity', '');
+                    }}
+                    aria-label="สถานะของรสนี้"
+                    exclusive
+                    size="small"
+                    disabled={isSubmitting}
+                    sx={{ flexWrap: 'wrap' }}
+                  >
+                    {merchantStockSchema.shape.status.options.map((status) => (
+                      <ToggleButton key={status} value={status} color={status === 'unknown' ? 'standard' : 'primary'}>
+                        {STORE_STATUS_LABEL[status]}
+                      </ToggleButton>
+                    ))}
+                  </ToggleButtonGroup>
+                </Stack>
+              )}
             />
             <Field.Text
               name="quantity"
-              label="จำนวนคงเหลือของรสนี้ (กระป๋อง)"
+              label="จำนวนคงเหลือ (กระป๋อง, ไม่บังคับ)"
               slotProps={{ htmlInput: { inputMode: 'numeric' } }}
               disabled={isSubmitting}
             />

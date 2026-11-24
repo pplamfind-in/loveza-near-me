@@ -24,6 +24,12 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           icon: navIcon('ri:line-chart-line'),
         },
         {
+          title: 'ประกาศจากระบบ',
+          path: '/admin/announcements',
+          deepMatch: true,
+          icon: navIcon('ri:megaphone-line'),
+        },
+        {
           title: 'กิจกรรม',
           path: '/admin/flavor-polls',
           deepMatch: true,

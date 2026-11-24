@@ -9,6 +9,7 @@ import { getBrandOwnerNotice, getBrandOwnerStatusLabel } from 'src/lib/brand-own
 import { Logo } from 'src/components/logo';
 
 const links = [
+  { label: 'ประกาศจากระบบ', href: '/announcements' },
   { label: 'เกี่ยวกับเรา', href: '/about-us' },
   { label: 'ข้อกำหนด', href: '/terms' },
   { label: 'ความเป็นส่วนตัว', href: '/privacy' },
@@ -26,61 +27,68 @@ export function FooterSection({ brandOwnerAcknowledged }: FooterSectionProps) {
       component="footer"
       id="contact"
       sx={{
-        display: { xs: 'none', md: 'block' },
-        px: 0,
-        pb: { xs: 'calc(100px + env(safe-area-inset-bottom))', md: 3 },
+        bgcolor: 'background.default',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        pb: { xs: 'calc(88px + env(safe-area-inset-bottom))', md: 2.5 },
       }}
     >
       <Container maxWidth="lg">
         <Stack
           direction={{ xs: 'column', md: 'row' }}
-          spacing={3}
-          alignItems="center"
+          alignItems={{ xs: 'flex-start', md: 'center' }}
           justifyContent="space-between"
-          sx={{
-            px: 0,
-            py: { xs: 4, md: 3 },
-            color: 'var(--palette-text-primary)',
-            borderTop: '1px solid var(--palette-grey-300)',
-            background: 'var(--palette-background-default)',
-          }}
+          gap={{ xs: 1.5, md: 3 }}
+          sx={{ py: { xs: 2, md: 2.5 } }}
         >
-          <Logo sx={{ width: 68, height: 64 }} />
-          <Stack spacing={1.5} alignItems={{ xs: 'center', md: 'flex-end' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                gap: { xs: 2, sm: 3 },
-              }}
-            >
-              {links.map((link) => (
-                <Link key={link.href} href={link.href} color="inherit" underline="hover">
-                  {link.label}
-                </Link>
-              ))}
-            </Box>
-            <Typography
-              sx={{ color: 'var(--palette-text-secondary)', fontSize: 11, fontWeight: 800 }}
-            >
+          <Stack direction="row" spacing={1.25} alignItems="center">
+            <Logo sx={{ width: 78, height: 48, flexShrink: 0 }} />
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
               {getBrandOwnerStatusLabel(brandOwnerAcknowledged)}
             </Typography>
           </Stack>
+
+          <Box
+            component="nav"
+            aria-label="เมนูท้ายเว็บไซต์"
+            sx={{
+              display: { xs: 'grid', sm: 'flex' },
+              gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))' },
+              flexWrap: 'wrap',
+              justifyContent: { md: 'flex-end' },
+              columnGap: { xs: 2, md: 2.25 },
+              rowGap: 0.25,
+              width: { xs: '100%', md: 'auto' },
+            }}
+          >
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                color="inherit"
+                underline="hover"
+                sx={{ py: 0.75, fontSize: 13, fontWeight: 700, width: 'fit-content' }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </Box>
         </Stack>
-        <Typography
-          sx={{
-            mt: 3,
-            px: 2,
-            color: 'var(--palette-text-secondary)',
-            fontSize: 11,
-            lineHeight: 1.7,
-            textAlign: 'center',
-          }}
+
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          alignItems={{ md: 'baseline' }}
+          justifyContent="space-between"
+          gap={{ xs: 1, md: 3 }}
+          sx={{ pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}
         >
-          {getBrandOwnerNotice(brandOwnerAcknowledged, true)} © {new Date().getFullYear()} LOVEZA
-          HUNT.
-        </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.75 }}>
+            {getBrandOwnerNotice(brandOwnerAcknowledged, true)}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+            © {new Date().getFullYear()} LOVEZA HUNT
+          </Typography>
+        </Stack>
       </Container>
     </Box>
   );

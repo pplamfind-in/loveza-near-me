@@ -277,3 +277,17 @@ export async function submitExistingMerchantPin(storeId: string) {
   revalidatePath('/admin/merchants');
   return { error: null, requested: true };
 }
+
+export async function updateMerchantVisibility(visible: boolean) {
+  if (typeof visible !== 'boolean') return 'สถานะร้านไม่ถูกต้อง';
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('set_merchant_store_visibility', { visible });
+  if (error || data !== true) return 'เปลี่ยนการแสดงร้านไม่สำเร็จ กรุณาลองใหม่';
+
+  revalidatePath(merchantPath);
+  revalidatePath('/nearby');
+  revalidatePath('/mapza');
+  revalidatePath('/');
+  return null;
+}

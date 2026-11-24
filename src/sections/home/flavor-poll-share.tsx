@@ -67,7 +67,65 @@ type KrathongShare = {
   title: string;
   descriptionHtml: string;
   wish: string;
+  surroundingImages?: string[];
 };
+
+const emptySurroundingImages: string[] = [];
+
+function drawFloatingBasket(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  centerX: number,
+  waterline: number,
+  maxWidth: number,
+  maxHeight: number
+) {
+  const bounds = getVisibleImageBounds(image);
+  const scale = Math.min(maxWidth / bounds.width, maxHeight / bounds.height);
+  const width = bounds.width * scale;
+  const height = bounds.height * scale;
+  const x = centerX - width / 2;
+
+  ctx.save();
+  ctx.globalAlpha *= 0.22;
+  ctx.translate(0, waterline);
+  ctx.scale(1, -0.3);
+  ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, x, -height, width, height);
+  ctx.restore();
+  ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, x, waterline - height, width, height);
+}
+
+function drawSkyLanterns(ctx: CanvasRenderingContext2D, cardHeight: number) {
+  const lanterns = [
+    [105, 0.075, 29, -0.13],
+    [245, 0.255, 20, 0.14],
+    [115, 0.335, 16, -0.1],
+    [775, 0.065, 19, 0.12],
+    [920, 0.242, 30, 0.16],
+    [1010, 0.342, 18, -0.12],
+  ];
+
+  for (const [x, y, size, tilt] of lanterns) {
+    ctx.save();
+    ctx.translate(x, y * cardHeight);
+    ctx.rotate(tilt);
+    const glow = ctx.createLinearGradient(0, -size / 2, 0, size / 2);
+    glow.addColorStop(0, '#ed8d45');
+    glow.addColorStop(0.78, '#ffc675');
+    glow.addColorStop(1, '#fff2b2');
+    ctx.shadowColor = '#ffb35499';
+    ctx.shadowBlur = size * 0.8;
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(-size * 0.42, -size / 2, size * 0.84, size, size * 0.18);
+    } else {
+      ctx.rect(-size * 0.42, -size / 2, size * 0.84, size);
+    }
+    ctx.fill();
+    ctx.restore();
+  }
+}
 
 function drawTextBlock(
   ctx: CanvasRenderingContext2D,
@@ -131,7 +189,7 @@ async function createShareImage(
   if (isPhoto && !imageUrl) throw new Error('Missing submitted photo');
   const isKrathong = Boolean(krathong);
 
-  const [image, river] = await Promise.all([
+  const [image, river, surrounding] = await Promise.all([
     isKrathong && !imageUrl
       ? null
       : loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch((error) => {
@@ -139,6 +197,8 @@ async function createShareImage(
           return loadImage('/assets/loveza/loveza-heart.webp');
         }),
     isKrathong ? loadImage('/assets/activities/krathong-wat-arun-twilight.webp') : null,
+    Promise.all((krathong?.surroundingImages ?? []).slice(0, 6)
+      .map((url) => loadImage(url).catch(() => null))),
     document.fonts.ready,
   ]);
 
@@ -171,42 +231,21 @@ async function createShareImage(
     ctx.fillStyle = shade;
     ctx.fillRect(0, 0, 1080, cardHeight);
 
+    drawSkyLanterns(ctx, cardHeight);
+    ctx.imageSmoothingQuality = 'high';
+    const riverPositions = [
+      [275, 0.61, 105], [815, 0.63, 115], [125, 0.66, 125],
+      [955, 0.695, 145], [205, 0.75, 165], [855, 0.765, 170],
+    ];
+    surrounding.forEach((basket, index) => {
+      if (!basket) return;
+      const [x, y, size] = riverPositions[index];
+      drawFloatingBasket(ctx, basket, x, cardHeight * y, size, size);
+    });
+
     const waterline = Math.round(cardHeight * 0.72);
     if (image) {
-      const bounds = getVisibleImageBounds(image);
-      const scale = Math.min(350 / bounds.width, 330 / bounds.height);
-      const width = bounds.width * scale;
-      const height = bounds.height * scale;
-      ctx.imageSmoothingQuality = 'high';
-      const x = (1080 - width) / 2;
-
-      ctx.save();
-      ctx.globalAlpha = 0.22;
-      ctx.translate(0, waterline);
-      ctx.scale(1, -0.3);
-      ctx.drawImage(
-        image,
-        bounds.x,
-        bounds.y,
-        bounds.width,
-        bounds.height,
-        x,
-        -height,
-        width,
-        height
-      );
-      ctx.restore();
-      ctx.drawImage(
-        image,
-        bounds.x,
-        bounds.y,
-        bounds.width,
-        bounds.height,
-        x,
-        waterline - height,
-        width,
-        height
-      );
+      drawFloatingBasket(ctx, image, 540, waterline, 350, 330);
     } else {
       ctx.font = '195px sans-serif';
       drawCenteredText(ctx, '🪷', waterline - 15, 350);
@@ -220,7 +259,7 @@ async function createShareImage(
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 64px "LINE Seed Sans TH", sans-serif';
-    const descriptionTop = drawTextBlock(ctx, krathong.title, cardHeight * 0.095, 78, 920, 3);
+    const descriptionTop = drawTextBlock(ctx, krathong.title, cardHeight * 0.14, 78, 920, 3);
     ctx.font = '36px "LINE Seed Sans TH", sans-serif';
     drawTextBlock(ctx, description, descriptionTop, 48, 870, 4);
 
@@ -312,7 +351,12 @@ export function FlavorPollShare({
   krathong?: KrathongShare;
 }) {
   const isKrathong = Boolean(krathong);
-  const { title = '', descriptionHtml = '', wish = '' } = krathong ?? {};
+  const {
+    title = '',
+    descriptionHtml = '',
+    wish = '',
+    surroundingImages = emptySurroundingImages,
+  } = krathong ?? {};
   const [file, setFile] = useState<File | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -326,7 +370,7 @@ export function FlavorPollShare({
       styles.backgroundColor,
       styles.color,
       isPhoto,
-      isKrathong ? { title, descriptionHtml, wish } : null
+      isKrathong ? { title, descriptionHtml, wish, surroundingImages } : null
     )
       .then((image) => {
         if (active) setFile(image);
@@ -337,7 +381,7 @@ export function FlavorPollShare({
     return () => {
       active = false;
     };
-  }, [flavor, imageUrl, isPhoto, isKrathong, title, descriptionHtml, wish]);
+  }, [flavor, imageUrl, isPhoto, isKrathong, title, descriptionHtml, wish, surroundingImages]);
 
   const downloadImage = () => {
     if (!file) return;

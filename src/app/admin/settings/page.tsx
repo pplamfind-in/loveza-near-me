@@ -19,7 +19,7 @@ export default async function AdminSettingsPage() {
     supabase
       .from('admin_settings')
       .select(
-        'require_report_approval, brand_owner_acknowledged, landing_activities_enabled, site_font, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
+        'require_report_approval, brand_owner_acknowledged, landing_activities_enabled, landing_advertising_contact_enabled, site_font, duplicate_radius_m, search_radius_m, province_no_data_color, province_tier_1_max, province_tier_1_color, province_tier_2_max, province_tier_2_color, province_tier_3_max, province_tier_3_color, province_tier_4_color, updated_at'
       )
       .eq('id', true)
       .single(),
@@ -34,6 +34,7 @@ export default async function AdminSettingsPage() {
           data?.brand_owner_acknowledged ?? DEFAULT_BRAND_OWNER_ACKNOWLEDGED
         }
         initialLandingActivitiesEnabled={data?.landing_activities_enabled ?? true}
+        initialAdvertisingContactEnabled={data?.landing_advertising_contact_enabled ?? false}
         initialSiteFont={isSiteFont(data?.site_font) ? data.site_font : DEFAULT_SITE_FONT}
         initialDuplicateRadiusM={data?.duplicate_radius_m ?? 75}
         initialSearchRadiusM={data?.search_radius_m ?? 5000}

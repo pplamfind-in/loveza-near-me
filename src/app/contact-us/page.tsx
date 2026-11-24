@@ -13,6 +13,7 @@ export const metadata: Metadata = createSeoMetadata({
   path: '/contact-us/',
 });
 
-export default function Page() {
-  return <ContactView />;
+export default async function Page({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
+  const { topic } = await searchParams;
+  return <ContactView initialSubject={topic === 'advertising' ? 'ติดต่อลงโฆษณา' : ''} />;
 }

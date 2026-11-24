@@ -12,6 +12,8 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
 
+import { getStockStatus, getStockQuantity, merchantConfirmationLabel } from 'src/lib/merchant-stock';
+
 import { Iconify } from 'src/components/iconify';
 import { Map, MapPopup, MapMarker, MAP_STYLES, MapControls } from 'src/components/map';
 
@@ -25,6 +27,7 @@ type SortedNearbyStore = NearbyStore & { distanceKm: number };
 type NearbyMapProps = {
   coordinates: Coordinates;
   stores: SortedNearbyStore[];
+  flavor: string;
 };
 
 const STORE_AVATAR = '/assets/icons/loveza/voxel-store.svg';
@@ -39,7 +42,7 @@ const STATUS_COLOR: Record<StoreStatus, string> = {
 const buildGoogleMapsUrl = (latitude: number, longitude: number) =>
   `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
-export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
+export function NearbyMap({ coordinates, stores, flavor }: NearbyMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<SortedNearbyStore | null>(null);
@@ -98,6 +101,9 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
     });
   }, [stores]);
 
+  const selectedStatus = selectedStore ? getStockStatus(selectedStore, flavor) : 'unknown';
+  const selectedQuantity = selectedStore ? getStockQuantity(selectedStore, flavor) : null;
+  const confirmation = selectedStore ? merchantConfirmationLabel(selectedStore, flavor) : null;
   const mapContent = (
     <Map
       ref={mapRef}
@@ -354,7 +360,7 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      bgcolor: STATUS_COLOR[store.current_status],
+                      bgcolor: STATUS_COLOR[getStockStatus(store, flavor)],
                     }}
                   />
                 </Box>
@@ -432,20 +438,25 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
             <Typography
               sx={{
                 mt: 1,
-                color: STATUS_COLOR[selectedStore.current_status],
+                color: STATUS_COLOR[selectedStatus],
                 fontSize: 13,
                 fontWeight: 900,
               }}
             >
-              {STORE_STATUS_LABEL[selectedStore.current_status] ?? STORE_STATUS_LABEL.unknown}
-              {selectedStore.estimated_quantity !== null
-                ? ` · ประมาณ ${selectedStore.estimated_quantity} กระป๋อง`
+              {STORE_STATUS_LABEL[selectedStatus] ?? STORE_STATUS_LABEL.unknown}
+              {selectedQuantity !== null
+                ? ` · ประมาณ ${selectedQuantity} กระป๋อง`
                 : ''}
             </Typography>
             {Boolean(selectedStore.merchant_stock_flavors?.length || Object.keys(selectedStore.merchant_stock_by_flavor ?? {}).length) && (
               <Typography variant="caption" color="text.secondary">
                 รสที่ร้านแจ้ง:{' '}
                 {getMerchantFlavorStockLabels(selectedStore.merchant_stock_by_flavor, selectedStore.merchant_stock_flavors).join(' · ')}
+              </Typography>
+            )}
+            {confirmation && (
+              <Typography display="block" variant="caption" color="text.secondary">
+                {confirmation}
               </Typography>
             )}
             <Typography

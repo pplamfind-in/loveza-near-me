@@ -168,7 +168,7 @@ export function KrathongRiver({
   const [flamePositions, setFlamePositions] = useState<Record<string, { x: number; y: number }>>({});
   const [idlePositions, setIdlePositions] = useState<{ phase: number; lane: number }[]>([]);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState<{ label: string; imageUrl: string; wish: string } | null>(null);
+  const [sent, setSent] = useState<{ label: string; imageUrl: string; wish: string; surroundingImages: string[] } | null>(null);
   const [closed, setClosed] = useState(false);
   const [error, setError] = useState('');
 
@@ -324,7 +324,17 @@ export function KrathongRiver({
       setWish('');
       setSelectedLabel('');
       setPickerOpen(false);
-      setSent({ ...selected, wish: cleanWish });
+      const surroundingImages = floating
+        .filter(({ id, created_at }) => id !== launch.id && Date.now() - Date.parse(created_at) < driftMs)
+        .slice(-6)
+        .flatMap(({ image_url }) => image_url ? [image_url] : []);
+      for (const basket of designs) {
+        if (surroundingImages.length >= 6) break;
+        if (basket.imageUrl && basket.imageUrl !== selected.imageUrl && !surroundingImages.includes(basket.imageUrl)) {
+          surroundingImages.push(basket.imageUrl);
+        }
+      }
+      setSent({ ...selected, wish: cleanWish, surroundingImages });
     } catch {
       setError('ลอยกระทงไม่สำเร็จ กรุณาลองอีกครั้ง');
     } finally {
@@ -420,6 +430,7 @@ export function KrathongRiver({
               title: activityTitle,
               descriptionHtml: activityDescription,
               wish: sent.wish,
+              surroundingImages: sent.surroundingImages,
             }}
             secondaryAction={
               <Button

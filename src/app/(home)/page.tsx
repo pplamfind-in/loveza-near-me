@@ -32,6 +32,7 @@ export default async function Page() {
     storesResult,
     acknowledgementResult,
     landingActivitiesResult,
+    advertisingContactResult,
   ] = await Promise.all([
     supabase
       .from('products')
@@ -53,6 +54,7 @@ export default async function Page() {
       .limit(2),
     supabase.rpc('get_brand_owner_acknowledged'),
     isDevelopment ? null : supabase.rpc('get_landing_activities_enabled'),
+    supabase.rpc('get_landing_advertising_contact_enabled'),
   ]);
 
   const catalog = productsResult.error
@@ -84,6 +86,7 @@ export default async function Page() {
       banners={banners}
       latestStores={latestStores}
       brandOwnerAcknowledged={brandOwnerAcknowledged}
+      advertisingContactEnabled={advertisingContactResult.data === true}
     />
   );
 }
