@@ -68,12 +68,13 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
         {activities.map((activity) => {
           const matching = activity.activity_type === 'matching';
           const photoActivity = activity.activity_type === 'photo';
+          const krathong = activity.activity_type === 'krathong';
           const status = getFlavorPollStatus(activity, now.getTime());
           const draft = !activity.is_published;
           const open = !draft && status === 'active';
           const preview = process.env.NODE_ENV === 'development' && !open;
           const href = paths.activity.details(activity.slug ?? activity.id);
-          const showResults = !matching && !photoActivity && !draft && status !== 'upcoming';
+          const showResults = activity.activity_type === 'poll' && !draft && status !== 'upcoming';
           const showGallery = photoActivity && !draft && status !== 'upcoming';
           return (
             <Stack
@@ -131,13 +132,21 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                           ? 'ri:gamepad-line'
                           : photoActivity
                             ? 'ri:camera-line'
-                            : 'ri:bar-chart-box-line'
+                            : krathong
+                              ? 'ri:moon-line'
+                              : 'ri:bar-chart-box-line'
                       }
                       width={23}
                     />
                   </Box>
                   <Typography variant="subtitle2">
-                    {matching ? 'เกมจับคู่' : photoActivity ? 'กิจกรรมส่งภาพถ่าย' : 'โพลชุมชน'}
+                    {matching
+                      ? 'เกมจับคู่'
+                      : photoActivity
+                        ? 'กิจกรรมส่งภาพถ่าย'
+                        : krathong
+                          ? 'ลอยกระทง'
+                          : 'โพลชุมชน'}
                   </Typography>
                 </Stack>
                 <Chip
@@ -164,7 +173,11 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                         ? 'เล่นได้'
                         : photoActivity && open
                           ? 'เปิดรับภาพ'
-                          : flavorPollStatusLabel[status]
+                          : krathong && open
+                            ? 'เปิดให้ลอยกระทง'
+                            : krathong && status === 'closed'
+                              ? 'ปิดกิจกรรม'
+                              : flavorPollStatusLabel[status]
                   }
                   sx={{
                     height: 27,
@@ -225,7 +238,9 @@ export async function FlavorPollsSection({ db }: { db: Awaited<ReturnType<typeof
                       ? 'เล่นเกม'
                       : photoActivity
                         ? 'ส่งภาพ'
-                        : 'ร่วมโหวต'
+                        : krathong
+                          ? 'ลอยกระทง'
+                          : 'ร่วมโหวต'
                     : 'ดูกิจกรรม'}
                 </Button>
                 {showGallery && (

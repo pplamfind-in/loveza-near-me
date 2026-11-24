@@ -103,11 +103,20 @@ export async function saveFlavorPoll(id: string | null, values: unknown) {
             ...row,
             ...(publication !== 'draft' && { is_active: publication !== 'closed' }),
           })
-          .eq('id', id);
+          .eq('id', id)
+          .eq('activity_type', activityType);
   const { error } = await query.select('id').single();
   if (error?.code === '23505') return 'Slug นี้ถูกใช้งานแล้ว';
-  if (error?.code === '23514')
+  if (error?.code === '23514' && error.message === 'Options cannot change after voting starts')
     return 'กิจกรรมมีผลโหวตแล้ว กรุณาโหลดหน้าใหม่เพื่อแก้รายละเอียดโดยคงตัวเลือกเดิม';
+  if (
+    error?.code === '23514' &&
+    activityType === 'krathong' &&
+    (error.message.includes('flavor_polls_activity_type_check') ||
+      error.message.includes('flavor_polls_options_check'))
+  ) {
+    return 'ฐานข้อมูลยังไม่รองรับกิจกรรมลอยกระทง กรุณาอัปเดตฐานข้อมูลด้วย migration 0071 และ 0072';
+  }
   if (error) return 'บันทึกกิจกรรมไม่สำเร็จ';
   if (publication === 'closed') redirect(`${adminPath}?status=closed`);
   return redirect(

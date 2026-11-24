@@ -88,7 +88,7 @@ function SwitchCalendarViewIcon() {
 
 export function FlavorPollForm({
   poll,
-  optionsLocked,
+  optionsLocked: hasVotesOrVoteError,
   votesError,
   cardProducts = [],
   cardProductsError,
@@ -142,6 +142,10 @@ export function FlavorPollForm({
     '--activity-contrast'
   ];
   const isMatching = activityType === 'matching';
+  const isKrathong = activityType === 'krathong';
+  const hasOptions = activityType === 'poll' || isMatching || isKrathong;
+  const optionsLocked = !isKrathong && hasVotesOrVoteError;
+  const optionLabel = isKrathong ? 'กระทง' : isMatching ? 'คู่การ์ด' : 'ตัวเลือก';
   const startsAt = useWatch({ control, name: 'startsAt' });
   const options = useWatch({ control, name: 'options' });
   const [uploading, setUploading] = useState<
@@ -273,6 +277,7 @@ export function FlavorPollForm({
                     <MenuItem value="poll">สร้างโพล</MenuItem>
                     <MenuItem value="matching">เกมจับคู่</MenuItem>
                     <MenuItem value="photo">ส่งภาพถ่าย</MenuItem>
+                    <MenuItem value="krathong">ลอยกระทง</MenuItem>
                   </Field.Text>
                   <Field.Text
                     name="title"
@@ -628,7 +633,7 @@ export function FlavorPollForm({
                   slotProps={{ htmlInput: { maxLength: 2048 } }}
                 />
               </Stack>
-              {activityType !== 'photo' && (
+              {hasOptions && (
                 <Stack component="section" aria-labelledby="flavor-options-title" spacing={2}>
                   <Stack
                     direction="row"
@@ -639,7 +644,7 @@ export function FlavorPollForm({
                   >
                     <Box>
                       <Typography id="flavor-options-title" component="h2" variant="h6">
-                        {isMatching ? 'คู่การ์ด' : 'ตัวเลือก'}
+                        {optionLabel}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {optionsLocked
@@ -648,18 +653,20 @@ export function FlavorPollForm({
                             : 'มีผลโหวตแล้ว แก้ไขได้เฉพาะรูปและรายละเอียด'
                           : isMatching
                             ? `${fields.length} คู่ · ระบบสร้างการ์ดสองใบต่อรายการ`
-                            : `มี ${fields.length} ตัวเลือก · กำหนดได้ 2–12 ตัวเลือก`}
+                            : isKrathong
+                              ? `มี ${fields.length} แบบ · เพิ่มได้สูงสุด 12 แบบ`
+                              : `มี ${fields.length} ตัวเลือก · กำหนดได้ 2–12 ตัวเลือก`}
                       </Typography>
                     </Box>
                     {!optionsLocked && (
                       <Button
                         type="button"
                         variant="outlined"
-                        disabled={saving || fields.length >= 12}
+                        disabled={saving || uploading !== null || fields.length >= 12}
                         startIcon={<Iconify icon="ri:add-line" />}
                         onClick={() => append({ label: '', imageUrl: '', description: '' })}
                       >
-                        {isMatching ? 'เพิ่มคู่การ์ด' : 'เพิ่มตัวเลือก'}
+                        {`เพิ่ม${optionLabel}`}
                       </Button>
                     )}
                   </Stack>
@@ -742,7 +749,11 @@ export function FlavorPollForm({
                           <Stack direction="row" spacing={1} alignItems="center">
                             <Field.Text
                               name={`options.${index}.label`}
-                              label={`${isMatching ? 'คู่การ์ด' : 'ตัวเลือก'}ที่ ${index + 1}`}
+                              label={
+                                isKrathong
+                                  ? `ชื่อกระทงแบบที่ ${index + 1}`
+                                  : `${optionLabel}ที่ ${index + 1}`
+                              }
                               fullWidth
                               size="small"
                               required
@@ -751,9 +762,11 @@ export function FlavorPollForm({
                             {!optionsLocked && (
                               <IconButton
                                 type="button"
-                                aria-label={`ลบตัวเลือกที่ ${index + 1}`}
+                                aria-label={`ลบ${optionLabel}ที่ ${index + 1}`}
                                 color="error"
-                                disabled={saving || uploading !== null || fields.length <= 2}
+                                disabled={
+                                  saving || uploading !== null || (!isKrathong && fields.length <= 2)
+                                }
                                 onClick={() => remove(index)}
                               >
                                 <Iconify icon="ri:delete-bin-6-line" />
@@ -771,7 +784,7 @@ export function FlavorPollForm({
                             <Box
                               component="img"
                               src={imageUrl}
-                              alt={`รูปตัวเลือกที่ ${index + 1}`}
+                              alt=""
                               sx={{
                                 width: 1,
                                 height: 160,
@@ -808,7 +821,7 @@ export function FlavorPollForm({
                                 }}
                                 accept="image/jpeg,image/png,image/webp"
                                 disabled={saving || uploading !== null}
-                                aria-label={`อัปโหลดรูปตัวเลือกที่ ${index + 1}`}
+                                aria-label={`อัปโหลดรูป${optionLabel}ที่ ${index + 1}`}
                                 onChange={(event) => {
                                   const file = event.target.files?.[0];
                                   event.target.value = '';
@@ -844,9 +857,7 @@ export function FlavorPollForm({
                   </Box>
                 </Stack>
               )}
-              {activityType !== 'photo' && optionError && (
-                <Alert severity="error">{optionError}</Alert>
-              )}
+              {hasOptions && optionError && <Alert severity="error">{optionError}</Alert>}
               {errors.root?.save?.message && (
                 <Alert severity="error">{errors.root.save.message}</Alert>
               )}

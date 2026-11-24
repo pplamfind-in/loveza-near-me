@@ -8,7 +8,9 @@ const dateTimeSchema = z.iso.datetime('กรุณาระบุวันแ�
 
 export const flavorPollSchema = z
   .object({
-    activityType: z.enum(['poll', 'matching', 'photo'], { error: 'กรุณาเลือกประเภทกิจกรรม' }),
+    activityType: z.enum(['poll', 'matching', 'photo', 'krathong'], {
+      error: 'กรุณาเลือกประเภทกิจกรรม',
+    }),
     title: z.string().trim().min(1, 'กรุณากรอกหัวข้อ').max(140, 'หัวข้อต้องไม่เกิน 140 ตัวอักษร'),
     slug: z
       .string()
@@ -67,7 +69,7 @@ export const flavorPollSchema = z
     }
     if (activityType === 'photo') return;
 
-    if (options.length < 2) {
+    if (activityType !== 'krathong' && options.length < 2) {
       ctx.addIssue({ code: 'custom', path: ['options'], message: 'กรุณาระบุอย่างน้อย 2 ตัวเลือก' });
     }
     const labels = new Set<string>();
@@ -76,7 +78,10 @@ export const flavorPollSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['options', index, 'label'],
-          message: label ? 'ชื่อตัวเลือกนี้ซ้ำกัน' : 'กรุณากรอกชื่อตัวเลือก',
+          message:
+            activityType === 'krathong'
+              ? (label ? 'ชื่อกระทงนี้ซ้ำกัน' : 'กรุณากรอกชื่อกระทง')
+              : (label ? 'ชื่อตัวเลือกนี้ซ้ำกัน' : 'กรุณากรอกชื่อตัวเลือก'),
         });
       }
       labels.add(label);

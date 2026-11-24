@@ -54,7 +54,7 @@ const feedback = {
 type Poll = {
   id: string;
   title: string;
-  type: 'poll' | 'matching' | 'photo';
+  type: 'poll' | 'matching' | 'photo' | 'krathong';
   active: boolean;
   status: keyof typeof flavorPollPublicationLabel;
   startsAt: string | null;
@@ -105,7 +105,7 @@ export function FlavorPollsPanel({
             จัดการกิจกรรม
           </Typography>
           <Typography sx={{ mt: 0.5, color: 'text.secondary' }}>
-            จัดการโพล เกมจับคู่ และกิจกรรมส่งภาพถ่าย
+            จัดการโพล เกมจับคู่ กิจกรรมส่งภาพถ่าย และลอยกระทง
           </Typography>
         </Box>
         <Button
@@ -118,7 +118,6 @@ export function FlavorPollsPanel({
           เพิ่มกิจกรรม
         </Button>
       </Stack>
-
 
       <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '16px' }}>
         <Table sx={{ minWidth: 680 }} aria-label="รายการกิจกรรม">
@@ -145,11 +144,13 @@ export function FlavorPollsPanel({
                       ? 'เกมจับคู่'
                       : poll.type === 'photo'
                         ? 'ส่งภาพถ่าย'
-                        : 'โพล'}
+                        : poll.type === 'krathong'
+                          ? 'ลอยกระทง'
+                          : 'โพล'}
                   </Typography>
                 </TableCell>
                 <TableCell align="center">
-                  {poll.type === 'photo' ? '—' : poll.options.length}
+                  {poll.options.length || '—'}
                   {poll.type === 'matching' ? ' คู่' : ''}
                 </TableCell>
                 <TableCell align="center">
@@ -186,9 +187,13 @@ export function FlavorPollsPanel({
                           ? poll.active
                             ? 'เปิดรับภาพ'
                             : 'ปิดรับภาพ'
-                          : poll.active
-                            ? 'เปิดโหวต'
-                            : 'ปิดโหวต'}
+                          : poll.type === 'krathong'
+                            ? poll.active
+                              ? 'เปิดให้ลอยกระทง'
+                              : 'ปิดลอยกระทง'
+                            : poll.active
+                              ? 'เปิดโหวต'
+                              : 'ปิดโหวต'}
                     </Typography>
                   )}
                   {(poll.startsAt || poll.endsAt) && (
@@ -209,12 +214,17 @@ export function FlavorPollsPanel({
                 <TableCell align="right">
                   <Stack direction="row" justifyContent="flex-end">
                     {[
-                      {
-                        action: poll.type === 'photo' ? 'submissions' : 'results',
-                        icon: poll.type === 'photo' ? 'ri:image-line' : 'ri:bar-chart-box-line',
-                        label: poll.type === 'photo' ? 'ดูภาพที่ส่ง' : 'ดูผลโหวต',
-                        color: 'default',
-                      },
+                      ...(poll.type === 'krathong'
+                        ? []
+                        : [
+                            {
+                              action: poll.type === 'photo' ? 'submissions' : 'results',
+                              icon:
+                                poll.type === 'photo' ? 'ri:image-line' : 'ri:bar-chart-box-line',
+                              label: poll.type === 'photo' ? 'ดูภาพที่ส่ง' : 'ดูผลโหวต',
+                              color: 'default',
+                            },
+                          ]),
                       { action: 'edit', icon: 'ri:edit-2-line', label: 'แก้ไข', color: 'default' },
                       {
                         action: 'delete',

@@ -68,15 +68,21 @@ async function createShareImage(
   imageUrl: string | null,
   background: string,
   foreground: string,
-  isPhoto: boolean
+  isPhoto: boolean,
+  isKrathong: boolean
 ) {
   if (isPhoto && !imageUrl) throw new Error('Missing submitted photo');
 
-  const image = await loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch((error) => {
-    if (isPhoto) throw error;
-    return loadImage('/assets/loveza/loveza-heart.webp');
-  });
-  await document.fonts.ready;
+  const [image, river] = await Promise.all([
+    isKrathong && !imageUrl
+      ? null
+      : loadImage(imageUrl || '/assets/loveza/loveza-heart.webp').catch((error) => {
+          if (isPhoto || isKrathong) throw error;
+          return loadImage('/assets/loveza/loveza-heart.webp');
+        }),
+    isKrathong ? loadImage('/assets/activities/krathong-river.webp') : null,
+    document.fonts.ready,
+  ]);
 
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
@@ -84,64 +90,113 @@ async function createShareImage(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Cannot create vote image');
 
-  ctx.fillStyle = background;
-  ctx.fillRect(0, 0, 1080, 1350);
-  ctx.fillStyle = '#FFFFFF28';
-  for (const [x, y, size] of [
-    [90, 380, 72],
-    [972, 585, 96],
-    [152, 1030, 58],
-    [914, 1140, 38],
-  ]) {
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, 2 * Math.PI);
-    ctx.fill();
-  }
+  if (river) {
+    const sceneWidth = river.naturalHeight * (1080 / 1350);
+    const sceneX = (river.naturalWidth - sceneWidth) * 0.58;
+    ctx.drawImage(river, sceneX, 0, sceneWidth, river.naturalHeight, 0, 0, 1080, 1350);
 
-  ctx.fillStyle = foreground;
-  ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
-  drawCenteredText(ctx, isPhoto ? 'ขอบคุณที่ร่วมกิจกรรม!' : 'โหวตสำเร็จ!', 324, 920);
+    const shade = ctx.createLinearGradient(0, 0, 0, 1350);
+    shade.addColorStop(0, '#100c30d9');
+    shade.addColorStop(0.42, '#100c3000');
+    shade.addColorStop(0.72, '#100c3000');
+    shade.addColorStop(1, '#100c30e8');
+    ctx.fillStyle = shade;
+    ctx.fillRect(0, 0, 1080, 1350);
 
-  ctx.font = '34px "LINE Seed Sans TH", sans-serif';
-  drawCenteredText(ctx, isPhoto ? flavor : 'ขอบคุณที่ร่วมสนุกกับ Loveza Hunt', 385, 920);
+    if (image) {
+      const bounds = getVisibleImageBounds(image);
+      const scale = Math.min(350 / bounds.width, 330 / bounds.height);
+      const width = bounds.width * scale;
+      const height = bounds.height * scale;
+      ctx.imageSmoothingQuality = 'high';
+      const x = (1080 - width) / 2;
+      const waterline = 1030;
 
-  const bounds = isPhoto
-    ? { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight }
-    : getVisibleImageBounds(image);
-  const scale = Math.min(
-    (isPhoto ? 850 : 475) / bounds.width,
-    (isPhoto ? 710 : 620) / bounds.height,
-    1
-  );
-  const width = bounds.width * scale;
-  const height = bounds.height * scale;
-  ctx.save();
-  ctx.imageSmoothingQuality = 'high';
-  ctx.translate(540, isPhoto ? 780 : 748);
-  if (!isPhoto) ctx.rotate((-8 * Math.PI) / 180);
-  ctx.drawImage(
-    image,
-    bounds.x,
-    bounds.y,
-    bounds.width,
-    bounds.height,
-    -width / 2,
-    -height / 2,
-    width,
-    height
-  );
-  ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.translate(0, waterline);
+      ctx.scale(1, -0.3);
+      ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, x, -height, width, height);
+      ctx.restore();
+      ctx.drawImage(
+        image, bounds.x, bounds.y, bounds.width, bounds.height, x, waterline - height, width, height
+      );
+    } else {
+      ctx.font = '195px sans-serif';
+      drawCenteredText(ctx, '🪷', 1010, 350);
+    }
 
-  if (!isPhoto) {
-    ctx.font = '38px "LINE Seed Sans TH", sans-serif';
-    drawCenteredText(ctx, 'รสที่ฉันเลือก', 1125, 920);
-    ctx.font = 'bold 72px "LINE Seed Sans TH", sans-serif';
-    drawCenteredText(ctx, flavor, 1210, 940);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
+    drawCenteredText(ctx, 'ลอยกระทงสำเร็จ!', 225, 920);
+    ctx.font = 'bold 55px "LINE Seed Sans TH", sans-serif';
+    drawCenteredText(ctx, flavor, 1215, 930);
+  } else {
+    if (!image) throw new Error('Missing share image');
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, 1080, 1350);
+    ctx.fillStyle = '#FFFFFF28';
+    for (const [x, y, size] of [
+      [90, 380, 72],
+      [972, 585, 96],
+      [152, 1030, 58],
+      [914, 1140, 38],
+    ]) {
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = foreground;
+    ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
+    drawCenteredText(ctx, isPhoto ? 'ขอบคุณที่ร่วมกิจกรรม!' : 'โหวตสำเร็จ!', 324, 920);
+
+    ctx.font = '34px "LINE Seed Sans TH", sans-serif';
+    drawCenteredText(ctx, isPhoto ? flavor : 'ขอบคุณที่ร่วมสนุกกับ Loveza Hunt', 385, 920);
+
+    const bounds = isPhoto
+      ? { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight }
+      : getVisibleImageBounds(image);
+    const scale = Math.min(
+      (isPhoto ? 850 : 475) / bounds.width,
+      (isPhoto ? 710 : 620) / bounds.height,
+      1
+    );
+    const width = bounds.width * scale;
+    const height = bounds.height * scale;
+    ctx.save();
+    ctx.imageSmoothingQuality = 'high';
+    ctx.translate(540, isPhoto ? 780 : 748);
+    if (!isPhoto) ctx.rotate((-8 * Math.PI) / 180);
+    ctx.drawImage(
+      image,
+      bounds.x,
+      bounds.y,
+      bounds.width,
+      bounds.height,
+      -width / 2,
+      -height / 2,
+      width,
+      height
+    );
+    ctx.restore();
+
+    if (!isPhoto) {
+      ctx.font = '38px "LINE Seed Sans TH", sans-serif';
+      drawCenteredText(ctx, 'รสที่ฉันเลือก', 1125, 920);
+      ctx.font = 'bold 72px "LINE Seed Sans TH", sans-serif';
+      drawCenteredText(ctx, flavor, 1210, 940);
+    }
   }
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('Cannot export vote image');
-  return new File([blob], isPhoto ? 'loveza-hunt-photo.png' : 'loveza-hunt-vote.png', {
+  const fileName = isKrathong
+    ? 'loveza-hunt-krathong.png'
+    : isPhoto
+      ? 'loveza-hunt-photo.png'
+      : 'loveza-hunt-vote.png';
+  return new File([blob], fileName, {
     type: 'image/png',
   });
 }
@@ -151,11 +206,13 @@ export function FlavorPollShare({
   imageUrl,
   secondaryAction,
   isPhoto = false,
+  isKrathong = false,
 }: {
   flavor: string;
   imageUrl: string | null;
   secondaryAction: ReactNode;
   isPhoto?: boolean;
+  isKrathong?: boolean;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [failed, setFailed] = useState(false);
@@ -164,7 +221,7 @@ export function FlavorPollShare({
     let active = true;
     const main = document.querySelector('main[data-activity-page]');
     const styles = main ? getComputedStyle(main) : getComputedStyle(document.body);
-    createShareImage(flavor, imageUrl, styles.backgroundColor, styles.color, isPhoto)
+    createShareImage(flavor, imageUrl, styles.backgroundColor, styles.color, isPhoto, isKrathong)
       .then((image) => {
         if (active) setFile(image);
       })
@@ -174,7 +231,7 @@ export function FlavorPollShare({
     return () => {
       active = false;
     };
-  }, [flavor, imageUrl, isPhoto]);
+  }, [flavor, imageUrl, isPhoto, isKrathong]);
 
   const downloadImage = () => {
     if (!file) return;
@@ -228,7 +285,7 @@ export function FlavorPollShare({
       </Stack>
       {file && (
         <Button type="button" color="inherit" size="small" onClick={downloadImage}>
-          ดาวน์โหลดภาพ
+          {isKrathong ? 'บันทึกภาพ' : 'ดาวน์โหลดภาพ'}
         </Button>
       )}
       {failed && (

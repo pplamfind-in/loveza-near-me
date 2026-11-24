@@ -32,7 +32,9 @@ import {
 import { Iconify } from 'src/components/iconify';
 
 import { MatchingGame } from 'src/sections/home/matching-game';
+import { KrathongRiver } from 'src/sections/home/krathong-river';
 import { FlavorPollShare } from 'src/sections/home/flavor-poll-share';
+import riverStyles from 'src/sections/home/krathong-river.module.css';
 import { FlavorPollPicker } from 'src/sections/home/flavor-poll-picker';
 import { FlavorPollSubmit } from 'src/sections/home/flavor-poll-submit';
 import { ActivityPhotoForm } from 'src/sections/home/activity-photo-form';
@@ -114,7 +116,8 @@ export default async function ActivityPage({
   const pollStatus = getFlavorPollStatus(poll, now.getTime());
   const preview =
     adminPreview || (isDevelopment && (!poll.is_published || pollStatus !== 'active'));
-  const communityPoll = !matching && !photoActivity;
+  const communityPoll = poll.activity_type === 'poll';
+  const krathong = poll.activity_type === 'krathong';
   const showResults = results === '1';
   if (
     showResults &&
@@ -133,7 +136,9 @@ export default async function ActivityPage({
   const totalVotes = resultRows.reduce((sum, option) => sum + Number(option.vote_count), 0);
   const podium = resultRows.filter((option) => Number(option.vote_count) > 0).slice(0, 3);
   const [user, guestId] = await Promise.all([
-    matching || preview || showResults ? null : db.auth.getUser().then(({ data }) => data.user),
+    matching || krathong || preview || showResults
+      ? null
+      : db.auth.getUser().then(({ data }) => data.user),
     communityPoll && !preview && !showResults ? getGuestVoterId() : null,
   ]);
   const [vote, guestVote] = await Promise.all([
@@ -153,7 +158,9 @@ export default async function ActivityPage({
   ]);
   const voteError = vote?.error || guestVote?.error;
   const simulatedVote =
-    adminPreview && !photoActivity && poll.options.includes(previewVote) ? previewVote : undefined;
+    adminPreview && !photoActivity && !krathong && poll.options.includes(previewVote)
+      ? previewVote
+      : undefined;
   const chosen = simulatedVote ?? vote?.data?.option_label ?? guestVote?.data?.option_label;
   const chosenImage = chosen
     ? getFlavorPollOptionDetails(poll.option_details, chosen).imageUrl
@@ -191,12 +198,21 @@ export default async function ActivityPage({
       component="main"
       data-activity-screen
       data-activity-page
+      className={krathong ? riverStyles.waterMotion : undefined}
       sx={{
         minHeight: '100dvh',
         flexGrow: 1,
         ...activityTheme(poll.theme_color),
         bgcolor: 'var(--activity-primary)',
         color: activityTextColor,
+        ...(krathong && {
+          color: 'common.white',
+          backgroundImage:
+            "linear-gradient(180deg, #0b0829b3, #0b08294d 32%, transparent 63%), url('/assets/activities/krathong-river.webp')",
+          backgroundSize: 'cover',
+          backgroundPosition: '58% center',
+          backgroundRepeat: 'no-repeat',
+        }),
         pt: { xs: 'calc(env(safe-area-inset-top, 0px) + 8px)', md: 3 },
         pb: matching
           ? { xs: 'calc(env(safe-area-inset-bottom) + 24px)', md: 8 }
@@ -206,7 +222,7 @@ export default async function ActivityPage({
       }}
     >
       <GlobalStyles styles={activityViewportStyles(poll.theme_color)} />
-      {(!matching || hasSideImages) && (
+      {!krathong && (!matching || hasSideImages) && (
         <Box
           aria-hidden="true"
           sx={{
@@ -263,7 +279,11 @@ export default async function ActivityPage({
       )}
       <Container
         maxWidth={false}
-        sx={{ px: { xs: 1.5, sm: 3, lg: 5 }, ...(!matching && { display: 'flex', flex: 1 }) }}
+        sx={{
+          '--activity-gutter': { xs: '12px', sm: '24px', lg: '40px' },
+          px: 'var(--activity-gutter)',
+          ...(!matching && { display: 'flex', flex: 1 }),
+        }}
       >
         <Stack spacing={matching ? { xs: 1.5, sm: 2.5 } : 2.5} sx={{ width: 1 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
@@ -658,7 +678,7 @@ export default async function ActivityPage({
                             : undefined
                         }
                       >
-                        {photoActivity ? 'กิจกรรมส่งภาพถ่าย' : 'โพลชุมชน'}
+                        {photoActivity ? 'กิจกรรมส่งภาพถ่าย' : krathong ? 'ลอยกระทง' : 'โพลชุมชน'}
                       </Typography>
                     )}
                   </Stack>
@@ -761,6 +781,17 @@ export default async function ActivityPage({
                       }))}
                     />
                   )
+                ) : krathong ? (
+                  <KrathongRiver
+                    key={poll.id}
+                    activityId={poll.id}
+                    open={open}
+                    preview={preview}
+                    designs={(poll.options as string[]).map((label) => ({
+                      label,
+                      imageUrl: getFlavorPollOptionDetails(poll.option_details, label).imageUrl,
+                    }))}
+                  />
                 ) : photoActivity ? (
                   <Box sx={{ width: 1, maxWidth: 580, mx: 'auto', py: 2 }}>
                     {preview || (open && user) ? (
