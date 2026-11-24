@@ -59,6 +59,11 @@ export function getAdminNavData(pendingReportsCount = 0): NavSectionProps['data'
           path: '/admin/store-types',
           icon: navIcon('ri:store-3-line'),
         },
+        {
+          title: 'บัญชีผู้ประกอบการ',
+          path: '/admin/merchants',
+          icon: navIcon('ri:building-4-line'),
+        },
       ],
     },
     {

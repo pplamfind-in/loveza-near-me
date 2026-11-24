@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 import { z } from 'zod';
 import { notFound } from 'next/navigation';
@@ -44,6 +44,17 @@ import { voteForFlavor, previewFlavorVote } from '../vote-action';
 export const metadata: Metadata = { title: 'กิจกรรม | Loveza Hunt' };
 
 const krathongBackdrop = '#191b25';
+const krathongSky = '#23183f';
+
+export async function generateViewport({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Viewport> {
+  const { id } = await params;
+  if (id !== 'loveza-loy-krathong') return {};
+  return { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: krathongSky };
+}
 
 const pollBubbles = [
   { top: '18%', left: '-5%', width: 'clamp(76px, 16vw, 250px)' },
@@ -211,7 +222,10 @@ export default async function ActivityPage({
           bgcolor: krathongBackdrop,
           color: 'common.white',
         }),
-        pt: { xs: 'calc(env(safe-area-inset-top, 0px) + 8px)', md: 3 },
+        pt: {
+          xs: krathong ? 'env(safe-area-inset-top, 0px)' : 'calc(env(safe-area-inset-top, 0px) + 8px)',
+          md: 3,
+        },
         pb: matching
           ? { xs: 'calc(env(safe-area-inset-bottom) + 24px)', md: 8 }
           : 'calc(env(safe-area-inset-bottom) + 8px)',
@@ -219,7 +233,19 @@ export default async function ActivityPage({
         ...((!matching || hasSideImages) && { position: 'relative', isolation: 'isolate' }),
       }}
     >
-      <GlobalStyles styles={activityViewportStyles(krathong ? krathongBackdrop : poll.theme_color)} />
+      <GlobalStyles
+        styles={{
+          ...activityViewportStyles(krathong ? krathongBackdrop : poll.theme_color),
+          ...(krathong && {
+            '@media (max-width: 899.95px)': {
+              'html:has(main[data-activity-screen]), body:has(main[data-activity-screen])': {
+                background: `linear-gradient(${krathongSky} 0 48px, ${krathongBackdrop} 120px)`,
+                backgroundColor: krathongBackdrop,
+              },
+            },
+          }),
+        }}
+      />
       {!krathong && (!matching || hasSideImages) && (
         <Box
           aria-hidden="true"
@@ -783,6 +809,8 @@ export default async function ActivityPage({
                   <KrathongRiver
                     key={poll.id}
                     activityId={poll.id}
+                    activityTitle={poll.title}
+                    activityDescription={activityDescription}
                     themeColor={poll.theme_color}
                     open={open}
                     preview={preview}

@@ -63,15 +63,73 @@ function drawCenteredText(
   ctx.restore();
 }
 
+type KrathongShare = {
+  title: string;
+  descriptionHtml: string;
+  wish: string;
+};
+
+function drawTextBlock(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  baseline: number,
+  lineHeight: number,
+  maxWidth: number,
+  maxLines: number
+) {
+  const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
+  const graphemes = new Intl.Segmenter('th', { granularity: 'grapheme' });
+  const lines: string[] = [];
+  let line = '';
+
+  for (const { segment } of segmenter.segment(text.trim().replace(/\s+/g, ' '))) {
+    if (ctx.measureText(line + segment).width <= maxWidth) {
+      line += segment;
+      continue;
+    }
+    if (line.trim()) lines.push(line.trim());
+    line = segment.trimStart();
+
+    if (ctx.measureText(line).width > maxWidth) {
+      let part = '';
+      for (const { segment: character } of graphemes.segment(line)) {
+        if (part && ctx.measureText(part + character).width > maxWidth) {
+          lines.push(part);
+          part = '';
+        }
+        part += character;
+      }
+      line = part;
+    }
+  }
+  if (line.trim()) lines.push(line.trim());
+
+  const visibleLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    const last = Array.from(
+      graphemes.segment(visibleLines[maxLines - 1]),
+      ({ segment }) => segment
+    );
+    while (last.length && ctx.measureText(`${last.join('')}…`).width > maxWidth) last.pop();
+    visibleLines[maxLines - 1] = `${last.join('').trimEnd()}…`;
+  }
+
+  visibleLines.forEach((value, index) =>
+    drawCenteredText(ctx, value, baseline + index * lineHeight, maxWidth)
+  );
+  return baseline + visibleLines.length * lineHeight;
+}
+
 async function createShareImage(
   flavor: string,
   imageUrl: string | null,
   background: string,
   foreground: string,
   isPhoto: boolean,
-  isKrathong: boolean
+  krathong: KrathongShare | null
 ) {
   if (isPhoto && !imageUrl) throw new Error('Missing submitted photo');
+  const isKrathong = Boolean(krathong);
 
   const [image, river] = await Promise.all([
     isKrathong && !imageUrl
@@ -86,23 +144,34 @@ async function createShareImage(
 
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
-  canvas.height = 1350;
+  const { width: screenWidth, height: screenHeight } = window.screen;
+  const mobileAspect =
+    window.matchMedia('(max-width: 899px)').matches && screenWidth && screenHeight
+      ? Math.max(screenWidth, screenHeight) / Math.min(screenWidth, screenHeight)
+      : 16 / 9;
+  canvas.height = isKrathong
+    ? Math.round(1080 * Math.min(2.25, Math.max(16 / 9, mobileAspect)))
+    : 1350;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Cannot create vote image');
 
-  if (river) {
-    const sceneWidth = river.naturalHeight * (1080 / 1350);
+  if (river && krathong) {
+    const cardHeight = canvas.height;
+    const sceneWidth = river.naturalHeight * (1080 / cardHeight);
     const sceneX = (river.naturalWidth - sceneWidth) / 2;
-    ctx.drawImage(river, sceneX, 0, sceneWidth, river.naturalHeight, 0, 0, 1080, 1350);
+    ctx.drawImage(river, sceneX, 0, sceneWidth, river.naturalHeight, 0, 0, 1080, cardHeight);
 
-    const shade = ctx.createLinearGradient(0, 0, 0, 1350);
+    const shade = ctx.createLinearGradient(0, 0, 0, cardHeight);
     shade.addColorStop(0, '#100c30d9');
-    shade.addColorStop(0.42, '#100c3000');
-    shade.addColorStop(0.72, '#100c3000');
+    shade.addColorStop(0.22, '#100c3066');
+    shade.addColorStop(0.41, '#100c3000');
+    shade.addColorStop(0.69, '#100c3000');
+    shade.addColorStop(0.81, '#100c30a6');
     shade.addColorStop(1, '#100c30e8');
     ctx.fillStyle = shade;
-    ctx.fillRect(0, 0, 1080, 1350);
+    ctx.fillRect(0, 0, 1080, cardHeight);
 
+    const waterline = Math.round(cardHeight * 0.72);
     if (image) {
       const bounds = getVisibleImageBounds(image);
       const scale = Math.min(350 / bounds.width, 330 / bounds.height);
@@ -110,27 +179,55 @@ async function createShareImage(
       const height = bounds.height * scale;
       ctx.imageSmoothingQuality = 'high';
       const x = (1080 - width) / 2;
-      const waterline = 1030;
 
       ctx.save();
       ctx.globalAlpha = 0.22;
       ctx.translate(0, waterline);
       ctx.scale(1, -0.3);
-      ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, x, -height, width, height);
+      ctx.drawImage(
+        image,
+        bounds.x,
+        bounds.y,
+        bounds.width,
+        bounds.height,
+        x,
+        -height,
+        width,
+        height
+      );
       ctx.restore();
       ctx.drawImage(
-        image, bounds.x, bounds.y, bounds.width, bounds.height, x, waterline - height, width, height
+        image,
+        bounds.x,
+        bounds.y,
+        bounds.width,
+        bounds.height,
+        x,
+        waterline - height,
+        width,
+        height
       );
     } else {
       ctx.font = '195px sans-serif';
-      drawCenteredText(ctx, '🪷', 1010, 350);
+      drawCenteredText(ctx, '🪷', waterline - 15, 350);
     }
 
+    const description =
+      new DOMParser().parseFromString(
+        krathong.descriptionHtml.replace(/<\/(?:p|div|li|h[1-6]|blockquote)>|<br\s*\/?>/gi, '$& '),
+        'text/html'
+      ).body.textContent ?? '';
+
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 76px "LINE Seed Sans TH", sans-serif';
-    drawCenteredText(ctx, 'ลอยกระทงสำเร็จ!', 225, 920);
+    ctx.font = 'bold 64px "LINE Seed Sans TH", sans-serif';
+    const descriptionTop = drawTextBlock(ctx, krathong.title, cardHeight * 0.095, 78, 920, 3);
+    ctx.font = '36px "LINE Seed Sans TH", sans-serif';
+    drawTextBlock(ctx, description, descriptionTop, 48, 870, 4);
+
     ctx.font = 'bold 55px "LINE Seed Sans TH", sans-serif';
-    drawCenteredText(ctx, flavor, 1215, 930);
+    const wishTop = drawTextBlock(ctx, flavor, cardHeight * 0.795, 63, 930, 2);
+    ctx.font = '36px "LINE Seed Sans TH", sans-serif';
+    drawTextBlock(ctx, krathong.wish, wishTop - 5, 40, 920, 7);
   } else {
     if (!image) throw new Error('Missing share image');
     ctx.fillStyle = background;
@@ -206,14 +303,16 @@ export function FlavorPollShare({
   imageUrl,
   secondaryAction,
   isPhoto = false,
-  isKrathong = false,
+  krathong,
 }: {
   flavor: string;
   imageUrl: string | null;
   secondaryAction: ReactNode;
   isPhoto?: boolean;
-  isKrathong?: boolean;
+  krathong?: KrathongShare;
 }) {
+  const isKrathong = Boolean(krathong);
+  const { title = '', descriptionHtml = '', wish = '' } = krathong ?? {};
   const [file, setFile] = useState<File | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -221,7 +320,14 @@ export function FlavorPollShare({
     let active = true;
     const main = document.querySelector('main[data-activity-page]');
     const styles = main ? getComputedStyle(main) : getComputedStyle(document.body);
-    createShareImage(flavor, imageUrl, styles.backgroundColor, styles.color, isPhoto, isKrathong)
+    createShareImage(
+      flavor,
+      imageUrl,
+      styles.backgroundColor,
+      styles.color,
+      isPhoto,
+      isKrathong ? { title, descriptionHtml, wish } : null
+    )
       .then((image) => {
         if (active) setFile(image);
       })
@@ -231,7 +337,7 @@ export function FlavorPollShare({
     return () => {
       active = false;
     };
-  }, [flavor, imageUrl, isPhoto, isKrathong]);
+  }, [flavor, imageUrl, isPhoto, isKrathong, title, descriptionHtml, wish]);
 
   const downloadImage = () => {
     if (!file) return;

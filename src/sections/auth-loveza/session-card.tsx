@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
+import type { AccountMode } from 'src/auth/utils/account-mode';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -12,15 +14,33 @@ import { LovezaSignOutButton } from 'src/components/auth/loveza-sign-out-button'
 
 import { AvatarPicker } from 'src/sections/account/avatar-picker';
 import { DisplayNameForm } from 'src/sections/account/display-name-form';
+import { AccountModeSwitch } from 'src/sections/account/account-mode-switch';
+
+export type MerchantProfile = {
+  name?: string;
+  branchName?: string | null;
+  logoUrl?: string | null;
+};
 
 type SessionCardProps = {
   user: User;
   role: 'admin' | 'user';
   compact?: boolean;
   avatarOptions?: string[];
+  mode?: AccountMode;
+  merchant?: MerchantProfile;
+  addMerchant?: ReactNode;
 };
 
-export function SessionCard({ user, role, compact = false, avatarOptions = [] }: SessionCardProps) {
+export function SessionCard({
+  user,
+  role,
+  compact = false,
+  avatarOptions = [],
+  mode,
+  merchant,
+  addMerchant,
+}: SessionCardProps) {
   const displayName = getUserDisplayName(user);
   const googleAvatar = user.user_metadata.avatar_url ?? user.user_metadata.picture ?? '';
   const avatarUrl = user.user_metadata.loveza_avatar || googleAvatar;
@@ -28,6 +48,8 @@ export function SessionCard({ user, role, compact = false, avatarOptions = [] }:
     .charAt(0)
     .toUpperCase();
   const isAdmin = role === 'admin';
+  const isMerchant = compact && !isAdmin && mode === 'merchant';
+  const profileName = isMerchant ? merchant?.name || 'ร้านค้าของฉัน' : displayName;
 
   return (
     <Box
@@ -70,7 +92,19 @@ export function SessionCard({ user, role, compact = false, avatarOptions = [] }:
           alignItems={compact ? 'center' : { xs: 'flex-start', sm: 'center' }}
           spacing={2}
         >
-          {compact ? (
+          {isMerchant ? (
+            <Avatar
+              src={merchant?.logoUrl || '/assets/icons/loveza/voxel-store.svg'}
+              alt=""
+              sx={{
+                width: 132,
+                height: 132,
+                bgcolor: 'background.neutral',
+                border: '2px solid var(--palette-primary-light)',
+                '& img': { objectFit: 'contain', p: 1.5 },
+              }}
+            />
+          ) : compact ? (
             <AvatarPicker
               options={avatarOptions}
               current={user.user_metadata.loveza_avatar || ''}
@@ -103,7 +137,13 @@ export function SessionCard({ user, role, compact = false, avatarOptions = [] }:
             <Typography
               sx={{ color: 'primary.dark', fontSize: 12, fontWeight: 900, letterSpacing: 2 }}
             >
-              {isAdmin ? 'ADMIN DASHBOARD' : compact ? 'LOVEZA EXPLORER' : 'LOGIN SUCCESS'}
+              {isAdmin
+                ? 'ADMIN DASHBOARD'
+                : mode === 'merchant'
+                  ? 'LOVEZA MERCHANT'
+                  : compact
+                    ? 'LOVEZA EXPLORER'
+                    : 'LOGIN SUCCESS'}
             </Typography>
             <Typography
               component={compact ? 'h2' : 'h1'}
@@ -114,8 +154,13 @@ export function SessionCard({ user, role, compact = false, avatarOptions = [] }:
                 fontWeight: 900,
               }}
             >
-              {isAdmin ? `สวัสดี ${displayName}` : compact ? displayName : 'เข้าสู่ระบบสำเร็จ 🎉'}
+              {isAdmin ? `สวัสดี ${displayName}` : compact ? profileName : 'เข้าสู่ระบบสำเร็จ 🎉'}
             </Typography>
+            {isMerchant && merchant?.branchName && (
+              <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+                {merchant.branchName}
+              </Typography>
+            )}
             {!isAdmin && !compact ? (
               <Typography sx={{ mt: 0.75, fontWeight: 800 }}>{displayName}</Typography>
             ) : null}
@@ -132,31 +177,34 @@ export function SessionCard({ user, role, compact = false, avatarOptions = [] }:
           </Box>
         </Stack>
         <Chip
-          label={isAdmin ? 'ADMIN' : 'พร้อมออกล่า'}
+          label={isAdmin ? 'ADMIN' : mode === 'merchant' ? 'โหมดร้านค้า' : 'พร้อมออกล่า'}
           color={isAdmin ? 'secondary' : 'success'}
           sx={{ borderRadius: '8px' }}
         />
       </Stack>
 
-      {compact && <DisplayNameForm currentName={displayName} />}
+      {compact &&
+        !isAdmin &&
+        mode &&
+        (addMerchant ? <Box sx={{ mt: 2 }}>{addMerchant}</Box> : <AccountModeSwitch mode={mode} />)}
+      {compact && !isMerchant && <DisplayNameForm currentName={displayName} />}
 
-      <Stack
-        direction={compact ? 'column' : { xs: 'column', sm: 'row' }}
-        spacing={1.5}
-        sx={{
-          mt: compact ? 2.5 : 4,
-          ...(compact && !isAdmin && { display: { xs: 'none', md: 'flex' } }),
-        }}
-      >
-        <LovezaSignOutButton
-          confirm={compact && !isAdmin}
-          buttonProps={{
-            color: 'inherit',
-            variant: 'outlined',
-            sx: { borderRadius: '12px', minHeight: 42, borderColor: 'divider', boxShadow: 'none' },
-          }}
-        />
-      </Stack>
+      {!compact && (
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 4 }}>
+          <LovezaSignOutButton
+            buttonProps={{
+              color: 'inherit',
+              variant: 'outlined',
+              sx: {
+                borderRadius: '12px',
+                minHeight: 42,
+                borderColor: 'divider',
+                boxShadow: 'none',
+              },
+            }}
+          />
+        </Stack>
+      )}
     </Box>
   );
 }

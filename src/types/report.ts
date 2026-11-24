@@ -1,4 +1,6 @@
-import type { StoreStatus } from './store';
+import type { StoreStatus, MerchantFlavorStock } from './store';
+
+import { STORE_STATUS_LABEL } from './store';
 
 // ----------------------------------------------------------------------
 
@@ -9,6 +11,23 @@ export const FLAVOR_OPTIONS = [
   { value: 'yoghurt', label: 'Yoghurt' },
   { value: 'unknown', label: 'ไม่แน่ใจ' },
 ] as const;
+
+export function getReportedFlavorLabels(flavors: readonly string[] = []) {
+  return FLAVOR_OPTIONS.filter(({ value }) => flavors.includes(value)).map(({ label }) => label);
+}
+
+export function getMerchantFlavorStockLabels(
+  stock?: MerchantFlavorStock,
+  legacyFlavors?: readonly string[]
+) {
+  const labels = FLAVOR_OPTIONS.flatMap(({ value, label }) => {
+    const item = stock?.[value];
+    if (!item) return [];
+    const quantity = item.quantity == null ? '' : ` · ${item.quantity.toLocaleString('th-TH')} กระป๋อง`;
+    return [`${label} (${STORE_STATUS_LABEL[item.status]}${quantity})`];
+  });
+  return labels.length ? labels : getReportedFlavorLabels(legacyFlavors);
+}
 
 export const STORE_TYPE_VALUES = [
   'general',

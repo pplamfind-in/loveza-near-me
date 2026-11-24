@@ -20,6 +20,9 @@ export type NearbyStore = {
   store_type?: string;
   store_type_logo_url?: string | null;
   reporter_display_name?: string | null;
+  stock_updated_by_merchant?: boolean;
+  merchant_stock_flavors?: string[];
+  merchant_stock_by_flavor?: MerchantFlavorStock;
   address: string | null;
   province: string;
   latitude: number;
@@ -44,4 +47,8 @@ export type LatestStorePreview = Pick<
   | 'current_status'
   | 'estimated_quantity'
   | 'last_reported_at'
+>;
+
+export type MerchantFlavorStock = Partial<
+  Record<string, { status: StoreStatus; quantity: number | null; updated_at: string }>
 >;

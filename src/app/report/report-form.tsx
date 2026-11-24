@@ -1,7 +1,6 @@
 'use client';
 
 import type { z } from 'zod';
-import type { ReactNode } from 'react';
 
 import { useForm } from 'react-hook-form';
 import { useRef, useMemo, useEffect } from 'react';
@@ -28,6 +27,7 @@ import { FLAVOR_OPTIONS, STORE_TYPE_OPTIONS } from 'src/types/report';
 
 import { useStoreTypesQuery } from './use-store-types';
 import { useSubmitReportMutation } from './use-submit-report';
+import { FormSection, reportSubmitButtonSx } from './form-section';
 import { useReportStoreCandidates, type ReportStoreCandidate } from './use-report-store-candidates';
 import {
   reportSchema,
@@ -105,82 +105,6 @@ function buildFormData(data: ReportFormValues, storeId = data.storeId) {
   if (data.note) formData.set('note', data.note);
   if (storeId) formData.set('storeId', storeId);
   return formData;
-}
-
-type FormSectionProps = {
-  step: string;
-  icon: string;
-  title: string;
-  description: string;
-  color: string;
-  children: ReactNode;
-};
-
-function FormSection({ step, icon, title, description, color, children }: FormSectionProps) {
-  return (
-    <Box
-      component="section"
-      sx={{
-        p: { xs: 2, sm: 2.5, md: 3 },
-        display: step === '01' ? 'grid' : 'block',
-        gridTemplateColumns:
-          step === '01' ? { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' } : undefined,
-        alignItems: 'center',
-        gap: step === '01' ? { xs: 2, md: 3 } : undefined,
-        border: '5px solid var(--palette-background-paper)',
-        borderRadius: '18px',
-        bgcolor: 'var(--palette-background-paper)',
-        boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
-      }}
-    >
-      <Box sx={{ mb: step === '01' ? 0 : 2.5, display: 'flex', gap: 1.5, alignItems: 'center' }}>
-        <Box
-          sx={{
-            width: 46,
-            height: 46,
-            display: 'grid',
-            flexShrink: 0,
-            color: 'var(--palette-text-primary)',
-            borderRadius: '12px',
-            placeItems: 'center',
-            bgcolor: color,
-            border: '1px solid var(--palette-grey-300)',
-            boxShadow: '0 4px 0 var(--palette-grey-200), 0 12px 28px rgba(48,63,35,.04)',
-          }}
-        >
-          <Iconify icon={icon} width={23} />
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            sx={{
-              color: 'var(--palette-primary-main)',
-              fontSize: 10,
-              fontWeight: 1000,
-              letterSpacing: 1.5,
-            }}
-          >
-            STEP {step}
-          </Typography>
-          <Typography
-            component="h2"
-            sx={{
-              color: 'var(--palette-text-primary)',
-              fontSize: { xs: 18, md: 20 },
-              fontWeight: 900,
-            }}
-          >
-            {title}
-          </Typography>
-          <Typography
-            sx={{ mt: 0.15, color: 'var(--palette-text-secondary)', fontSize: 12, fontWeight: 700 }}
-          >
-            {description}
-          </Typography>
-        </Box>
-      </Box>
-      {children}
-    </Box>
-  );
 }
 
 export function ReportForm() {
@@ -742,19 +666,7 @@ export function ReportForm() {
           disabled={pending}
           size="large"
           endIcon={!pending ? <Iconify icon="ri:send-plane-fill" /> : undefined}
-          sx={{
-            minWidth: { sm: 180 },
-            minHeight: 48,
-            color: 'primary.contrastText',
-            borderRadius: '12px',
-            backgroundImage: 'none',
-            bgcolor: 'primary.main',
-            boxShadow: '0 4px 0 var(--palette-primary-darker)',
-            '&:hover': {
-              bgcolor: 'primary.dark',
-              boxShadow: '0 4px 0 var(--palette-primary-darker)',
-            },
-          }}
+          sx={reportSubmitButtonSx}
         >
           {pending ? <CircularProgress size={24} color="inherit" /> : 'แชร์พิกัดนี้'}
         </Button>

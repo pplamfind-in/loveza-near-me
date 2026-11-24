@@ -11,6 +11,7 @@ import { NO_INDEX_ROBOTS } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
 
 import { ReportForm } from './report-form';
+import { ReportHunterMode } from './report-hunter-mode';
 
 export const metadata: Metadata = {
   title: 'แจ้งพิกัด Loveza | Loveza Hunt',
@@ -24,6 +25,12 @@ export default async function ReportPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect('/auth/login?next=%2Freport');
+
+  const { data: accountType } = await supabase
+    .from('account_types')
+    .select('kind')
+    .eq('user_id', user.id)
+    .maybeSingle();
 
   return (
     <Box
@@ -92,6 +99,7 @@ export default async function ReportPage() {
             boxShadow: 'none',
           }}
         >
+          {accountType?.kind === 'merchant' && <ReportHunterMode />}
           <ReportForm />
         </Paper>
       </Container>

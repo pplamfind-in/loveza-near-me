@@ -16,6 +16,7 @@ import { Iconify } from 'src/components/iconify';
 import { Map, MapPopup, MapMarker, MAP_STYLES, MapControls } from 'src/components/map';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
+import { getMerchantFlavorStockLabels } from 'src/types/report';
 
 import { LOVEZA_STORE_COLORS, getNearbyStoreColor } from './nearby-colors';
 
@@ -441,6 +442,12 @@ export function NearbyMap({ coordinates, stores }: NearbyMapProps) {
                 ? ` · ประมาณ ${selectedStore.estimated_quantity} กระป๋อง`
                 : ''}
             </Typography>
+            {Boolean(selectedStore.merchant_stock_flavors?.length || Object.keys(selectedStore.merchant_stock_by_flavor ?? {}).length) && (
+              <Typography variant="caption" color="text.secondary">
+                รสที่ร้านแจ้ง:{' '}
+                {getMerchantFlavorStockLabels(selectedStore.merchant_stock_by_flavor, selectedStore.merchant_stock_flavors).join(' · ')}
+              </Typography>
+            )}
             <Typography
               sx={{ mt: 0.5, color: 'var(--palette-primary-main)', fontSize: 12, fontWeight: 800 }}
             >

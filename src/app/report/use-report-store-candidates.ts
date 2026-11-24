@@ -9,6 +9,8 @@ export type ReportStoreCandidate = {
   address: string | null;
   province: string;
   district: string | null;
+  latitude: number | null;
+  longitude: number | null;
   distanceM: number;
   logoUrl: string | null;
 };

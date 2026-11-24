@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 
 import { createClient } from 'src/lib/supabase/server';
 
+import { ACCOUNT_MODES } from 'src/auth/utils/account-mode';
+
 export type DisplayNameState = { error?: string; success?: string };
 const nameSchema = z
   .string()
@@ -44,4 +46,27 @@ export async function updateAccountAvatar(avatar: string): Promise<DisplayNameSt
   if (error) return { error: 'บันทึกรูปไม่สำเร็จ กรุณาลองอีกครั้ง' };
   revalidatePath('/', 'layout');
   return { success: 'เปลี่ยนรูปโปรไฟล์แล้ว' };
+}
+
+export async function switchAccountMode(value: unknown) {
+  const mode = z.enum(ACCOUNT_MODES).safeParse(value);
+  if (!mode.success) return { error: 'กรุณาเลือกโหมดบัญชี' };
+
+  const db = await createClient();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (!user) return { error: 'กรุณาเข้าสู่ระบบก่อนสลับโหมด' };
+  if (user.app_metadata.role === 'admin') return { destination: '/admin' };
+
+  const { error } = await db
+    .from('account_types')
+    .update({ kind: mode.data })
+    .eq('user_id', user.id)
+    .select('kind')
+    .single();
+  if (error) return { error: 'สลับโหมดไม่สำเร็จ กรุณาลองใหม่' };
+
+  revalidatePath('/account', 'layout');
+  return { destination: mode.data === 'merchant' ? '/account/merchant/' : '/account/' };
 }

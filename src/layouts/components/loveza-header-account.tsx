@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Drawer from '@mui/material/Drawer';
 import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
+import Popover from '@mui/material/Popover';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -25,102 +25,135 @@ export type LovezaHeaderUser = {
 
 type LovezaHeaderAccountProps = {
   user: LovezaHeaderUser;
-  mobile?: boolean;
   hideSettingsOnMobile?: boolean;
 };
 
 export function LovezaHeaderAccount({
   user,
-  mobile = false,
   hideSettingsOnMobile = false,
 }: LovezaHeaderAccountProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const popoverId = useId();
+  const closeMenus = () => {
+    setDrawerOpen(false);
+    setAnchor(null);
+  };
+  const avatar = (
+    <Avatar
+      src={user.photoURL || undefined}
+      alt={user.displayName}
+      imgProps={{ referrerPolicy: 'no-referrer' }}
+      sx={{
+        bgcolor: 'primary.main',
+        fontWeight: 800,
+        fontSize: 14,
+        width: { xs: 36, md: 32 },
+        height: { xs: 36, md: 32 },
+        boxSizing: 'border-box',
+        border: '2px solid #fff',
+      }}
+    >
+      {user.displayName.charAt(0).toUpperCase()}
+    </Avatar>
+  );
+  const menuLinks = (
+    <>
+      <List
+        disablePadding
+        sx={{
+          '& .MuiListItemButton-root': {
+            borderRadius: '12px',
+            mb: 1,
+            bgcolor: 'background.paper',
+            minHeight: 56,
+          },
+          '& .MuiListItemIcon-root': { minWidth: 36, color: 'primary.dark' },
+        }}
+      >
+        <ListItemButton component="a" href="/about-us/" onClick={closeMenus}>
+          <ListItemIcon>
+            <Iconify icon="ri:information-line" width={22} />
+          </ListItemIcon>
+          <ListItemText primary="เกี่ยวกับเรา" />
+          <Iconify icon="ri:arrow-right-s-line" width={18} />
+        </ListItemButton>
+        <ListItemButton component="a" href="/account/" onClick={closeMenus}>
+          <ListItemIcon>
+            <Iconify icon="ri:settings-3-line" width={22} />
+          </ListItemIcon>
+          <ListItemText primary="ตั้งค่าบัญชี" />
+          <Iconify icon="ri:arrow-right-s-line" width={18} />
+        </ListItemButton>
+        <ListItemButton component="a" href="/contact-us/" onClick={closeMenus}>
+          <ListItemIcon>
+            <Iconify icon="ri:mail-line" width={22} />
+          </ListItemIcon>
+          <ListItemText primary="ติดต่อเรา" />
+          <Iconify icon="ri:arrow-right-s-line" width={18} />
+        </ListItemButton>
+      </List>
+      <LovezaSignOutButton
+        confirm
+        buttonProps={{
+          fullWidth: true,
+          variant: 'outlined',
+          color: 'inherit',
+          sx: { mt: 2, minHeight: 44, borderRadius: '12px', borderColor: 'divider' },
+        }}
+      />
+    </>
+  );
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-      <Button
-        href="/account"
+      <IconButton
         aria-label={`บัญชีของ ${user.displayName}`}
+        aria-haspopup="dialog"
+        aria-expanded={Boolean(anchor)}
+        aria-controls={anchor ? popoverId : undefined}
+        onClick={(event) => setAnchor(event.currentTarget)}
         sx={{
-          gap: 1,
-          py: 0.625,
-          pl: 0.625,
-          pr: 1.5,
-          minHeight: 44,
-          minWidth: 0,
-          maxWidth: mobile ? 1 : 210,
-          color: 'text.primary',
-          borderRadius: '12px',
-          justifyContent: 'flex-start',
-          textTransform: 'none',
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          boxShadow: '0 2px 0 var(--palette-grey-200)',
-          '&:hover': {
-            bgcolor: 'primary.lighter',
-            borderColor: 'primary.light',
-            boxShadow: '0 2px 0 var(--palette-grey-200)',
-          },
-          '&:focus-visible': { outline: '2px solid var(--palette-primary-main)', outlineOffset: 3 },
-          '@media (max-width: 899.95px)': {
-            width: 44,
-            p: 0,
-            justifyContent: 'center',
-            border: 0,
-            bgcolor: 'transparent',
-            boxShadow: 'none',
-            '&:hover': { bgcolor: 'transparent', boxShadow: 'none' },
+          display: { xs: 'none', md: 'inline-flex' },
+          width: 44,
+          height: 44,
+          '&:hover': { bgcolor: 'primary.lighter' },
+        }}
+      >
+        {avatar}
+      </IconButton>
+      <Popover
+        open={Boolean(anchor)}
+        anchorEl={anchor}
+        onClose={closeMenus}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: {
+            id: popoverId,
+            role: 'dialog',
+            'aria-label': 'เมนูบัญชี',
+            sx: { mt: 1, width: 260, p: 1.5, borderRadius: 2 },
           },
         }}
       >
-        <Avatar
-          src={user.photoURL || undefined}
-          alt={user.displayName}
-          imgProps={{ referrerPolicy: 'no-referrer' }}
-          sx={{
-            bgcolor: 'primary.main',
-            fontWeight: 800,
-            fontSize: 14,
-            width: { xs: 36, md: 32 },
-            height: { xs: 36, md: 32 },
-            boxSizing: 'border-box',
-            border: { xs: '2px solid #fff', md: 0 },
-          }}
-        >
-          {user.displayName.charAt(0).toUpperCase()}
-        </Avatar>
-        <Box
-          component="span"
-          sx={{
-            minWidth: 0,
-            textAlign: 'left',
-            display: { xs: 'none', md: 'block' },
-          }}
-        >
-          <Typography
-            noWrap
-            sx={{
-              maxWidth: mobile ? 190 : 130,
-              fontSize: 13,
-              fontWeight: 800,
-              color: 'primary.dark',
-            }}
-          >
+        <Box sx={{ px: 1, pb: 1.5 }} aria-label="บัญชีที่เข้าสู่ระบบ">
+          <Typography variant="subtitle2" noWrap>
             {user.displayName}
           </Typography>
-          <Typography
-            noWrap
-            sx={{
-              maxWidth: mobile ? 190 : 130,
-              color: 'text.secondary',
-              display: mobile ? 'block' : 'none',
-              fontSize: 11,
-            }}
-          >
+          <Typography variant="body2" color="text.secondary" noWrap>
             {user.email}
           </Typography>
         </Box>
-      </Button>
+        {menuLinks}
+      </Popover>
+      <IconButton
+        href="/account"
+        aria-label={`บัญชีของ ${user.displayName}`}
+        sx={{ display: { xs: 'inline-flex', md: 'none' }, width: 44, height: 44, p: 0 }}
+      >
+        {avatar}
+      </IconButton>
       <IconButton
         onClick={() => setDrawerOpen(true)}
         aria-label="เปิดเมนูเกี่ยวกับและตั้งค่า"
@@ -169,49 +202,7 @@ export function LovezaHeaderAccount({
               <Iconify icon="ri:close-line" />
             </IconButton>
           </Box>
-          <List
-            disablePadding
-            sx={{
-              '& .MuiListItemButton-root': {
-                borderRadius: '12px',
-                mb: 1,
-                bgcolor: 'background.paper',
-                minHeight: 56,
-              },
-              '& .MuiListItemIcon-root': { minWidth: 36, color: 'primary.dark' },
-            }}
-          >
-            <ListItemButton component="a" href="/about-us/" onClick={() => setDrawerOpen(false)}>
-              <ListItemIcon>
-                <Iconify icon="ri:information-line" width={22} />
-              </ListItemIcon>
-              <ListItemText primary="เกี่ยวกับเรา" />
-              <Iconify icon="ri:arrow-right-s-line" width={18} />
-            </ListItemButton>
-            <ListItemButton component="a" href="/account/" onClick={() => setDrawerOpen(false)}>
-              <ListItemIcon>
-                <Iconify icon="ri:settings-3-line" width={22} />
-              </ListItemIcon>
-              <ListItemText primary="ตั้งค่าบัญชี" />
-              <Iconify icon="ri:arrow-right-s-line" width={18} />
-            </ListItemButton>
-            <ListItemButton component="a" href="/contact-us/" onClick={() => setDrawerOpen(false)}>
-              <ListItemIcon>
-                <Iconify icon="ri:mail-line" width={22} />
-              </ListItemIcon>
-              <ListItemText primary="ติดต่อเรา" />
-              <Iconify icon="ri:arrow-right-s-line" width={18} />
-            </ListItemButton>
-          </List>
-          <LovezaSignOutButton
-            confirm
-            buttonProps={{
-              fullWidth: true,
-              variant: 'outlined',
-              color: 'inherit',
-              sx: { mt: 2, minHeight: 44, borderRadius: '12px', borderColor: 'divider' },
-            }}
-          />
+          {menuLinks}
         </Box>
       </Drawer>
     </Box>

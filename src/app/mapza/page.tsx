@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 
 import { createSeoMetadata } from 'src/lib/seo';
 import { createClient } from 'src/lib/supabase/server';
+import { STORE_LOGO_BUCKET } from 'src/lib/supabase/store-logo';
 import { provinceColorSettingsFromRow } from 'src/lib/mapza/province-color-scale';
 
 import { Iconify } from 'src/components/iconify';
@@ -34,20 +35,53 @@ export default async function MapzaPage() {
   preload('/assets/data/thailand-province-names.json', { as: 'fetch', crossOrigin: 'anonymous' });
 
   const supabase = await createClient();
-  const [storesResult, mapSettingsResult, discoverersResult] = await Promise.all([
+  const storesQuery = () =>
     supabase
       .from('stores')
       .select(
-        'id, name, address, province, district, subdistrict, latitude, longitude, current_status, estimated_quantity, last_reported_at'
+        'id, name, store_type, address, province, district, subdistrict, latitude, longitude, current_status, estimated_quantity, last_reported_at, last_merchant_stock_at, merchant_stock_flavors, merchant_stock_by_flavor, merchant_logo_path'
       )
       .eq('is_active', true)
-      .order('last_reported_at', { ascending: false, nullsFirst: false }),
+      .order('id');
+  const pageSize = 1000;
+  const [firstPage, mapSettingsResult, discoverersResult, storeTypesResult] = await Promise.all([
+    storesQuery().range(0, pageSize - 1),
     supabase.rpc('get_public_map_settings').maybeSingle(),
     supabase.rpc('get_public_province_discoverers'),
+    supabase.from('store_types').select('code, name, logo_url').order('sort_order').order('name'),
   ]);
+  const storeRows = [...(firstPage.data ?? [])];
+  let storesError = firstPage.error;
+  let batchSize = storeRows.length;
 
-  const stores = (storesResult.data ?? []) as MapzaStore[];
-  const hasError = Boolean(storesResult.error);
+  for (let offset = pageSize; !storesError && batchSize === pageSize; offset += pageSize) {
+    const next = await storesQuery().range(offset, offset + pageSize - 1);
+    storesError = next.error;
+    batchSize = next.data?.length ?? 0;
+    if (next.data) storeRows.push(...next.data);
+  }
+
+  storeRows.sort((a, b) => (b.last_reported_at ?? '').localeCompare(a.last_reported_at ?? ''));
+
+  const stores = storeRows.map(
+    ({
+      merchant_logo_path: path,
+      merchant_stock_flavors: flavors,
+      merchant_stock_by_flavor: breakdown,
+      last_merchant_stock_at: merchantUpdate,
+      ...store
+    }) => ({
+      ...store,
+      merchant_stock_by_flavor:
+        merchantUpdate && merchantUpdate === store.last_reported_at ? breakdown : undefined,
+      merchant_stock_flavors:
+        merchantUpdate && merchantUpdate === store.last_reported_at ? flavors : [],
+      store_type_logo_url: path
+        ? supabase.storage.from(STORE_LOGO_BUCKET).getPublicUrl(path).data.publicUrl
+        : null,
+    })
+  ) as MapzaStore[];
+  const hasError = Boolean(storesError);
   const provinceColorSettings = provinceColorSettingsFromRow(mapSettingsResult.data);
   const provinceCount = new Set(stores.map((store) => store.province).filter(Boolean)).size;
   const totalQuantity = stores.reduce(
@@ -221,6 +255,7 @@ export default async function MapzaPage() {
           </Typography>
           <ThailandMap
             stores={stores}
+            storeTypes={storeTypesResult.data ?? []}
             discoverers={(discoverersResult.data ?? []) as ProvinceDiscoverer[]}
             discoverersUnavailable={Boolean(discoverersResult.error)}
             hasError={hasError}

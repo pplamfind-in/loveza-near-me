@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { createClient } from 'src/lib/supabase/server';
+import { STORE_LOGO_BUCKET } from 'src/lib/supabase/store-logo';
 
 type CandidateRow = {
   store_id: string;
@@ -48,24 +49,40 @@ export async function GET(request: Request) {
   }
 
   const rows: CandidateRow[] = data ?? [];
-  const otherStoreIds = rows.filter((row) => row.store_type === 'other').map((row) => row.store_id);
-  const logos = new Map<string, string>();
-  if (otherStoreIds.length) {
-    const { data: stores, error: logoError } = await supabase
-      .from('stores')
-      .select('id, logo_path')
-      .in('id', otherStoreIds)
-      .not('logo_path', 'is', null);
+  const masterLogos = new Map<string, string | null>();
+  const locations = new Map<
+    string,
+    { latitude: number; longitude: number; logoUrl: string | null }
+  >();
+  if (rows.length) {
+    const [locationResult, masterResult] = await Promise.all([
+      supabase
+        .from('stores')
+        .select('id, latitude, longitude, store_type, logo_path, merchant_logo_path')
+        .in(
+          'id',
+          rows.map(({ store_id }) => store_id)
+        )
+        .eq('is_active', true),
+      supabase
+        .from('store_types')
+        .select('code, logo_url')
+        .in('code', [...new Set(rows.map(({ store_type }) => store_type))]),
+    ]);
+    if (locationResult.error)
+      console.error('[api/stores/report-candidates] location query failed', locationResult.error);
+    if (masterResult.error)
+      console.error('[api/stores/report-candidates] logo query failed', masterResult.error);
 
-    if (logoError) {
-      console.error('[api/stores/report-candidates] logo query failed', logoError);
-    }
+    for (const type of masterResult.data ?? []) masterLogos.set(type.code, type.logo_url);
 
-    for (const store of stores ?? []) {
-      if (store.logo_path) {
-        const { data: logo } = supabase.storage.from('store-logos').getPublicUrl(store.logo_path);
-        logos.set(store.id, logo.publicUrl);
-      }
+    for (const store of locationResult.data ?? []) {
+      const path =
+        store.merchant_logo_path ?? (store.store_type === 'other' ? store.logo_path : null);
+      const logoUrl = path
+        ? supabase.storage.from(STORE_LOGO_BUCKET).getPublicUrl(path).data.publicUrl
+        : null;
+      locations.set(store.id, { latitude: store.latitude, longitude: store.longitude, logoUrl });
     }
   }
 
@@ -76,7 +93,10 @@ export async function GET(request: Request) {
     address: candidate.address,
     province: candidate.province,
     district: candidate.district,
-    logoUrl: logos.get(candidate.store_id) ?? null,
+    latitude: locations.get(candidate.store_id)?.latitude ?? null,
+    longitude: locations.get(candidate.store_id)?.longitude ?? null,
+    logoUrl:
+      locations.get(candidate.store_id)?.logoUrl ?? masterLogos.get(candidate.store_type) ?? null,
     distanceM: Math.max(0, Math.round(Number(candidate.distance_m))),
   }));
 

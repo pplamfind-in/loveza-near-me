@@ -14,7 +14,7 @@ import { Iconify } from 'src/components/iconify';
 import { AuthShell } from 'src/sections/auth-loveza/auth-shell';
 import { GoogleLoginButton } from 'src/sections/auth-loveza/google-login-button';
 
-import { getSafeRedirectPath } from 'src/auth/utils/safe-redirect';
+import { getLoginDestination } from 'src/auth/utils/login-destination';
 
 export const metadata: Metadata = {
   title: 'เข้าสู่ระบบ | Loveza Hunt',
@@ -30,10 +30,34 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const safeUserPath = getSafeRedirectPath(params.next, '/account');
-  const userPath = safeUserPath.startsWith('/admin') ? '/account' : safeUserPath;
+  if (user?.app_metadata.role === 'admin') redirect('/admin');
 
-  if (user) redirect(user.app_metadata.role === 'admin' ? '/admin' : userPath);
+  if (user) {
+    const { data, error } = await supabase
+      .from('account_types')
+      .select('kind')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (error) throw new Error('โหลดประเภทบัญชีไม่สำเร็จ');
+    if (data) redirect(getLoginDestination(params.next, data.kind));
+
+    const { error: createError } = await supabase
+      .from('account_types')
+      .upsert(
+        { user_id: user.id, kind: 'hunter' },
+        { onConflict: 'user_id', ignoreDuplicates: true }
+      );
+    if (createError) throw new Error('สร้างโปรไฟล์นักสำรวจไม่สำเร็จ');
+
+    const { data: account, error: readError } = await supabase
+      .from('account_types')
+      .select('kind')
+      .eq('user_id', user.id)
+      .single();
+    if (readError) throw new Error('โหลดประเภทบัญชีไม่สำเร็จ');
+
+    redirect(getLoginDestination(params.next, account.kind));
+  }
 
   return (
     <AuthShell
@@ -65,7 +89,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             component="span"
             sx={{ color: 'var(--palette-text-secondary)', fontSize: 11, fontWeight: 700 }}
           >
-            ใช้เพื่อยืนยันผู้แจ้งพิกัดและลดข้อมูลซ้ำเท่านั้น
+            ใช้บัญชี Google เพื่อยืนยันตัวตนและจดจำประเภทบัญชีของคุณ
           </Box>
         </Stack>
         <Button

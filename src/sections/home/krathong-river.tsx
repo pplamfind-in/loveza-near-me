@@ -144,12 +144,16 @@ function Krathong({ design, imageUrl }: { design: string; imageUrl: string | nul
 
 export function KrathongRiver({
   activityId,
+  activityTitle,
+  activityDescription,
   themeColor,
   open,
   preview,
   designs,
 }: {
   activityId: string;
+  activityTitle: string;
+  activityDescription: string;
   themeColor: string | null;
   open: boolean;
   preview: boolean;
@@ -164,7 +168,7 @@ export function KrathongRiver({
   const [flamePositions, setFlamePositions] = useState<Record<string, { x: number; y: number }>>({});
   const [idlePositions, setIdlePositions] = useState<{ phase: number; lane: number }[]>([]);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState<{ label: string; imageUrl: string } | null>(null);
+  const [sent, setSent] = useState<{ label: string; imageUrl: string; wish: string } | null>(null);
   const [closed, setClosed] = useState(false);
   const [error, setError] = useState('');
 
@@ -320,7 +324,7 @@ export function KrathongRiver({
       setWish('');
       setSelectedLabel('');
       setPickerOpen(false);
-      setSent(selected);
+      setSent({ ...selected, wish: cleanWish });
     } catch {
       setError('ลอยกระทงไม่สำเร็จ กรุณาลองอีกครั้ง');
     } finally {
@@ -412,7 +416,11 @@ export function KrathongRiver({
           <FlavorPollShare
             flavor={sent.label}
             imageUrl={sent.imageUrl}
-            isKrathong
+            krathong={{
+              title: activityTitle,
+              descriptionHtml: activityDescription,
+              wish: sent.wish,
+            }}
             secondaryAction={
               <Button
                 variant="contained"
@@ -506,11 +514,12 @@ export function KrathongRiver({
       >
         <Box component="form" onSubmit={submitKrathong}>
           <DialogTitle id="krathong-wish-title">{selected?.label}</DialogTitle>
-          <DialogContent sx={{ display: 'grid', gap: 1.5 }}>
+          <DialogContent sx={{ display: 'grid', gap: 1.5 ,py:2}}>
+            <Stack sx={{ py:2}}>
             <TextField
               autoFocus
               label="คำอธิษฐาน (ไม่บังคับ)"
-              helperText="คนอื่นจะเห็นเฉพาะกระทงของคุณ"
+              helperText="คำอธิษฐานจะอยู่ในภาพเมื่อคุณบันทึกหรือแชร์"
               value={wish}
               disabled={sending}
               onChange={(event) => setWish(event.target.value)}
@@ -521,7 +530,7 @@ export function KrathongRiver({
               fullWidth
               sx={{ mt: 0.5 }}
             />
-            {error && <Alert severity="error">{error}</Alert>}
+            </Stack>
           </DialogContent>
           <DialogActions>
             <Button

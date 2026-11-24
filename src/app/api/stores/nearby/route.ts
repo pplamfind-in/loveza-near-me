@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { createClient } from 'src/lib/supabase/server';
+import { STORE_LOGO_BUCKET } from 'src/lib/supabase/store-logo';
 
 type StoreCredit = { store_id: string; reporter_display_name: string | null };
 
@@ -44,7 +45,12 @@ export async function GET(request: Request) {
   const storeIds = (data ?? []).map((store: { id: string }) => store.id);
   const [storeRowsResult, creditsResult] = await Promise.all([
     storeIds.length
-      ? supabase.from('stores').select('id, store_type').in('id', storeIds)
+      ? supabase
+          .from('stores')
+          .select(
+            'id, store_type, last_reported_at, last_merchant_stock_at, merchant_stock_flavors, merchant_stock_by_flavor, merchant_logo_path, logo_path'
+          )
+          .in('id', storeIds)
       : Promise.resolve({ data: [], error: null }),
     storeIds.length
       ? supabase.rpc('nearby_store_reporter_credits', { store_ids: storeIds })
@@ -66,7 +72,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
   }
 
-  const typesByStoreId = new Map((storeRows ?? []).map((store) => [store.id, store.store_type]));
+  const detailsByStoreId = new Map((storeRows ?? []).map((store) => [store.id, store]));
   const logosByType = new Map((storeTypes ?? []).map((item) => [item.code, item.logo_url]));
   const creditsByStoreId = new Map(
     (creditsResult.data ?? []).map((credit: StoreCredit) => [
@@ -75,17 +81,25 @@ export async function GET(request: Request) {
     ])
   );
   const stores = (data ?? []).map((store: { id: string }) => {
-    const storeType = typesByStoreId.get(store.id) ?? 'unknown';
+    const details = detailsByStoreId.get(store.id);
+    const storeType = details?.store_type ?? 'unknown';
+    const merchantUpdated = Boolean(
+      details?.last_merchant_stock_at && details.last_merchant_stock_at === details.last_reported_at
+    );
+    const path = details?.merchant_logo_path ?? details?.logo_path;
+    const logo = path
+      ? supabase.storage.from(STORE_LOGO_BUCKET).getPublicUrl(path).data.publicUrl
+      : null;
     return {
       ...store,
       store_type: storeType,
-      store_type_logo_url: logosByType.get(storeType) ?? null,
-      reporter_display_name: creditsByStoreId.get(store.id) ?? null,
+      store_type_logo_url: logo ?? logosByType.get(storeType) ?? null,
+      reporter_display_name: merchantUpdated ? null : (creditsByStoreId.get(store.id) ?? null),
+      stock_updated_by_merchant: merchantUpdated,
+      merchant_stock_by_flavor: merchantUpdated ? details?.merchant_stock_by_flavor : undefined,
+      merchant_stock_flavors: merchantUpdated ? (details?.merchant_stock_flavors ?? []) : [],
     };
   });
 
-  return NextResponse.json(
-    { stores, radiusM },
-    { headers: { 'Cache-Control': 'no-store' } }
-  );
+  return NextResponse.json({ stores, radiusM }, { headers: { 'Cache-Control': 'no-store' } });
 }

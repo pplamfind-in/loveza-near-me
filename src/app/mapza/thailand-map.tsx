@@ -27,9 +27,13 @@ import { buildProvinceColorScale } from 'src/lib/mapza/province-color-scale';
 import { Iconify } from 'src/components/iconify';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
+import { STORE_TYPE_OPTIONS, getMerchantFlavorStockLabels } from 'src/types/report';
+
+type StoreFilterOption = { code: string; name: string; logo_url: string | null };
 
 type ThailandMapProps = {
   stores: MapzaStore[];
+  storeTypes: StoreFilterOption[];
   discoverers?: ProvinceDiscoverer[];
   discoverersUnavailable?: boolean;
   provinceColorSettings: ProvinceColorSettings;
@@ -119,6 +123,7 @@ function getProvinceName(
 
 export default function ThailandMap({
   stores,
+  storeTypes,
   discoverers = [],
   discoverersUnavailable = false,
   provinceColorSettings,
@@ -189,8 +194,10 @@ export default function ThailandMap({
   const [mapError, setMapError] = useState(false);
   const [provinceSearch, setProvinceSearch] = useState('');
   const [provinceFilter, setProvinceFilter] = useState<'all' | 'found' | 'missing'>('all');
-  const [selectedProvince, setSelectedProvince] = useState<ProvinceSummary | null>(null);
-  const [hoveredProvince, setHoveredProvince] = useState<ProvinceSummary | null>(null);
+  const [storeFilter, setStoreFilter] = useState<string | null>(null);
+  const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null);
+  const [hoveredProvinceId, setHoveredProvinceId] = useState<string | null>(null);
+  const [liveConnected, setLiveConnected] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const fullscreenButton = useRef<HTMLButtonElement>(null);
   const restoreFullscreenFocus = useRef(false);
@@ -213,17 +220,37 @@ export default function ThailandMap({
   );
 
   useEffect(() => {
+    let disposed = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      if (disposed || refreshTimer || document.visibilityState !== 'visible') return;
+
+      refreshTimer = setTimeout(() => {
+        refreshTimer = undefined;
+        router.refresh();
+      }, 250);
+    };
+
     const channel = supabase
       .channel('mapza-stores-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'stores' }, () => {
-        if (refreshTimer) clearTimeout(refreshTimer);
-        refreshTimer = setTimeout(() => router.refresh(), 250);
-      })
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stores' }, refresh)
+      .subscribe((status) => {
+        if (disposed) return;
+        setLiveConnected(status === 'SUBSCRIBED');
+        if (status === 'SUBSCRIBED') refresh();
+      });
+
+    // Catch up after a disconnect and reconcile rows hidden by public store visibility rules.
+    const fallbackTimer = setInterval(refresh, 30_000);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('online', refresh);
 
     return () => {
-      if (refreshTimer) clearTimeout(refreshTimer);
+      disposed = true;
+      clearTimeout(refreshTimer);
+      clearInterval(fallbackTimer);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('online', refresh);
       void supabase.removeChannel(channel);
     };
   }, [router]);
@@ -268,16 +295,30 @@ export default function ThailandMap({
     [provinceNames]
   );
 
+  const storeOptions = useMemo(() => {
+    const codes = new Set(stores.map((store) => store.store_type || 'unknown'));
+    const options = [...storeTypes];
+    storeTypes.forEach(({ code }) => codes.delete(code));
+    for (const code of codes) {
+      const name = STORE_TYPE_OPTIONS.find(({ value }) => value === code)?.label ?? code;
+      options.push({ code, name, logo_url: null });
+    }
+    return options;
+  }, [stores, storeTypes]);
+  const selectedStoreType = storeOptions.find(({ code }) => code === storeFilter) ?? null;
+  const selectedStoreCode = selectedStoreType?.code;
+
   const storesByProvince = useMemo(() => {
     const map = new Map<string, MapzaStore[]>();
     stores.forEach((store) => {
-      if (!store.province) return;
+      if (!store.province || (selectedStoreCode && (store.store_type || 'unknown') !== selectedStoreCode))
+        return;
       const bucket = map.get(store.province);
       if (bucket) bucket.push(store);
       else map.set(store.province, [store]);
     });
     return map;
-  }, [stores]);
+  }, [stores, selectedStoreCode]);
 
   const provinceSummaries = useMemo(() => {
     if (!geoJson) return [];
@@ -299,6 +340,9 @@ export default function ThailandMap({
       } satisfies ProvinceSummary;
     });
   }, [geoJson, namesByEnglishName, storesByProvince]);
+
+  const selectedProvince = provinceSummaries.find(({ id }) => id === selectedProvinceId);
+  const hoveredProvince = provinceSummaries.find(({ id }) => id === hoveredProvinceId);
 
   const activeProvinces = useMemo(
     () =>
@@ -372,6 +416,14 @@ export default function ThailandMap({
             >
               THAILAND EXPLORER
             </Typography>
+            <Chip
+              size="small"
+              variant="soft"
+              color={liveConnected ? 'success' : 'default'}
+              label={liveConnected ? 'อัปเดตสด' : 'ตรวจข้อมูลทุก 30 วินาที'}
+              aria-live="polite"
+              sx={{ mt: 0.75 }}
+            />
             <Typography sx={{ mt: 0.5, fontSize: 16, fontWeight: 800 }}>
               {hoveredProvince?.name ?? selectedProvince?.name ?? 'แผนที่ประเทศไทย · 77 จังหวัด'}
             </Typography>
@@ -388,14 +440,43 @@ export default function ThailandMap({
             useFlexGap
             flexWrap="wrap"
             spacing={0.75}
-            sx={{ maxWidth: '100%' }}
+            sx={{ width: { xs: '100%', sm: 'auto' }, maxWidth: '100%' }}
           >
+            <Autocomplete
+              size="small"
+              options={storeOptions}
+              value={selectedStoreType}
+              getOptionLabel={({ name }) => name}
+              getOptionKey={({ code }) => code}
+              isOptionEqualToValue={(option, value) => option.code === value.code}
+              onChange={(_, option) => {
+                setStoreFilter(option?.code ?? null);
+                setHoveredProvinceId(null);
+              }}
+              noOptionsText="ไม่พบร้านค้า"
+              clearText="แสดงทุกร้าน"
+              renderInput={(params) => (
+                <TextField {...params} label="ร้านค้า" placeholder="ทุกร้าน" />
+              )}
+              renderOption={({ key, ...props }, option) => (
+                <Box component="li" {...props} key={key} sx={{ gap: 1 }}>
+                  <Avatar
+                    src={option.logo_url || '/assets/icons/loveza/voxel-store.svg'}
+                    alt=""
+                    sx={{ width: 24, height: 24, bgcolor: 'background.neutral' }}
+                  />
+                  {option.name}
+                </Box>
+              )}
+              sx={{ width: { xs: '100%', sm: 190 }, bgcolor: 'background.paper' }}
+            />
             <Button
               size="small"
               variant="outlined"
               onClick={() => {
-                setSelectedProvince(null);
-                setHoveredProvince(null);
+                setSelectedProvinceId(null);
+                setHoveredProvinceId(null);
+                setStoreFilter(null);
               }}
               startIcon={<Iconify icon="ri:focus-3-line" width={16} />}
               sx={{
@@ -475,9 +556,9 @@ export default function ThailandMap({
                 followCursor
                 disableInteractive
                 open={hoveredProvince?.id === province.id}
-                onOpen={() => setHoveredProvince(province)}
+                onOpen={() => setHoveredProvinceId(province.id)}
                 onClose={() =>
-                  setHoveredProvince((current) => (current?.id === province.id ? null : current))
+                  setHoveredProvinceId((current) => (current === province.id ? null : current))
                 }
                 enterDelay={120}
                 enterTouchDelay={400}
@@ -546,15 +627,15 @@ export default function ThailandMap({
                   tabIndex={0}
                   aria-label={`${province.name} ${province.stores.length} จุดขาย`}
                   aria-pressed={selected}
-                  onMouseEnter={() => setHoveredProvince(province)}
-                  onMouseLeave={() => setHoveredProvince(null)}
-                  onFocus={() => setHoveredProvince(province)}
-                  onBlur={() => setHoveredProvince(null)}
-                  onClick={() => setSelectedProvince(province)}
+                  onMouseEnter={() => setHoveredProvinceId(province.id)}
+                  onMouseLeave={() => setHoveredProvinceId(null)}
+                  onFocus={() => setHoveredProvinceId(province.id)}
+                  onBlur={() => setHoveredProvinceId(null)}
+                  onClick={() => setSelectedProvinceId(province?.id ?? null)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      setSelectedProvince(province);
+                      setSelectedProvinceId(province?.id ?? null);
                     }
                   }}
                   style={{
@@ -681,7 +762,7 @@ export default function ThailandMap({
             <Button
               color="inherit"
               size="small"
-              onClick={() => setSelectedProvince(null)}
+              onClick={() => setSelectedProvinceId(null)}
               aria-label="ปิดรายละเอียดจังหวัด"
               sx={{
                 minWidth: 40,
@@ -737,6 +818,12 @@ export default function ThailandMap({
                       {[store.district, store.address].filter(Boolean).join(' · ') ||
                         selectedProvince.name}
                     </Typography>
+                    {Boolean(store.merchant_stock_flavors?.length || Object.keys(store.merchant_stock_by_flavor ?? {}).length) && (
+                      <Typography variant="caption" color="text.secondary">
+                        รสที่ร้านแจ้ง:{' '}
+                        {getMerchantFlavorStockLabels(store.merchant_stock_by_flavor, store.merchant_stock_flavors).join(' · ')}
+                      </Typography>
+                    )}
                     <Chip
                       size="small"
                       label={STORE_STATUS_LABEL[store.current_status] ?? STORE_STATUS_LABEL.unknown}
@@ -921,7 +1008,7 @@ export default function ThailandMap({
             noOptionsText="ไม่พบจังหวัดที่ค้นหา"
             onInputChange={(_event, value) => setProvinceSearch(value)}
             onChange={(_event, province) => {
-              setSelectedProvince(province);
+              setSelectedProvinceId(province?.id ?? null);
               setProvinceFilter('all');
               setProvinceSearch(province?.name ?? '');
             }}
@@ -1012,7 +1099,7 @@ export default function ThailandMap({
                 component="button"
                 type="button"
                 aria-pressed={selectedProvince?.id === province.id}
-                onClick={() => setSelectedProvince(province)}
+                onClick={() => setSelectedProvinceId(province?.id ?? null)}
                 sx={{
                   p: 1.4,
                   gap: 1.25,

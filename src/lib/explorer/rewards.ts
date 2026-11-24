@@ -47,7 +47,7 @@ export const EXPLORER_REWARDS = [
   },
   {
     id: 'cheer-squad',
-    name: 'Cheerleader · ทีมเชียร์นักล่า',
+    name: 'Cheerleader · ทีมเชียร์นักสำรวจ',
     character: 'p-cheerleader.webp',
     condition: 'มีร้านไม่ซ้ำที่ผ่านอนุมัติ 2 ร้าน',
     metric: 'uniqueStores',

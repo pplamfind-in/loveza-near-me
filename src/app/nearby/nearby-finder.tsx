@@ -29,6 +29,7 @@ import { formatRadiusM } from 'src/lib/admin/duplicate-radius';
 import { Iconify } from 'src/components/iconify';
 
 import { STORE_STATUS_LABEL } from 'src/types/store';
+import { getMerchantFlavorStockLabels } from 'src/types/report';
 
 import { NearbyMap } from './nearby-map';
 import { getNearbyStoreColor } from './nearby-colors';
@@ -681,6 +682,11 @@ export function NearbyFinder() {
                   </Typography>
                 </Box>
               </Box>
+              {Boolean(store.merchant_stock_flavors?.length || Object.keys(store.merchant_stock_by_flavor ?? {}).length) && (
+                <Typography variant="caption" color="text.secondary">
+                  รสที่ร้านแจ้ง: {getMerchantFlavorStockLabels(store.merchant_stock_by_flavor, store.merchant_stock_flavors).join(' · ')}
+                </Typography>
+              )}
               <Box sx={{ mt: 'auto' }}>
                 <Stack
                   direction="row"
@@ -703,7 +709,9 @@ export function NearbyFinder() {
                 >
                   <Iconify icon="ri:user-heart-line" width={14} sx={{ mt: 0.2, flexShrink: 0 }} />
                   <Typography sx={{ fontSize: 11, lineHeight: 1.7, overflowWrap: 'anywhere' }}>
-                    โดย {store.reporter_display_name ?? 'นักล่า Loveza'}
+                    {store.stock_updated_by_merchant
+                      ? 'อัปเดตโดยร้านค้า'
+                      : `โดย ${store.reporter_display_name ?? 'นักสำรวจ Loveza'}`}
                   </Typography>
                 </Stack>
                 <Button

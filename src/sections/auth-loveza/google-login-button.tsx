@@ -1,7 +1,6 @@
 'use client';
 
 import Script from 'next/script';
-import { useRouter } from 'next/navigation';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -17,8 +16,6 @@ import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { supabase } from 'src/lib/supabase';
-
-import { getSafeRedirectPath } from 'src/auth/utils/safe-redirect';
 
 type GoogleCredentialResponse = {
   credential: string;
@@ -71,7 +68,6 @@ async function hashNonce(value: string) {
 }
 
 export function GoogleLoginButton({ clientId, nextPath, onSuccess }: GoogleLoginButtonProps) {
-  const router = useRouter();
   const buttonRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef('');
   const [scriptReady, setScriptReady] = useState(false);
@@ -101,14 +97,12 @@ export function GoogleLoginButton({ clientId, nextPath, onSuccess }: GoogleLogin
         return;
       }
 
-      const role = data.user?.app_metadata.role ?? 'user';
-      const safeUserPath = getSafeRedirectPath(nextPath, '/account');
-      const userPath = safeUserPath.startsWith('/admin') ? '/account' : safeUserPath;
-
-      router.replace(role === 'admin' ? '/admin' : userPath);
-      router.refresh();
+      const continuation = nextPath ? `?next=${encodeURIComponent(nextPath)}` : '';
+      window.location.replace(
+        data.user?.app_metadata.role === 'admin' ? '/admin' : `/auth/login${continuation}`
+      );
     },
-    [nextPath, onSuccess, router]
+    [nextPath, onSuccess]
   );
 
   useEffect(() => {
